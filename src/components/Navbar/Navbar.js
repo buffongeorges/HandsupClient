@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "../Button";
 import { MenuItems } from "./MenuItems";
-import "./Navbar.css";
+import "./Navbar.css"; 
 import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
