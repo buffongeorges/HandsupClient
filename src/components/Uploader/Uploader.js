@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Papa from "papaparse";
 import Form from "react-bootstrap/Form";
 
 import Button from "react-bootstrap/Button";
@@ -8,13 +7,11 @@ import { useNavigate } from "react-router-dom";
 const allowedExtensions = ["csv"];
 
 export default function Uploader() {
-  const [data, setData] = useState([]);
   let navigate = useNavigate();
 
 
   // It state will contain the error when
   // correct file extension is not used
-  const [error, setError] = useState("");
 
   // It will store the file uploaded by the user
   const [file, setFile] = useState("");
@@ -22,7 +19,6 @@ export default function Uploader() {
   // This function will be called when
   // the file input changes
   const handleFileChange = (e) => {
-    setError("");
 
     // Check if user has entered the file
     if (e.target.files.length) {
@@ -34,7 +30,6 @@ export default function Uploader() {
       // we show the error
       const fileExtension = inputFile?.type.split("/")[1];
       if (!allowedExtensions.includes(fileExtension)) {
-        setError("Please input a csv file");
         return;
       }
 

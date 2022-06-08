@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import ListGroup from "react-bootstrap/ListGroup";
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
@@ -59,7 +59,7 @@ export default function Classes() {
             <>
               <ListGroup.Item className="border-0">
                 <Button onClick={() => goToClass(classe)}>{classe}</Button>{" "}
-                {index % 2 == 0 ? <br /> : ""}
+                {index % 2 === 0 ? <br /> : ""}
               </ListGroup.Item>{" "}
               <br />
             </>
