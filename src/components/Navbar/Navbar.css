@@ -54,6 +54,7 @@
     display: none;
 }
 
+
 @media screen and (max-width: 960px) {
     .NavbarItems {
         position: relative;
@@ -121,8 +122,8 @@
         border-radius: 4px;
         width: 80%;
         text-decoration: none;
-        color: #fff;
-        background: #4ad9e4;
+        color: red;
+        background: red;
         font-size: 1.5rem;
     }
 
