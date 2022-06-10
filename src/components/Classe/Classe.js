@@ -67,11 +67,13 @@ export default function Classe() {
         Bonus: <CounterInput
         min={0}
         max={10}
+        count={2}
         onCountChange={(count) => console.log(count)}
       />
         Avertissement: <CounterInput
         min={0}
         max={10}
+        count={4}
         onCountChange={(count) => console.log(count)}
       />
         <Button onClick={() => goToStudent()}>Voir stats</Button>
