@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { createPath, useParams } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
@@ -17,31 +17,37 @@ let sts = [
     id: 1,
     nom: "Eleve 1",
     photo: "../",
+    position: 1,
   },
   {
     id: 2,
     nom: "Eleve 2",
     photo: "../",
+    position: 2,
   },
   {
     id: 3,
     nom: "Eleve 3",
     photo: "../",
+    position: 3,
   },
   {
     id: 4,
     nom: "Eleve 4",
     photo: "../",
+    position: 4,
   },
   {
     id: 5,
     nom: "Eleve 5",
     photo: "../",
+    position: 5,
   },
   {
     id: 6,
     nom: "Eleve 6",
     photo: "../",
+    position: 6,
   },
 ];
 
@@ -63,7 +69,6 @@ export default function Classe() {
     console.log(selectedStudent);
     alert("Sélectionnez le 2ème élève");
     setIsSwitching(true);
-
     setHidePopover(true);
   };
 
@@ -150,18 +155,47 @@ export default function Classe() {
     console.log(selectedStudent);
     console.log("switchStudent");
     console.log(switchStudent);
+
+    //change position of 2 students :
+    let tmp = selectedStudent;
+    eleves.forEach((el) => {
+      if (el.id == selectedStudent.id) {
+        console.log(el);
+        el.position = switchStudent.position;
+      }
+      return el;
+    });
+
+    eleves.forEach((el) => {
+      if (el.id == switchStudent.id) {
+        console.log(el);
+        el.position = tmp.position;
+      }
+      return el;
+    });
+
+    //reorder whole list :
+    eleves.sort(function (a, b) {
+      return a.position - b.position;
+    });
+
+    console.log("eleves");
+    console.log(eleves);
   };
 
   const handleStudentClick = (eleve) => {
+    console.log("selectedStudent");
+    console.log(selectedStudent);
+    setSelectedStudent(eleve);
+
     if (isSwitching) {
       setShowModal(true);
       setSwitchStudent(eleve);
-
+      setHidePopover(true);
     } else {
       setSelectedStudent(eleve);
+      // setIsSwitching(false);
     }
-    setIsSwitching(false);
-    setHidePopover(false);
   };
 
   useEffect(() => {
@@ -202,6 +236,7 @@ export default function Classe() {
                 trigger="click"
                 placement="auto"
                 overlay={popover}
+                rootClose
                 {...(hidePopover === true && { show: false })}
               >
                 <li
