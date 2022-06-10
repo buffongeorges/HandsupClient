@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -11,7 +11,7 @@ import CounterInput from "react-counter-input";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
-let eleves = [
+let sts = [
   {
     id: 1,
     nom: "Eleve 1",
@@ -50,33 +50,47 @@ export default function Classe() {
   const location = useLocation();
 
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [eleves, setEleves] = useState(sts);
+  const [counter, setCounter] = useState(eleves.length + 1);
 
   const popover = (
-    <Popover id="popover-basic">
-      <Popover.Header as="h3">{selectedStudent?.nom}</Popover.Header>
+    <Popover id="popover-students">
+      <Popover.Header as="h3">
+        {selectedStudent?.nom}
+        <a
+          href="#"
+          style={{ color: "black" }}
+          onClick={() => goToStudentEdit()}
+        >
+          <i className="fa-solid fa-pen-to-square"></i>
+        </a>
+      </Popover.Header>
       <Popover.Body>
         Nom: <strong>{selectedStudent?.nom}</strong> <br />
         Age: <strong>{"12"}</strong> <br />
         Classe: <strong>{"6EME 1"}</strong> <br />
         Collège: <strong>{"Soualiga"}</strong> <br />
-        Participation: <CounterInput
-        min={0}
-        max={10}
-        onCountChange={(count) => console.log(count)}
-      />
-        Bonus: <CounterInput
-        min={0}
-        max={10}
-        count={2}
-        onCountChange={(count) => console.log(count)}
-      />
-        Avertissement: <CounterInput
-        min={0}
-        max={10}
-        count={4}
-        onCountChange={(count) => console.log(count)}
-      />
-        <Button onClick={() => goToStudent()}>Voir stats</Button>
+        Participation:{" "}
+        <CounterInput
+          min={0}
+          max={10}
+          onCountChange={(count) => console.log(count)}
+        />
+        Bonus:{" "}
+        <CounterInput
+          min={0}
+          max={10}
+          count={2}
+          onCountChange={(count) => console.log(count)}
+        />
+        Avertissement:{" "}
+        <CounterInput
+          min={0}
+          max={10}
+          count={4}
+          onCountChange={(count) => console.log(count)}
+        />
+        <Button onClick={() => goToStudentStats()}>Voir stats</Button>
       </Popover.Body>
     </Popover>
   );
@@ -87,10 +101,30 @@ export default function Classe() {
     console.log(selectedStudent);
   };
 
-  const goToStudent = () => {
-    let path = `${location.pathname}/${selectedStudent.id}`;
+  const addNewStudent = () => {
+    console.log('nouveau');
+    eleves.push({
+      id: counter + 1,
+      nom: `Eleve ${counter}`,
+      photo: "../",
+    });
+    setCounter(counter + 1);
+  }
+
+  const goToStudentStats = () => {
+    console.log(location);
+    let path = `../student/${selectedStudent.id}/stats`;
+    navigate(`${path}`);
+  };
+
+  const goToStudentEdit = () => {
+    let path = `../student/${selectedStudent.id}/edit`;
     navigate(`${path}`, { replace: true });
   };
+
+  useEffect(() => {
+    setEleves(sts)
+  }, [counter])
   return (
     <Container fluid>
       <div id="students-cells">
@@ -133,7 +167,10 @@ export default function Classe() {
           })}
         </ul>
       </div>
-      <div id="students-table-list">
+      <div
+        id="students-table-list"
+        style={{ position: "fixed", right: "2rem" }}
+      >
         <ListGroup>
           {eleves.map((eleve, index) => {
             return (
@@ -149,6 +186,12 @@ export default function Classe() {
             );
           })}
         </ListGroup>
+        <div style={{display: 'flex', justifyContent: 'center', marginTop: '1rem'}}>
+          
+          <button class="btn" onClick={() => {addNewStudent()}}>
+            <i class="fa fa-circle-plus fa-xl"></i></button>
+
+        </div>
       </div>
     </Container>
   );

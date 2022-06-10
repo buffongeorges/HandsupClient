@@ -2,8 +2,10 @@ import React from "react";
 import { useParams } from "react-router-dom";
 
 
-export default function Eleve() {
-    let { id } = useParams();
+export default function EleveEdit() {
+    let { studentId } = useParams();
+    console.log('studentId')
+    console.log(studentId)
 
   return (
     <div
@@ -16,7 +18,7 @@ export default function Eleve() {
         paddingLeft: "2rem",
       }}
     >
-      {"Fiche élève et ses statistiques ici"}
+      {"Mettre à jour les informations sur l'élève ici"}
     </div>
   );
 }
