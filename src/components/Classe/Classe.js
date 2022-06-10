@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
+import Modal from "react-bootstrap/Modal";
 import ListGroup from "react-bootstrap/ListGroup";
 import Popover from "react-bootstrap/Popover";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
@@ -48,11 +49,23 @@ export default function Classe() {
   let { id } = useParams();
   let navigate = useNavigate();
   const location = useLocation();
-  const classe = location.pathname.split('/classes/')[1];
+  const classe = location.pathname.split("/classes/")[1];
 
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [switchStudent, setSwitchStudent] = useState(null);
   const [eleves, setEleves] = useState(sts);
   const [counter, setCounter] = useState(eleves.length + 1);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [hidePopover, setHidePopover] = useState(undefined);
+  const [showModal, setShowModal] = useState(false);
+  const switchStudents = () => {
+    console.log("selectedStudent");
+    console.log(selectedStudent);
+    alert("Sélectionnez le 2ème élève");
+    setIsSwitching(true);
+
+    setHidePopover(true);
+  };
 
   const popover = (
     <Popover id="popover-students">
@@ -92,6 +105,9 @@ export default function Classe() {
           onCountChange={(count) => console.log(count)}
         />
         <Button onClick={() => goToStudentStats()}>Voir stats</Button>
+        <Button variant="info" onClick={() => switchStudents()}>
+          Echanger
+        </Button>
       </Popover.Body>
     </Popover>
   );
@@ -103,18 +119,18 @@ export default function Classe() {
   };
 
   const downloadClassFile = () => {
-    alert('Vous pourrez bientot télécharger le fichier!')
-  }
+    alert("Vous pourrez bientot télécharger le fichier!");
+  };
 
   const addNewStudent = () => {
-    console.log('nouveau');
+    console.log("nouveau");
     eleves.push({
       id: counter + 1,
       nom: `Eleve ${counter}`,
       photo: "../",
     });
     setCounter(counter + 1);
-  }
+  };
 
   const goToStudentStats = () => {
     console.log(location);
@@ -127,11 +143,57 @@ export default function Classe() {
     navigate(`${path}`, { replace: true });
   };
 
+  const processSwitch = () => {
+    console.log("échanger les index");
+    setShowModal(false);
+    console.log("selectedStudent");
+    console.log(selectedStudent);
+    console.log("switchStudent");
+    console.log(switchStudent);
+  };
+
+  const handleStudentClick = (eleve) => {
+    if (isSwitching) {
+      setShowModal(true);
+      setSwitchStudent(eleve);
+
+    } else {
+      setSelectedStudent(eleve);
+    }
+    setIsSwitching(false);
+    setHidePopover(false);
+  };
+
   useEffect(() => {
-    setEleves(sts)
-  }, [counter])
+    setEleves(sts);
+  }, [counter]);
+
   return (
     <Container fluid>
+      <Modal show={showModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Echange de places</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Etes vous sur de vouloir faire l'échange ?</Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowModal(false);
+            }}
+          >
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              processSwitch();
+            }}
+          >
+            Confirmer
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div id="students-cells">
         <ul style={{ listStyle: "none" }}>
           {eleves.map((eleve) => {
@@ -140,7 +202,7 @@ export default function Classe() {
                 trigger="click"
                 placement="auto"
                 overlay={popover}
-                rootClose
+                {...(hidePopover === true && { show: false })}
               >
                 <li
                   key={eleve.id}
@@ -154,7 +216,7 @@ export default function Classe() {
                     style={{ color: "purple" }}
                     href={`#${eleve.id}`}
                     onClick={() => {
-                      setSelectedStudent(eleve);
+                      handleStudentClick(eleve);
                     }}
                   >
                     <Image
@@ -176,14 +238,16 @@ export default function Classe() {
         id="students-table-list"
         style={{ position: "fixed", right: "2rem" }}
       >
-        <div style={{marginBottom: '1rem'}}>Classe: {classe} 
-        <a
-          href="#"
-          style={{ color: "black" }}
-          onClick={() => downloadClassFile()}
-        >
-          <i className="fa-solid fa-download"></i>
-        </a></div>
+        <div style={{ marginBottom: "1rem" }}>
+          Classe: {classe}
+          <a
+            href="#"
+            style={{ color: "black" }}
+            onClick={() => downloadClassFile()}
+          >
+            <i className="fa-solid fa-download"></i>
+          </a>
+        </div>
         <ListGroup>
           {eleves.map((eleve, index) => {
             return (
@@ -199,11 +263,21 @@ export default function Classe() {
             );
           })}
         </ListGroup>
-        <div style={{display: 'flex', justifyContent: 'center', marginTop: '1rem'}}>
-          
-          <button class="btn" onClick={() => {addNewStudent()}}>
-            <i class="fa fa-circle-plus fa-xl"></i></button>
-
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "1rem",
+          }}
+        >
+          <button
+            class="btn"
+            onClick={() => {
+              addNewStudent();
+            }}
+          >
+            <i class="fa fa-circle-plus fa-xl"></i>
+          </button>
         </div>
       </div>
     </Container>
