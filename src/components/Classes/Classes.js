@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
 import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Table from "react-bootstrap/Table";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
@@ -35,6 +39,12 @@ export default function Classes() {
   let navigate = useNavigate();
   const location = useLocation();
 
+  const Input = () => {
+    return <input placeholder="Your input here" />;
+  };
+
+  const [inputList, setInputList] = useState([]);
+
   const goToClass = (selectedClass) => {
     selectedClass = selectedClass.replace(/\s/g, "");
 
@@ -53,19 +63,19 @@ export default function Classes() {
         paddingLeft: "2rem",
       }}
     >
-      <ListGroup variant="flush" horizontal>
-        {classes.map((classe, index) => {
-          return (
-            <>
-              <ListGroup.Item className="border-0">
-                <Button onClick={() => goToClass(classe)}>{classe}</Button>{" "}
-                {index % 2 === 0 ? <br /> : ""}
-              </ListGroup.Item>{" "}
-              <br />
-            </>
-          );
-        })}
-      </ListGroup>
+
+      <Container fluid>
+        <div>
+          {classes.map((classe, index) => {
+            return (
+              // <ListGroup.Item className="border-0">
+              <div style={{float: 'left', marginBottom: '2rem', marginRight: '2rem'}}>
+                <Button  onClick={() => goToClass(classe)}>{classe}</Button>
+              </div>
+            );
+          })}
+          </div>
+      </Container>
     </div>
   );
 }

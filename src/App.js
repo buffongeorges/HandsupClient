@@ -7,6 +7,7 @@ import Uploader from "./components/Uploader/Uploader";
 import Home from "./components/Home/Home";
 import Classe from "./components/Classe/Classe";
 import Contact from "./components/Contact/Contact";
+import Eleve from "./components/Eleve/Eleve";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/import" element={<Uploader/>} />
           <Route path="/classes" element={<Classes/>} />
           <Route path="/classes/:id" element={<Classe/>} />
+          <Route path="/classes/:id/:studentId" element={<Eleve/>} />
           <Route path="/login" element={<Login/>} />
         </Routes>
       </div>
