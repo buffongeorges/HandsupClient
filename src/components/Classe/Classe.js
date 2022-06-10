@@ -48,6 +48,7 @@ export default function Classe() {
   let { id } = useParams();
   let navigate = useNavigate();
   const location = useLocation();
+  const classe = location.pathname.split('/classes/')[1];
 
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [eleves, setEleves] = useState(sts);
@@ -101,6 +102,10 @@ export default function Classe() {
     console.log(selectedStudent);
   };
 
+  const downloadClassFile = () => {
+    alert('Vous pourrez bientot télécharger le fichier!')
+  }
+
   const addNewStudent = () => {
     console.log('nouveau');
     eleves.push({
@@ -141,7 +146,7 @@ export default function Classe() {
                   key={eleve.id}
                   style={{
                     float: "left",
-                    marginBottom: "5rem",
+                    marginBottom: "2rem",
                     marginRight: "5rem",
                   }}
                 >
@@ -171,6 +176,14 @@ export default function Classe() {
         id="students-table-list"
         style={{ position: "fixed", right: "2rem" }}
       >
+        <div style={{marginBottom: '1rem'}}>Classe: {classe} 
+        <a
+          href="#"
+          style={{ color: "black" }}
+          onClick={() => downloadClassFile()}
+        >
+          <i className="fa-solid fa-download"></i>
+        </a></div>
         <ListGroup>
           {eleves.map((eleve, index) => {
             return (
