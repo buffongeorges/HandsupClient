@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
 
 export default function EleveStats() {
@@ -48,46 +49,46 @@ export default function EleveStats() {
   ];
 
   return (
-    <div className="container"
-    style={{
-      textAlign: "center",
-      position: "relative",
-      justifyContent: "center",
-      paddingTop: "2rem",
-      paddingLeft: "2rem",
-    }}>
-      <div
-        id="student-stats"
-        style={{marginBottom: '2rem'}}
-      >
+    <div
+      className="container"
+      style={{
+        textAlign: "center",
+        position: "relative",
+        justifyContent: "center",
+        paddingTop: "2rem",
+        paddingLeft: "2rem",
+      }}
+    >
+      <h1 id="student-stats" style={{ marginBottom: "2rem" }}>
         Statistiques de Eleve 2
-      </div>
-      <div ></div>
-      <LineChart
-        width={500}
-        height={350}
-        data={data}
-        margin={{
-          top: 5,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="Participation" stroke="#82ca9d" />
-        <Line
-          type="monotone"
-          dataKey="Bonus"
-          stroke="#8884d8"
-          activeDot={{ r: 8 }}
-        />
-        <Line type="monotone" dataKey="Avertissement" stroke="#c29825" />
-      </LineChart>
+      </h1>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          width={500}
+          height={300}
+          data={data}
+          margin={{
+            top: 5,
+            right: 30,
+            left: 20,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="Participation" stroke="#82ca9d" />
+          <Line
+            type="monotone"
+            dataKey="Bonus"
+            stroke="#8884d8"
+            activeDot={{ r: 8 }}
+          />
+          <Line type="monotone" dataKey="Avertissement" stroke="#c29825" />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
