@@ -16,7 +16,6 @@ export default function Home({ handleNavbar }) {
     }, 5000);
   }, []);
   if (loading && typeof handleNavbar === "function")
-
     return (
       <>
         <div
@@ -27,7 +26,7 @@ export default function Home({ handleNavbar }) {
             height: "100vh",
           }}
         >
-          <img src={"/images/handsup.png"} />
+          <img src={"/images/handsup.png"} style={{maxWidth: '100%', maxHeight: '100%'}} />
           </div>
       </>
     );
