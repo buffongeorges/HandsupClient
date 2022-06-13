@@ -9,8 +9,6 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Popover from "react-bootstrap/Popover";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CounterInput from "react-counter-input";
 
 import { useNavigate } from "react-router-dom";
@@ -125,17 +123,17 @@ export default function Classe() {
   };
 
   const addNewStudent = () => {
-    console.log("nouveau");
-    eleves.push({
-      id: counter,
-      nom: `Eleve ${counter}`,
-      photo: "/images/blank.png",
-      position: counter,
-      participation: 0,
-      bonus: 0,
-      avertissement: 0,
-    });
-    setCounter(counter + 1);
+    let newList = [...eleves];
+    let firstEmptyStudentIndex = newList.findIndex(el => el.empty == true);
+    let updatedStudent = newList[firstEmptyStudentIndex];
+    updatedStudent.empty = false;
+    updatedStudent.bonus = 0;
+    updatedStudent.avertissement = 0;
+    updatedStudent.participation = 0;
+
+    newList[firstEmptyStudentIndex] = updatedStudent;
+    setEleves(newList);
+
   };
 
   const goToStudentStats = (eleve) => {
@@ -216,6 +214,23 @@ export default function Classe() {
     setEleves(sts);
   }, [counter]);
 
+  useEffect(() => {
+    let studentsList = [...sts];
+    for (var i = 1; i <= 48 - sts.length; i++ ) {
+      studentsList.push({
+        id: studentsList.length+1,
+        nom: `Eleve ${studentsList.length+1}`,
+        photo: "/images/blank.png",
+        position: studentsList.length+1,
+        participation: null,
+        bonus: null,
+        avertissement: null,
+        empty: true,
+      });
+    }
+    setEleves(studentsList)
+  }, [])
+
   return (
     <Container fluid style={{ marginTop: "1rem" }}>
       <Modal show={showModal}>
@@ -245,8 +260,7 @@ export default function Classe() {
         </Modal.Footer>
       </Modal>
       <Row>
-        <Col lg="11">
-          {" "}
+        <Col xs="9" md='9' lg="9">
           <div style={{ marginTop: "0.5rem" }}>
             <Tabs
               id="controlled-tab-example"
@@ -266,17 +280,15 @@ export default function Classe() {
                 style={{ flex: 1, textAlign: "center" }}
               >
                 <div id="students-cells-participation">
-                  {/* <ul style={{ listStyle: "none", display: 'flex', flexWrap: 'wrap' }}> */}
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {eleves.map((eleve) => {
                       return (
                         <div
                           key={eleve.id}
                           style={{
-                            // float: "left",
-                            marginBottom: "2rem",
-                            marginRight: "5rem",
-                            flex: "1 0 15%",
+                            marginBottom: "0.5rem",
+                            marginRight: "0.5rem",
+                            flex: "1 0 10%",
                           }}
                         >
                           <a
@@ -291,10 +303,13 @@ export default function Classe() {
                               src={eleve.photo}
                               style={{
                                 objectFit: "cover",
-                                width: "100%",
-                                height: "200px",
+                                width: "60px",
+                                height: "60px",
                                 borderRadius: "50%",
-                                flex: "1 0 21%",
+                                flex: "1 0 10%",
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                                display: 'block'
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -328,7 +343,6 @@ export default function Classe() {
                       );
                     })}
                   </div>
-                  {/* </ul> */}
                 </div>
               </Tab>
               <Tab eventKey="bonus" title="Bonus">
@@ -339,10 +353,9 @@ export default function Classe() {
                         <div
                           key={eleve.id}
                           style={{
-                            float: "left",
-                            marginBottom: "2rem",
-                            marginRight: "5rem",
-                            flex: "1 0 15%",
+                            marginBottom: "0.5rem",
+                            marginRight: "0.5rem",
+                            flex: "1 0 10%",
                           }}
                         >
                           <a
@@ -357,10 +370,13 @@ export default function Classe() {
                               src={eleve.photo}
                               style={{
                                 objectFit: "cover",
-                                width: "100%",
-                                height: "200px",
+                                width: "60px",
+                                height: "60px",
                                 borderRadius: "50%",
-                                flex: "1 0 21%",
+                                flex: "1 0 10%",
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                                display: 'block'
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -404,10 +420,9 @@ export default function Classe() {
                         <div
                           key={eleve.id}
                           style={{
-                            float: "left",
-                            marginBottom: "2rem",
-                            marginRight: "5rem",
-                            flex: "1 0 15%",
+                            marginBottom: "0.5rem",
+                            marginRight: "0.5rem",
+                            flex: "1 0 10%",
                           }}
                         >
                           <a
@@ -424,10 +439,13 @@ export default function Classe() {
                               src={eleve.photo}
                               style={{
                                 objectFit: "cover",
-                                width: "100%",
-                                height: "200px",
+                                width: "60px",
+                                height: "60px",
                                 borderRadius: "50%",
-                                flex: "1 0 21%",
+                                flex: "1 0 10%",
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                                display: 'block'
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -475,15 +493,13 @@ export default function Classe() {
                         <div
                           key={eleve.id}
                           style={{
-                            float: "left",
-                            marginBottom: "2rem",
-                            marginRight: "5rem",
-                            flex: "1 0 15%",
+                            marginBottom: "0.5rem",
+                            marginRight: "0.5rem",
+                            flex: "1 0 10%",
                           }}
                         >
                           <a
                             style={{ color: "black", textDecoration: "none" }}
-                            // href={`#${eleve.id}`}
                             onClick={() => {
                               goToStudentStats(eleve);
                             }}
@@ -492,10 +508,13 @@ export default function Classe() {
                               src={eleve.photo}
                               style={{
                                 objectFit: "cover",
-                                width: "100%",
-                                height: "200px",
+                                width: "60px",
+                                height: "60px",
                                 borderRadius: "50%",
-                                flex: "1 0 21%",
+                                flex: "1 0 10%",
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
+                                display: 'block'
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -522,13 +541,12 @@ export default function Classe() {
                 </div>
               </Tab>
             </Tabs>
-          </div>{" "}
+          </div>
         </Col>
-        <Col>
-          {" "}
+        <Col xs='3' md='3' lg='3'>
           <div
             id="students-table-list"
-            style={{ position: "fixed", right: "2rem" }}
+            style={{}}
           >
             <div style={{ marginBottom: "1rem" }}>
               Classe: {classe}
@@ -542,12 +560,12 @@ export default function Classe() {
             </div>
             <ListGroup>
               {eleves.map((eleve, index) => {
+                if (!eleve.empty)
                 return (
                   <ListGroup.Item
                     key={eleve.id}
                     action
                     active={eleve.id === selectedStudent?.id}
-                    // href={`#/${eleve.id}`}
                     onClick={() => studentInTableClick(eleve)}
                   >
                     {eleve.nom}
