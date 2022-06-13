@@ -5,6 +5,8 @@ import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
 import Modal from "react-bootstrap/Modal";
 import ListGroup from "react-bootstrap/ListGroup";
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
 import Popover from "react-bootstrap/Popover";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CounterInput from "react-counter-input";
@@ -18,36 +20,54 @@ let sts = [
     nom: "Eleve 1",
     photo: "../",
     position: 1,
+    participation: 2,
+    bonus: 1,
+    avertissement: 0,
   },
   {
     id: 2,
     nom: "Eleve 2",
     photo: "../",
     position: 2,
+    participation: 3,
+    bonus: 4,
+    avertissement: 2,
   },
   {
     id: 3,
     nom: "Eleve 3",
     photo: "../",
     position: 3,
+    participation: 0,
+    bonus: 1,
+    avertissement: 1,
   },
   {
     id: 4,
     nom: "Eleve 4",
     photo: "../",
     position: 4,
+    participation: 2,
+    bonus: 2,
+    avertissement: 2,
   },
   {
     id: 5,
     nom: "Eleve 5",
     photo: "../",
     position: 5,
+    participation: 0,
+    bonus: 0,
+    avertissement: 0,
   },
   {
     id: 6,
     nom: "Eleve 6",
     photo: "../",
     position: 6,
+    participation: 1,
+    bonus: 1,
+    avertissement: 3,
   },
 ];
 
@@ -56,6 +76,7 @@ export default function Classe() {
   let navigate = useNavigate();
   const location = useLocation();
   const classe = location.pathname.split("/classes/")[1];
+  const [key, setKey] = useState("participation");
 
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [switchStudent, setSwitchStudent] = useState(null);
@@ -130,16 +151,21 @@ export default function Classe() {
   const addNewStudent = () => {
     console.log("nouveau");
     eleves.push({
-      id: counter + 1,
+      id: counter,
       nom: `Eleve ${counter}`,
       photo: "../",
+      position: counter,
+      participation: 0,
+      bonus: 0,
+      avertissement: 0,
     });
     setCounter(counter + 1);
   };
 
-  const goToStudentStats = () => {
+  const goToStudentStats = (eleve) => {
     console.log(location);
-    let path = `../student/${selectedStudent.id}/stats`;
+    let path = `../student/${eleve.id}/stats`;
+    console.log(path)
     navigate(`${path}`);
   };
 
@@ -198,6 +224,18 @@ export default function Classe() {
     }
   };
 
+  const saveAvertissement = (student) => {
+    setSelectedStudent(null);
+  }
+
+  const saveParticipation = (student) => {
+    setSelectedStudent(null);
+  }
+
+  const saveBonus = (student) => {
+    setSelectedStudent(null);
+  }
+
   useEffect(() => {
     setEleves(sts);
   }, [counter]);
@@ -214,6 +252,8 @@ export default function Classe() {
             variant="secondary"
             onClick={() => {
               setShowModal(false);
+              setIsSwitching(false);
+              setHidePopover(false);
             }}
           >
             Annuler
@@ -228,47 +268,219 @@ export default function Classe() {
           </Button>
         </Modal.Footer>
       </Modal>
-      <div id="students-cells">
-        <ul style={{ listStyle: "none" }}>
-          {eleves.map((eleve) => {
-            return (
-              <OverlayTrigger
-                trigger="click"
-                placement="auto"
-                overlay={popover}
-                rootClose
-                {...(hidePopover === true && { show: false })}
-              >
-                <li
-                  key={eleve.id}
-                  style={{
-                    float: "left",
-                    marginBottom: "2rem",
-                    marginRight: "5rem",
-                  }}
-                >
-                  <a
-                    style={{ color: "purple" }}
-                    href={`#${eleve.id}`}
-                    onClick={() => {
-                      handleStudentClick(eleve);
-                    }}
-                  >
-                    <Image
-                      src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
-                      roundedCircle
-                      {...(selectedStudent?.id == eleve.id && {
-                        border: "2px solid purple",
-                      })}
-                    />
-                  </a>
-                  <p style={{ textAlign: "center" }}>{eleve.nom}</p>
-                </li>
-              </OverlayTrigger>
-            );
-          })}
-        </ul>
+      <div style={{ marginTop: "0.5rem" }}>
+        <Tabs
+          id="controlled-tab-example"
+          activeKey={key}
+          onSelect={(k) => setKey(k)}
+          style={{
+            display: "flex",
+            flexWrap: "nowrap",
+            alignItems: "stretch",
+            margin: 0,
+            padding: 0,
+          }}
+        >
+          <Tab
+            eventKey="participation"
+            title="Participation"
+            style={{ flex: 1, textAlign: "center" }}
+          >
+            <div id="students-cells-participation">
+              <ul style={{ listStyle: "none" }}>
+                {eleves.map((eleve) => {
+                  return (
+                    <li
+                      key={eleve.id}
+                      style={{
+                        float: "left",
+                        marginBottom: "2rem",
+                        marginRight: "5rem",
+                      }}
+                    >
+                      <a
+                        style={{ color: "black", textDecoration: "none" }}
+                        href={`#${eleve.id}`}
+                        onClick={() => {
+                          handleStudentClick(eleve);
+                        }}
+                        onBlur={() => saveParticipation(eleve)}
+                      >
+                        <Image
+                          src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
+                          roundedCircle
+                          {...(selectedStudent?.id == eleve.id && {
+                            border: "2px solid purple",
+                          })}
+                        />
+                        {selectedStudent?.id !== eleve.id &&
+                        (<p style={{ textAlign: "center" }}>
+                          <strong>{eleve.participation}</strong>
+                        </p>)}
+                        {selectedStudent?.id === eleve.id && (<div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                          <CounterInput
+                            count={eleve.participation}
+                            min={0}
+                            max={10}
+                            onCountChange={(count) => {console.log(count); eleve.participation=count}}
+                          />
+                        </div>)}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </Tab>
+          <Tab eventKey="bonus" title="Bonus">
+            <div id="students-cells-bonus">
+              <ul style={{ listStyle: "none" }}>
+                {eleves.map((eleve) => {
+                  return (
+                    <li
+                      key={eleve.id}
+                      style={{
+                        float: "left",
+                        marginBottom: "2rem",
+                        marginRight: "5rem",
+                      }}
+                    >
+                      <a
+                        style={{ color: "black", textDecoration: "none" }}
+                        href={`#${eleve.id}`}
+                        onClick={() => {
+                          handleStudentClick(eleve);
+                        }}
+                        onBlur={() => saveBonus(eleve)}
+                      >
+                        <Image
+                          src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
+                          roundedCircle
+                          {...(selectedStudent?.id == eleve.id && {
+                            border: "2px solid purple",
+                          })}
+                        />
+                        {selectedStudent?.id !== eleve.id &&
+                        (<p style={{ textAlign: "center" }}>
+                          <strong>{eleve.bonus}</strong>
+                        </p>)}
+                        {selectedStudent?.id === eleve.id && (<div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                          <CounterInput
+                            count={eleve.bonus}
+                            min={0}
+                            max={10}
+                            onCountChange={(count) => {console.log(count); eleve.bonus=count}}
+                          />
+                        </div>)}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </Tab>
+          <Tab eventKey="avertissement" title="Avertissement">
+            <div id="students-cells-avertissement">
+              <ul style={{ listStyle: "none" }}>
+                {eleves.map((eleve) => {
+                  return (
+                    <li
+                      key={eleve.id}
+                      style={{
+                        float: "left",
+                        marginBottom: "2rem",
+                        marginRight: "5rem",
+                      }}
+                    >
+                      <a
+                        style={{ color: "black", textDecoration: "none" }}
+                        href={`#${eleve.id}`}
+                        onClick={() => {
+                          handleStudentClick(eleve);
+                        }}
+                        onBlur={() => {saveAvertissement(eleve)}}
+                      >
+                        <Image
+                          src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
+                          roundedCircle
+                          {...(selectedStudent?.id == eleve.id && {
+                            border: "2px solid purple",
+                          })}
+                        />
+                        {selectedStudent?.id !== eleve.id &&
+                        (<p style={{ textAlign: "center" }}>
+                          <strong>{eleve.avertissement}</strong>
+                        </p>)}
+                        {selectedStudent?.id === eleve.id && (<div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                          <CounterInput
+                            count={eleve.avertissement}
+                            min={0}
+                            max={10}
+                            onCountChange={(count) => {console.log(count); eleve.avertissement=count}}
+                          />
+                        </div>)}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </Tab>
+          <Tab
+            eventKey="stats"
+            title="Stats"
+            style={{ flex: 1, textAlign: "center" }}
+          >
+            <div id="students-cells-stats">
+              <ul style={{ listStyle: "none" }}>
+                {eleves.map((eleve) => {
+                  return (
+                    <li
+                      key={eleve.id}
+                      style={{
+                        float: "left",
+                        marginBottom: "2rem",
+                        marginRight: "5rem",
+                      }}
+                    >
+                      <a
+                        style={{ color: "black", textDecoration: "none" }}
+                        // href={`#${eleve.id}`}
+                        onClick={() => {
+                          goToStudentStats(eleve);
+                        }}
+                      >
+                        <Image
+                          src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
+                          roundedCircle
+                          {...(selectedStudent?.id == eleve.id && {
+                            border: "2px solid purple",
+                          })}
+                        />
+                        {selectedStudent?.id !== eleve.id &&
+                        (<p style={{ textAlign: "center" }}>
+                          <strong>{eleve.participation}</strong>
+                        </p>)}
+                        {selectedStudent?.id === eleve.id && (<div
+                          style={{ display: "flex", justifyContent: "center" }}
+                        >
+                        </div>)}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </Tab>
+        </Tabs>
       </div>
+
       <div
         id="students-table-list"
         style={{ position: "fixed", right: "2rem" }}

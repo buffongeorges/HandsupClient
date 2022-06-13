@@ -10,15 +10,21 @@ import Contact from "./components/Contact/Contact";
 import EleveEdit from "./components/Eleve/EleveEdit";
 import EleveStats from "./components/Eleve/EleveStats";
 import Settings from "./components/Settings/Settings";
+import { useCallback, useState } from "react";
 
 function App() {
+  const [navbarVisibility, setNavbarVisibility] = useState(true);
+
+  const handleNavbarVisibilty = useCallback((newValue) => {
+    setNavbarVisibility(newValue);
+  })
   return (
     <Router>
       <div className="App">
-        <Navbar></Navbar>
+        {navbarVisibility && (<Navbar></Navbar>)}
         <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/home" element={<Home/>} />
+          <Route path="/" element={<Home handleNavbar={handleNavbarVisibilty}/>} />
+          <Route path="/home" element={<Home />} />
           <Route path="/contact" element={<Contact/>} />
           <Route path="/import" element={<Uploader/>} />
           <Route path="/classes" element={<Classes/>} />

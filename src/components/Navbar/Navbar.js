@@ -33,9 +33,10 @@ export const Navbar = () => {
 
     return (
       <nav className="NavbarItems">
-        <h1 className="navbar-logo">
-          Hands Up<i className="fab fa-react"></i>
-        </h1>
+        {/* <h1 className="navbar-logo"> */}
+        <img src={'/images/handsup-removebg-preview.png'} style={{maxWidth: '100%', maxHeight: '100%'}}/>
+
+        {/* </h1> */}
         <div className="menu-icon" onClick={handleClick}>
           <i
             className={clicked ? "fas fa-times" : "fas fa-bars"}
