@@ -65,11 +65,10 @@ export default function Classes() {
     >
 
       <Container fluid>
-        <div>
+        <div style={{display: 'flex', flexWrap: 'wrap'}}>
           {classes.map((classe, index) => {
             return (
-              // <ListGroup.Item className="border-0">
-              <div style={{float: 'left', marginBottom: '2rem', marginRight: '2rem'}}>
+              <div style={{ marginBottom: '2rem', marginRight: '2rem'}}>
                 <Button  onClick={() => goToClass(classe)}>{classe}</Button>
               </div>
             );

@@ -93,51 +93,6 @@ export default function Classe() {
     setHidePopover(true);
   };
 
-  const popover = (
-    <Popover id="popover-students">
-      <Popover.Header as="h3">
-        {selectedStudent?.nom}
-        <a
-          href="#"
-          style={{ color: "black" }}
-          onClick={() => goToStudentEdit()}
-        >
-          <i className="fa-solid fa-pen-to-square"></i>
-        </a>
-      </Popover.Header>
-      <Popover.Body>
-        Nom: <strong>{selectedStudent?.nom}</strong> <br />
-        Age: <strong>{"12"}</strong> <br />
-        Classe: <strong>{"6EME 1"}</strong> <br />
-        Collège: <strong>{"Soualiga"}</strong> <br />
-        Participation:{" "}
-        <CounterInput
-          min={0}
-          max={10}
-          onCountChange={(count) => console.log(count)}
-        />
-        Bonus:{" "}
-        <CounterInput
-          min={0}
-          max={10}
-          count={2}
-          onCountChange={(count) => console.log(count)}
-        />
-        Avertissement:{" "}
-        <CounterInput
-          min={0}
-          max={10}
-          count={4}
-          onCountChange={(count) => console.log(count)}
-        />
-        <Button onClick={() => goToStudentStats()}>Voir stats</Button>
-        <Button variant="info" onClick={() => switchStudents()}>
-          Echanger
-        </Button>
-      </Popover.Body>
-    </Popover>
-  );
-
   const studentInTableClick = (student) => {
     console.log(student);
     setSelectedStudent(student);

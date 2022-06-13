@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import Button from "react-bootstrap/Button";
 
+import "./Home.css"; 
 export default function Home({ handleNavbar }) {
   const [loading, setLoading] = useState(false);
 
@@ -26,8 +28,11 @@ export default function Home({ handleNavbar }) {
             height: "100vh",
           }}
         >
-          <img src={"/images/handsup.png"} style={{maxWidth: '100%', maxHeight: '100%'}} />
-          </div>
+          <img
+            src={"/images/handsup.png"}
+            style={{ maxWidth: "100%", maxHeight: "100%" }}
+          />
+        </div>
       </>
     );
   else
