@@ -64,17 +64,17 @@ export default function Classes() {
       }}
     >
 
-      <Container fluid>
+      {/* <Container fluid> */}
         <div style={{display: 'flex', flexWrap: 'wrap'}}>
           {classes.map((classe, index) => {
             return (
-              <div style={{ marginBottom: '2rem', marginRight: '2rem'}}>
+              <div style={{ marginBottom: '2rem', marginRight: '2rem', flex: '1 0 21%'}}>
                 <Button  onClick={() => goToClass(classe)}>{classe}</Button>
               </div>
             );
           })}
           </div>
-      </Container>
+      {/* </Container> */}
     </div>
   );
 }
