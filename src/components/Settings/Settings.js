@@ -6,21 +6,21 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Counter from "../../utils/Counter";
 import { useNavigate } from "react-router-dom";
-import Webcam from 'react-webcam';
+import Webcam from "react-webcam";
 
 const allowedExtensions = ["csv", "xls"];
 
-
 export default function Settings() {
   const [showCamera, setShowCamera] = useState(false);
+  const [photo, setPhoto] = useState(null);
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
-  const capture = React.useCallback(
-    () => {
-      const imageSrc = webcamRef.current.getScreenshot();
-    },
-    [webcamRef]
-  );
+  const capture = React.useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    console.log(imageSrc);
+    setShowCamera(false);
+    setPhoto(imageSrc);
+  }, [webcamRef]);
   let navigate = useNavigate();
 
   const handleClick = () => {
@@ -29,7 +29,6 @@ export default function Settings() {
   };
 
   const handleFileChange = (e) => {
-
     // Check if user has entered the file
     if (e.target.files.length) {
       const inputFile = e.target.files[0];
@@ -45,37 +44,54 @@ export default function Settings() {
 
       // If input type is correct set the state
       setFile(inputFile);
-    }
-    else {
-        setFile(null)
+    } else {
+      setFile(null);
     }
   };
 
   return (
     <div style={{ margin: "2rem" }}>
-      {showCamera && (
-        <div>
-        <Webcam
-        audio={false}
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-      />
-      <Button onClick={capture}>Capture photo</Button>
-      </div>
-        
-      )}
-      {!showCamera && (<Button onClick={() => {setShowCamera(true)}}>Prendre photo</Button>)}
-      
+    
       <h2> Utilisateur</h2>
       <Form>
         <Form.Group className="mb-3" controlId="formFirstname">
           <Form.Label>Nom</Form.Label>
-          <Form.Control type="email" placeholder="Entrer votre nom" defaultValue={"Grandemange"} />
+          <Form.Control
+            type="email"
+            placeholder="Entrer votre nom"
+            defaultValue={"Grandemange"}
+          />
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formLastname">
           <Form.Label>Prénom</Form.Label>
-          <Form.Control type="email" placeholder="Entrer votre prénom" defaultValue={"Antoine"} />
+          <Form.Control
+            type="email"
+            placeholder="Entrer votre prénom"
+            defaultValue={"Antoine"}
+          />
+        </Form.Group>
+
+        <Form.Group controlId="formFile" className="mb-3">
+          <Form.Label>Photo</Form.Label>
+          <Form.Control type="file" />
+          {photo && (<img src={photo}/>)}
+          {showCamera && (
+        <div>
+          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" />
+          <br/><Button onClick={capture}>Capturer</Button>
+        </div>
+      )}
+      {!showCamera && (
+        <Button style={{marginTop: '0.5rem'}}
+          onClick={() => {
+            setPhoto(null);
+            setShowCamera(true);
+          }}
+        >
+          Prendre photo
+        </Button>
+      )}
         </Form.Group>
 
         <h2 style={{ marginTop: "2rem" }}> Notation</h2>
@@ -152,13 +168,15 @@ export default function Settings() {
           style={{ marginTop: "2rem" }}
         >
           <Form.Label>Mettre à jour la base</Form.Label>
-          <Form.Control type="file" onChange={handleFileChange}/>
+          <Form.Control type="file" onChange={handleFileChange} />
         </Form.Group>
         <Button
           variant="primary"
           type="submit"
           disabled={!file}
-          onClick={() => {handleClick()}}
+          onClick={() => {
+            handleClick();
+          }}
         >
           Sauvegarder
         </Button>
