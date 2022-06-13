@@ -169,8 +169,8 @@ export default function Classe() {
     navigate(`${path}`);
   };
 
-  const goToStudentEdit = () => {
-    let path = `../student/${selectedStudent.id}/edit`;
+  const goToStudentEdit = (id) => {
+    let path = `../student/${id}/edit`;
     navigate(`${path}`, { replace: true });
   };
 
@@ -502,10 +502,12 @@ export default function Classe() {
                 key={eleve.id}
                 action
                 active={eleve.id === selectedStudent?.id}
-                href={`#/${eleve.id}`}
+                // href={`#/${eleve.id}`}
                 onClick={() => studentInTableClick(eleve)}
               >
                 {eleve.nom}
+                <i className="fa-solid fa-pen-to-square" style={{marginLeft:'2rem'}} onClick={() => {goToStudentEdit(eleve.id)}}></i>
+
               </ListGroup.Item>
             );
           })}
@@ -523,7 +525,7 @@ export default function Classe() {
               addNewStudent();
             }}
           >
-            <i class="fa fa-circle-plus fa-xl"></i>
+            <i className="fa fa-circle-plus fa-xl"></i>
           </button>
         </div>
       </div>
