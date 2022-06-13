@@ -7,6 +7,8 @@ import Modal from "react-bootstrap/Modal";
 import ListGroup from "react-bootstrap/ListGroup";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import Popover from "react-bootstrap/Popover";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import CounterInput from "react-counter-input";
@@ -196,7 +198,7 @@ export default function Classe() {
   }, [counter]);
 
   return (
-    <Container fluid>
+    <Container fluid style={{marginTop: '1rem'}}>
       <Modal show={showModal}>
         <Modal.Header closeButton>
           <Modal.Title>Echange de places</Modal.Title>
@@ -223,7 +225,8 @@ export default function Classe() {
           </Button>
         </Modal.Footer>
       </Modal>
-      <div style={{ marginTop: "0.5rem" }}>
+      <Row>
+        <Col lg='11'>  <div style={{ marginTop: "0.5rem" }}>
         <Tabs
           id="controlled-tab-example"
           activeKey={key}
@@ -242,15 +245,18 @@ export default function Classe() {
             style={{ flex: 1, textAlign: "center" }}
           >
             <div id="students-cells-participation">
-              <ul style={{ listStyle: "none" }}>
+              {/* <ul style={{ listStyle: "none", display: 'flex', flexWrap: 'wrap' }}> */}
+              <div style={{display: 'flex', flexWrap: 'wrap'}}>
+
                 {eleves.map((eleve) => {
                   return (
-                    <li
+                    <div
                       key={eleve.id}
                       style={{
-                        float: "left",
+                        // float: "left",
                         marginBottom: "2rem",
                         marginRight: "5rem",
+                        
                       }}
                     >
                       <a
@@ -261,9 +267,17 @@ export default function Classe() {
                         }}
                         onBlur={() => saveParticipation(eleve)}
                       >
-                        <Image
-                          src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
-                          roundedCircle
+                        <img
+                        src={'/images/unknown.png'}
+                          // src="https://imagizer.imageshack.com/img924/9084/H33H0z.jpg"
+                          
+                          // style={{flex: '1 0 16%', borderRadius: '50%', display: 'block', width: 'auto', height: 'auto', maxWidth: '150px', maxHeight: '150px'}}
+                          style={{objectFit: 'cover',
+                            width: '100%',
+                            height: '200px',
+                            borderRadius: '50%',
+                            flex: '1 0 21%'
+                          }}
                           {...(selectedStudent?.id == eleve.id && {
                             border: "2px solid purple",
                           })}
@@ -283,10 +297,11 @@ export default function Classe() {
                           />
                         </div>)}
                       </a>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+                </div>
+              {/* </ul> */}
             </div>
           </Tab>
           <Tab eventKey="bonus" title="Bonus">
@@ -434,9 +449,8 @@ export default function Classe() {
             </div>
           </Tab>
         </Tabs>
-      </div>
-
-      <div
+      </div> </Col>
+        <Col> <div
         id="students-table-list"
         style={{ position: "fixed", right: "2rem" }}
       >
@@ -483,7 +497,12 @@ export default function Classe() {
             <i className="fa fa-circle-plus fa-xl"></i>
           </button>
         </div>
-      </div>
+      </div></Col>
+
+      </Row>
+     
+
+      
     </Container>
   );
 }
