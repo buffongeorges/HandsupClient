@@ -9,6 +9,7 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import CsvDownloader from "react-csv-downloader";
 
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -115,6 +116,7 @@ export default function Classe() {
   const classe = location.pathname.split("/classes/")[1];
   const [key, setKey] = useState("participation");
   let val = "participation";
+  const [exportList, setExportList] = useState([]);
 
   const [switchStudent, setSwitchStudent] = useState(null);
 
@@ -135,7 +137,9 @@ export default function Classe() {
   };
 
   const downloadClassFile = () => {
-    alert("Vous pourrez bientot télécharger le fichier!");
+    // alert("Vous pourrez bientot télécharger le fichier!");
+    let liste = eleves.filter(el => el.empty != true)
+    setExportList(liste);
   };
 
   const addNewStudent = () => {
@@ -260,6 +264,56 @@ export default function Classe() {
     val = key;
     console.log(key);
   };
+
+  const columns = [
+    {
+      id: "nom",
+      displayName: "Nom",
+    },
+    {
+      id: "prenom",
+      displayName: "Prénom",
+    },
+    {
+      id: "college",
+      displayName: "Collège",
+    },
+    {
+      id: "participation",
+      displayName: "Participations",
+    },
+    {
+      id: "bonus",
+      displayName: "Bonus",
+    },
+    {
+      id: "avertissement",
+      displayName: "Avertissement",
+    },
+    {
+      id: "note",
+      displayName: "Note",
+    },
+    {
+      id: "placement",
+      displayName: "Placement",
+    },
+
+  ];
+
+  const datas = exportList.map(el => {
+      return {
+        'nom': el.nom,
+        'prenom': el.nom,
+        'college': 'Soualiga',
+        'participation': el.participation,
+        'bonus': el.bonus,
+        'avertissement': el.avertissement,
+        'note': 10,
+        'placement': el.position
+      }
+  });
+
 
   useEffect(() => {
     setEleves(eleves);
@@ -421,7 +475,11 @@ export default function Classe() {
                   </div>
                 </div>
               </Tab>
-              <Tab eventKey="bonus" title="Bonus"  style={{ flex: 1, textAlign: "center" }}>
+              <Tab
+                eventKey="bonus"
+                title="Bonus"
+                style={{ flex: 1, textAlign: "center" }}
+              >
                 <div id="students-cells-bonus">
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {eleves.map((eleve) => {
@@ -458,14 +516,14 @@ export default function Classe() {
                               }}
                               style={{
                                 objectFit: "cover",
-                                  width: "60px",
-                                  height: "60px",
-                                  borderRadius: "50%",
-                                  flex: "1 0 10%",
-                                  marginLeft: "auto",
-                                  marginRight: "auto",
-                                  display: "inline-block",
-                                  verticalAlign: "middle",
+                                width: "60px",
+                                height: "60px",
+                                borderRadius: "50%",
+                                flex: "1 0 10%",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                display: "inline-block",
+                                verticalAlign: "middle",
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -481,7 +539,11 @@ export default function Classe() {
                   </div>
                 </div>
               </Tab>
-              <Tab eventKey="avertissement" title="Avertissement"  style={{ flex: 1, textAlign: "center" }}>
+              <Tab
+                eventKey="avertissement"
+                title="Avertissement"
+                style={{ flex: 1, textAlign: "center" }}
+              >
                 <div id="students-cells-avertissement">
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {eleves.map((eleve) => {
@@ -664,13 +726,25 @@ export default function Classe() {
           <div id="students-table-list" style={{}}>
             <div style={{ marginBottom: "1rem" }}>
               Classe: {classe}
-              <a
-                href="#"
-                style={{ color: "black" }}
-                onClick={() => downloadClassFile()}
-              >
-                <i className="fa-solid fa-download"></i>
-              </a>
+              {/* <div> */}
+                <CsvDownloader
+                  filename={`classe_${classe}`}
+                  extension=".csv"
+                  separator=";"
+                  wrapColumnChar="'"
+                  columns={columns}
+                  datas={datas}
+                  style={{float: 'right', width: '4rem'}}
+                >
+                  <a
+                    href="#"
+                    style={{ color: "black" }}
+                    onClick={() => downloadClassFile()}
+                  >
+                    <i className="fa-solid fa-download"></i>
+                  </a>
+                </CsvDownloader>
+              {/* </div> */}
             </div>
             <ListGroup>
               {eleves.map((eleve, index) => {

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useLongPress, LongPressDetectEvents } from "use-long-press";
-import Button from "react-bootstrap/Button";
 
 import "./Home.css";
 export default function Home({ handleNavbar }) {
   const [loading, setLoading] = useState(false);
 
+ 
   useEffect(() => {
     if (typeof handleNavbar === "function") {
       handleNavbar(false);
