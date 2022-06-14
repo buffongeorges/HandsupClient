@@ -122,12 +122,12 @@ export default function Classe() {
   const [showModal, setShowModal] = useState(false);
 
   const switchStudents = (el) => {
-    console.log(el)
+    console.log(el);
     alert("Sélectionnez le 2ème élève");
     setIsSwitching(true);
-    setCounter(counter+1)
-    setSwitchStudent(el)
-    console.log(switchStudent)
+    setCounter(counter + 1);
+    setSwitchStudent(el);
+    console.log(switchStudent);
   };
 
   const studentInTableClick = (student) => {
@@ -166,11 +166,10 @@ export default function Classe() {
   const processSwitch = () => {
     setShowModal(false);
 
-    
-    console.log('selectedStudent')
-    console.log(selectedStudent)
-    console.log('switchStudent')
-    console.log(switchStudent)
+    console.log("selectedStudent");
+    console.log(selectedStudent);
+    console.log("switchStudent");
+    console.log(switchStudent);
     // change position of 2 students :
     const tmp = selectedStudent.position;
     const tmp2 = switchStudent.position;
@@ -191,10 +190,20 @@ export default function Classe() {
   };
 
   const handleStudentClick = (eleve, note) => {
-    if (note === 'participation') {
+    if (note === "participation") {
       // setIsSwitching(true)
-      console.log('on augmente');
+      console.log("on augmente");
       eleve.participation = eleve.participation + 1;
+    }
+    if (note === "bonus") {
+      // setIsSwitching(true)
+      console.log("on augmente");
+      eleve.bonus = eleve.bonus + 1;
+    }
+    if (note === "avertissement") {
+      // setIsSwitching(true)
+      console.log("on augmente");
+      eleve.avertissement = eleve.avertissement + 1;
     }
     if (isSwitching && key === "echange") {
       setShowModal(true);
@@ -202,11 +211,11 @@ export default function Classe() {
     } else {
       if (key === "echange") {
         switchStudents(eleve);
-        }
+      }
     }
 
     setSelectedStudent(eleve);
-    setCounter(counter +1)
+    setCounter(counter + 1);
   };
 
   const saveAvertissement = (student) => {
@@ -222,13 +231,28 @@ export default function Classe() {
   };
 
   const decrementParticipation = (eleve) => {
-    console.log('on diminue')
-    console.log(eleve)
+    console.log("on diminue");
+    console.log(eleve);
     if (eleve.participation > 0) eleve.participation = eleve.participation - 1;
-    console.log(eleve)
-    setCounter(counter +1)
+    console.log(eleve);
+    setCounter(counter + 1);
     setSelectedStudent(eleve);
-
+  };
+  const decrementBonus = (eleve) => {
+    console.log("on diminue");
+    console.log(eleve);
+    if (eleve.bonus > 0) eleve.bonus = eleve.bonus - 1;
+    console.log(eleve);
+    setCounter(counter + 1);
+    setSelectedStudent(eleve);
+  };
+  const decrementAvertissement = (eleve) => {
+    console.log("on diminue");
+    console.log(eleve);
+    if (eleve.avertissement > 0) eleve.avertissement = eleve.avertissement - 1;
+    console.log(eleve);
+    setCounter(counter + 1);
+    setSelectedStudent(eleve);
   };
 
   const handleKey = (key) => {
@@ -347,9 +371,12 @@ export default function Classe() {
                           }}
                         >
                           <div>
-                          <i
+                            <i
                               className="fa-solid fa-circle-minus"
-                              style={{ marginLeft: "2rem", display: 'inline-block' }}
+                              style={{
+                                marginLeft: "2rem",
+                                display: "inline-block",
+                              }}
                               onClick={() => {
                                 decrementParticipation(eleve);
                               }}
@@ -361,30 +388,28 @@ export default function Classe() {
                             onBlur={() => saveParticipation(eleve)}
                           >
                             <div>
-                            <img
-                              className="participation"
-                              id={eleve.id}
-                              src={eleve.photo}
-                              onClick={() => {
-                                handleStudentClick(eleve, 'participation');
-                              }}
-                              style={{
-                                objectFit: "cover",
-                                width: "60px",
-                                height: "60px",
-                                borderRadius: "50%",
-                                flex: "1 0 10%",
-                                marginLeft: "auto",
-                                marginRight: "auto",
-                                display: "inline-block",
-                                verticalAlign: 'middle'
-                              }}
-                              {...(selectedStudent?.id == eleve.id && {
-                                border: "2px solid purple",
-                              })}
-                            />
+                              <img
+                                id={eleve.id}
+                                src={eleve.photo}
+                                onClick={() => {
+                                  handleStudentClick(eleve, "participation");
+                                }}
+                                style={{
+                                  objectFit: "cover",
+                                  width: "60px",
+                                  height: "60px",
+                                  borderRadius: "50%",
+                                  flex: "1 0 10%",
+                                  marginLeft: "auto",
+                                  marginRight: "auto",
+                                  display: "inline-block",
+                                  verticalAlign: "middle",
+                                }}
+                                {...(selectedStudent?.id == eleve.id && {
+                                  border: "2px solid purple",
+                                })}
+                              />
                             </div>
-                            
 
                             <p style={{ textAlign: "center" }}>
                               <strong>{eleve.participation}</strong>
@@ -396,7 +421,7 @@ export default function Classe() {
                   </div>
                 </div>
               </Tab>
-              <Tab eventKey="bonus" title="Bonus">
+              <Tab eventKey="bonus" title="Bonus"  style={{ flex: 1, textAlign: "center" }}>
                 <div id="students-cells-bonus">
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {eleves.map((eleve) => {
@@ -409,30 +434,45 @@ export default function Classe() {
                             flex: "1 0 10%",
                           }}
                         >
+                          <div>
+                            <i
+                              className="fa-solid fa-circle-minus"
+                              style={{
+                                marginLeft: "2rem",
+                                display: "inline-block",
+                              }}
+                              onClick={() => {
+                                decrementBonus(eleve);
+                              }}
+                            ></i>
+                          </div>
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onClick={() => {}}
                             onBlur={() => saveBonus(eleve)}
                           >
                             <img
                               src={eleve.photo}
+                              onClick={() => {
+                                handleStudentClick(eleve, "bonus");
+                              }}
                               style={{
                                 objectFit: "cover",
-                                width: "60px",
-                                height: "60px",
-                                borderRadius: "50%",
-                                flex: "1 0 10%",
-                                marginLeft: "auto",
-                                marginRight: "auto",
-                                display: "block",
+                                  width: "60px",
+                                  height: "60px",
+                                  borderRadius: "50%",
+                                  flex: "1 0 10%",
+                                  marginLeft: "auto",
+                                  marginRight: "auto",
+                                  display: "inline-block",
+                                  verticalAlign: "middle",
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
                               })}
                             />
                             <p style={{ textAlign: "center" }}>
-                              <strong>{eleve.bonus}</strong>
+                              <strong>{eleve.participation}</strong>
                             </p>
                           </a>
                         </div>
@@ -441,7 +481,7 @@ export default function Classe() {
                   </div>
                 </div>
               </Tab>
-              <Tab eventKey="avertissement" title="Avertissement">
+              <Tab eventKey="avertissement" title="Avertissement"  style={{ flex: 1, textAlign: "center" }}>
                 <div id="students-cells-avertissement">
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {eleves.map((eleve) => {
@@ -454,16 +494,30 @@ export default function Classe() {
                             flex: "1 0 10%",
                           }}
                         >
+                          <div>
+                            <i
+                              className="fa-solid fa-circle-minus"
+                              style={{
+                                marginLeft: "2rem",
+                                display: "inline-block",
+                              }}
+                              onClick={() => {
+                                decrementAvertissement(eleve);
+                              }}
+                            ></i>
+                          </div>
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onClick={() => {}}
                             onBlur={() => {
                               saveAvertissement(eleve);
                             }}
                           >
                             <img
                               src={eleve.photo}
+                              onClick={() => {
+                                handleStudentClick(eleve, "avertissement");
+                              }}
                               style={{
                                 objectFit: "cover",
                                 width: "60px",
@@ -580,7 +634,10 @@ export default function Classe() {
                                 border: "2px solid purple",
                               })}
                             />
-                            {selectedStudent?.id !== eleve.id && (
+                            <p style={{ textAlign: "center" }}>
+                              <strong>{eleve.participation}</strong>
+                            </p>
+                            {/* {selectedStudent?.id !== eleve.id && (
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
                               </p>
@@ -592,7 +649,7 @@ export default function Classe() {
                                   justifyContent: "center",
                                 }}
                               ></div>
-                            )}
+                            )} */}
                           </a>
                         </div>
                       );

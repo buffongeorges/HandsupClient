@@ -158,7 +158,7 @@ export default function Settings() {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.25}></Counter>
+            <Counter min={-20} max={0} value={0} delta={0.25}></Counter>
           </div>
         </div>
         <div>
