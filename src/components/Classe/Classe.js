@@ -102,20 +102,14 @@ export default function Classe() {
   const [eleves, setEleves] = useState(sts);
   const [counter, setCounter] = useState(eleves.length + 1);
   const [isSwitching, setIsSwitching] = useState(false);
-  const [hidePopover, setHidePopover] = useState(undefined);
   const [showModal, setShowModal] = useState(false);
   const switchStudents = () => {
-    console.log("selectedStudent");
-    console.log(selectedStudent);
     alert("Sélectionnez le 2ème élève");
     setIsSwitching(true);
-    setHidePopover(true);
   };
 
   const studentInTableClick = (student) => {
-    console.log(student);
     setSelectedStudent(student);
-    console.log(selectedStudent);
   };
 
   const downloadClassFile = () => {
@@ -124,7 +118,7 @@ export default function Classe() {
 
   const addNewStudent = () => {
     let newList = [...eleves];
-    let firstEmptyStudentIndex = newList.findIndex(el => el.empty == true);
+    let firstEmptyStudentIndex = newList.findIndex((el) => el.empty == true);
     let updatedStudent = newList[firstEmptyStudentIndex];
     updatedStudent.empty = false;
     updatedStudent.bonus = 0;
@@ -133,7 +127,6 @@ export default function Classe() {
 
     newList[firstEmptyStudentIndex] = updatedStudent;
     setEleves(newList);
-
   };
 
   const goToStudentStats = (eleve) => {
@@ -156,44 +149,43 @@ export default function Classe() {
     console.log("switchStudent");
     console.log(switchStudent);
 
-    //change position of 2 students :
-    let tmp = selectedStudent;
-    eleves.forEach((el) => {
-      if (el.id == selectedStudent.id) {
-        console.log(el);
-        el.position = switchStudent.position;
-      }
-      return el;
-    });
+    // change position of 2 students :
+    const tmp = selectedStudent.position;
+    const tmp2 = switchStudent.position;
+    let itemIndex = eleves.findIndex(x => x.id == tmp);
+    let item = eleves[itemIndex];
+    item.position = tmp2;
 
-    eleves.forEach((el) => {
-      if (el.id == switchStudent.id) {
-        console.log(el);
-        el.position = tmp.position;
-      }
-      return el;
-    });
+    let itemIndex2 = eleves.findIndex(x => x.id == tmp2)
+    let item2 = eleves[itemIndex2];
+    item2.position = tmp;
+
 
     //reorder whole list :
     eleves.sort(function (a, b) {
       return a.position - b.position;
     });
 
-    console.log("eleves");
-    console.log(eleves);
+    setIsSwitching(false);
   };
 
-  const handleStudentClick = (eleve) => {
+  const handleStudentClick = (eleve, exchange) => {
     console.log("selectedStudent");
     console.log(selectedStudent);
-    setSelectedStudent(eleve);
+    console.log("eleve");
+    console.log(eleve);
+    console.log("key");
+    console.log(key);
+    // setSelectedStudent(eleve);
 
     if (isSwitching) {
       setShowModal(true);
       setSwitchStudent(eleve);
-      setHidePopover(true);
     } else {
+      if (key === "echange") switchStudents();
+      // setSwitchStudent(eleve);
       setSelectedStudent(eleve);
+
       // setIsSwitching(false);
     }
   };
@@ -216,20 +208,20 @@ export default function Classe() {
 
   useEffect(() => {
     let studentsList = [...sts];
-    for (var i = 1; i <= 48 - sts.length; i++ ) {
+    for (var i = 1; i <= 48 - sts.length; i++) {
       studentsList.push({
-        id: studentsList.length+1,
-        nom: `Eleve ${studentsList.length+1}`,
+        id: studentsList.length + 1,
+        nom: `Eleve ${studentsList.length + 1}`,
         photo: "/images/blank.png",
-        position: studentsList.length+1,
+        position: studentsList.length + 1,
         participation: null,
         bonus: null,
         avertissement: null,
         empty: true,
       });
     }
-    setEleves(studentsList)
-  }, [])
+    setEleves(studentsList);
+  }, []);
 
   return (
     <Container fluid style={{ marginTop: "1rem" }}>
@@ -244,7 +236,6 @@ export default function Classe() {
             onClick={() => {
               setShowModal(false);
               setIsSwitching(false);
-              setHidePopover(false);
             }}
           >
             Annuler
@@ -260,7 +251,7 @@ export default function Classe() {
         </Modal.Footer>
       </Modal>
       <Row>
-        <Col xs="9" md='9' lg="9">
+        <Col xs="9" md="9" lg="9">
           <div style={{ marginTop: "0.5rem" }}>
             <Tabs
               id="controlled-tab-example"
@@ -307,9 +298,9 @@ export default function Classe() {
                                 height: "60px",
                                 borderRadius: "50%",
                                 flex: "1 0 10%",
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                display: 'block'
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                display: "block",
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -374,9 +365,9 @@ export default function Classe() {
                                 height: "60px",
                                 borderRadius: "50%",
                                 flex: "1 0 10%",
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                display: 'block'
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                display: "block",
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -443,9 +434,9 @@ export default function Classe() {
                                 height: "60px",
                                 borderRadius: "50%",
                                 flex: "1 0 10%",
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                display: 'block'
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                display: "block",
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -470,6 +461,78 @@ export default function Classe() {
                                   onCountChange={(count) => {
                                     console.log(count);
                                     eleve.avertissement = count;
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Tab>
+              <Tab
+                eventKey="echange"
+                title="Echanger"
+                style={{ flex: 1, textAlign: "center" }}
+              >
+                <div id="students-cells-exchange">
+                  <div style={{ display: "flex", flexWrap: "wrap" }}>
+                    {eleves.map((eleve) => {
+                      return (
+                        <div
+                          key={eleve.id}
+                          style={{
+                            marginBottom: "0.5rem",
+                            marginRight: "0.5rem",
+                            flex: "1 0 10%",
+                          }}
+                        >
+                          <a
+                            style={{ color: "black", textDecoration: "none" }}
+                            href={`#${eleve.id}`}
+                            onClick={() => {
+                              // setIsSwitching(true);
+                              handleStudentClick(eleve);
+                              setSwitchStudent(eleve);
+                              // setShowModal(true)
+                            }}
+                          >
+                            <img
+                              src={eleve.photo}
+                              style={{
+                                objectFit: "cover",
+                                width: "60px",
+                                height: "60px",
+                                borderRadius: "50%",
+                                flex: "1 0 10%",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                display: "block",
+                              }}
+                              {...(selectedStudent?.id == eleve.id && {
+                                border: "2px solid purple",
+                              })}
+                            />
+                            {selectedStudent?.id !== eleve.id && (
+                              <p style={{ textAlign: "center" }}>
+                                <strong>{eleve.participation}</strong>
+                              </p>
+                            )}
+                            {selectedStudent?.id === eleve.id && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <CounterInput
+                                  count={eleve.participation}
+                                  min={0}
+                                  max={10}
+                                  onCountChange={(count) => {
+                                    eleve.participation = count;
                                   }}
                                 />
                               </div>
@@ -512,9 +575,9 @@ export default function Classe() {
                                 height: "60px",
                                 borderRadius: "50%",
                                 flex: "1 0 10%",
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                display: 'block'
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                display: "block",
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
@@ -543,11 +606,8 @@ export default function Classe() {
             </Tabs>
           </div>
         </Col>
-        <Col xs='3' md='3' lg='3'>
-          <div
-            id="students-table-list"
-            style={{}}
-          >
+        <Col xs="3" md="3" lg="3">
+          <div id="students-table-list" style={{}}>
             <div style={{ marginBottom: "1rem" }}>
               Classe: {classe}
               <a
@@ -561,23 +621,23 @@ export default function Classe() {
             <ListGroup>
               {eleves.map((eleve, index) => {
                 if (!eleve.empty)
-                return (
-                  <ListGroup.Item
-                    key={eleve.id}
-                    action
-                    active={eleve.id === selectedStudent?.id}
-                    onClick={() => studentInTableClick(eleve)}
-                  >
-                    {eleve.nom}
-                    <i
-                      className="fa-solid fa-pen-to-square"
-                      style={{ marginLeft: "2rem" }}
-                      onClick={() => {
-                        goToStudentEdit(eleve.id);
-                      }}
-                    ></i>
-                  </ListGroup.Item>
-                );
+                  return (
+                    <ListGroup.Item
+                      key={eleve.id}
+                      action
+                      active={eleve.id === selectedStudent?.id}
+                      onClick={() => studentInTableClick(eleve)}
+                    >
+                      {eleve.nom}
+                      <i
+                        className="fa-solid fa-pen-to-square"
+                        style={{ marginLeft: "2rem" }}
+                        onClick={() => {
+                          goToStudentEdit(eleve.id);
+                        }}
+                      ></i>
+                    </ListGroup.Item>
+                  );
               })}
             </ListGroup>
             <div
