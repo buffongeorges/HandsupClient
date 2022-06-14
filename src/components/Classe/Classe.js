@@ -202,6 +202,7 @@ export default function Classe() {
     } else {
       if (key === "echange") {
         switchStudents(eleve);
+        console.log('toto')
         }
     }
 
