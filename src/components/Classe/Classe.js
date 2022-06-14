@@ -99,6 +99,7 @@ export default function Classe() {
     setSelectedStudent(newValue);
     setModalParticipationStudent(newValue)
   });
+
   const handleParticipationModalVisibilty = useCallback((newValue) => {
     setParticipationModal(newValue);
   });
@@ -183,7 +184,7 @@ export default function Classe() {
   };
 
   const handleStudentClick = (eleve) => {
-    if (isSwitching) {
+    if (isSwitching && key === 'echange') {
       setShowModal(true);
       setSwitchStudent(eleve);
     } else {
@@ -372,7 +373,12 @@ export default function Classe() {
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onClick={() => {
+                            onMouseDown={() => handlers.onMouseDown()}
+                            onMouseUp={() => handlers.onMouseUp()}
+                            onTouchStart={() => handlers.onTouchStart()}
+                            onTouchEnd={() => handlers.onTouchEnd()}
+                            onClick={() => {                  
+                              handlers.onClick(eleve, 'bonus');
                               handleStudentClick(eleve);
                             }}
                             onBlur={() => saveBonus(eleve)}
@@ -609,7 +615,7 @@ export default function Classe() {
               }}
             >
               <button
-                class="btn"
+                className="btn"
                 onClick={() => {
                   addNewStudent();
                 }}
