@@ -152,14 +152,13 @@ export default function Classe() {
     // change position of 2 students :
     const tmp = selectedStudent.position;
     const tmp2 = switchStudent.position;
-    let itemIndex = eleves.findIndex(x => x.id == tmp);
+    let itemIndex = eleves.findIndex((x) => x.id == tmp);
     let item = eleves[itemIndex];
     item.position = tmp2;
 
-    let itemIndex2 = eleves.findIndex(x => x.id == tmp2)
+    let itemIndex2 = eleves.findIndex((x) => x.id == tmp2);
     let item2 = eleves[itemIndex2];
     item2.position = tmp;
-
 
     //reorder whole list :
     eleves.sort(function (a, b) {
@@ -515,28 +514,9 @@ export default function Classe() {
                                 border: "2px solid purple",
                               })}
                             />
-                            {selectedStudent?.id !== eleve.id && (
-                              <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation}</strong>
-                              </p>
-                            )}
-                            {selectedStudent?.id === eleve.id && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <CounterInput
-                                  count={eleve.participation}
-                                  min={0}
-                                  max={10}
-                                  onCountChange={(count) => {
-                                    eleve.participation = count;
-                                  }}
-                                />
-                              </div>
-                            )}
+                            <p style={{ textAlign: "center" }}>
+                              <strong>{eleve.participation}</strong>
+                            </p>
                           </a>
                         </div>
                       );
