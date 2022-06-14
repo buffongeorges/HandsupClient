@@ -9,7 +9,6 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import useLongPress from "../../utils/useLongPress/useLongPress";
 
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -93,34 +92,42 @@ let sts = [
 export default function Classe() {
   const [participationModal, setParticipationModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [eleves, setEleves] = useState(sts);
 
-  const [modalParticipationStudent, setModalParticipationStudent] = useState(null);
+  const [counter, setCounter] = useState(eleves.length + 1);
+
+  const [modalParticipationStudent, setModalParticipationStudent] =
+    useState(null);
+
   const handleModalParticipation = useCallback((newValue) => {
     setSelectedStudent(newValue);
-    setModalParticipationStudent(newValue)
+    setModalParticipationStudent(newValue);
   });
 
   const handleParticipationModalVisibilty = useCallback((newValue) => {
     setParticipationModal(newValue);
   });
-  
-  const {action, handlers} = useLongPress({handleModal: handleParticipationModalVisibilty}, {handleModalParticipation: handleModalParticipation});
+
+  // const {action, handlers} = useLongPress({handleModal: handleParticipationModalVisibilty}, {handleModalParticipation: handleModalParticipation});
   let { id } = useParams();
   let navigate = useNavigate();
   const location = useLocation();
   const classe = location.pathname.split("/classes/")[1];
   const [key, setKey] = useState("participation");
+  let val = "participation";
 
   const [switchStudent, setSwitchStudent] = useState(null);
-  const [eleves, setEleves] = useState(sts);
-  const [counter, setCounter] = useState(eleves.length + 1);
+
   const [isSwitching, setIsSwitching] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-
-  const switchStudents = () => {
+  const switchStudents = (el) => {
+    console.log(el)
     alert("Sélectionnez le 2ème élève");
     setIsSwitching(true);
+    setCounter(counter+1)
+    setSwitchStudent(el)
+    console.log(switchStudent)
   };
 
   const studentInTableClick = (student) => {
@@ -157,13 +164,13 @@ export default function Classe() {
   };
 
   const processSwitch = () => {
-    console.log("échanger les index");
     setShowModal(false);
-    console.log("selectedStudent");
-    console.log(selectedStudent);
-    console.log("switchStudent");
-    console.log(switchStudent);
 
+    
+    console.log('selectedStudent')
+    console.log(selectedStudent)
+    console.log('switchStudent')
+    console.log(switchStudent)
     // change position of 2 students :
     const tmp = selectedStudent.position;
     const tmp2 = switchStudent.position;
@@ -183,27 +190,23 @@ export default function Classe() {
     setIsSwitching(false);
   };
 
-  const handleStudentClick = (event, eleve) => {
-    switch (event.detail) {
-      case 1:
-        console.log("click");
-        break;
-      case 2:
-        console.log("double click");
-        break;
-      case 3:
-        console.log("triple click");
-        break;
-      default:
-        return;
-    } 
-    if (isSwitching && key === 'echange') {
-      setShowModal(true);
-      setSwitchStudent(eleve);
-    } else {
-      if (key === "echange") switchStudents();
-      setSelectedStudent(eleve);
+  const handleStudentClick = (eleve, note) => {
+    if (note === 'participation') {
+      // setIsSwitching(true)
+      console.log('on augmente');
+      eleve.participation = eleve.participation + 1;
     }
+    if (isSwitching && key === "echange") {
+      setShowModal(true);
+      setSelectedStudent(eleve);
+    } else {
+      if (key === "echange") {
+        switchStudents(eleve);
+        }
+    }
+
+    setSelectedStudent(eleve);
+    setCounter(counter +1)
   };
 
   const saveAvertissement = (student) => {
@@ -218,24 +221,24 @@ export default function Classe() {
     setSelectedStudent(null);
   };
 
-  const decrementParticipation = () => {
-    const index = eleves.findIndex(el => el.id === modalParticipationStudent.id);
-    eleves[index].participation = eleves[index].participation - 1;
-  }
+  const decrementParticipation = (eleve) => {
+    console.log('on diminue')
+    console.log(eleve)
+    if (eleve.participation > 0) eleve.participation = eleve.participation - 1;
+    console.log(eleve)
+    setCounter(counter +1)
+    setSelectedStudent(eleve);
 
-  let clickCounts = 0;
-  let clickTimeout = null;
-  const timerRef = useRef();
+  };
 
-  const singleClick = () => {
-    console.log('only fire click')
-  }
-  const dblClick = () => {
-    console.log('only fire double click')
-  }
+  const handleKey = (key) => {
+    setKey(key);
+    val = key;
+    console.log(key);
+  };
 
   useEffect(() => {
-    setEleves(sts);
+    setEleves(eleves);
   }, [counter]);
 
   useEffect(() => {
@@ -286,7 +289,9 @@ export default function Classe() {
         <Modal.Header closeButton>
           <Modal.Title>Suppression participation</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Etes vous supprimer un point à {modalParticipationStudent?.nom}?</Modal.Body>
+        <Modal.Body>
+          Etes vous supprimer un point à {modalParticipationStudent?.nom}?
+        </Modal.Body>
         <Modal.Footer>
           <Button
             variant="secondary"
@@ -300,7 +305,7 @@ export default function Classe() {
             variant="primary"
             onClick={() => {
               setParticipationModal(false);
-              decrementParticipation()
+              decrementParticipation();
             }}
           >
             Confirmer
@@ -313,7 +318,9 @@ export default function Classe() {
             <Tabs
               id="controlled-tab-example"
               activeKey={key}
-              onSelect={(k) => setKey(k)}
+              onSelect={(k) => {
+                handleKey(k);
+              }}
               style={{
                 display: "flex",
                 flexWrap: "nowrap",
@@ -339,24 +346,28 @@ export default function Classe() {
                             flex: "1 0 10%",
                           }}
                         >
+                          <div>
+                          <i
+                              className="fa-solid fa-circle-minus"
+                              style={{ marginLeft: "2rem", display: 'inline-block' }}
+                              onClick={() => {
+                                decrementParticipation(eleve);
+                              }}
+                            ></i>
+                          </div>
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onMouseDown={() => handlers.onMouseDown()}
-                            onMouseUp={() => handlers.onMouseUp()}
-                            onTouchStart={() => handlers.onTouchStart()}
-                            onTouchEnd={() => handlers.onTouchEnd()}
-                            onClick={(e) => {    
-                              singleClick();
-                              // handleStudentClick(e, eleve);              
-                              // handlers.onClick(e, eleve, 'participation');
-                              // handleStudentClick(eleve);
-                            }}
-                            onDoubleClick={() => dblClick()}
                             onBlur={() => saveParticipation(eleve)}
                           >
+                            <div>
                             <img
+                              className="participation"
+                              id={eleve.id}
                               src={eleve.photo}
+                              onClick={() => {
+                                handleStudentClick(eleve, 'participation');
+                              }}
                               style={{
                                 objectFit: "cover",
                                 width: "60px",
@@ -365,18 +376,19 @@ export default function Classe() {
                                 flex: "1 0 10%",
                                 marginLeft: "auto",
                                 marginRight: "auto",
-                                display: "block",
+                                display: "inline-block",
+                                verticalAlign: 'middle'
                               }}
                               {...(selectedStudent?.id == eleve.id && {
                                 border: "2px solid purple",
                               })}
                             />
+                            </div>
                             
-                              <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation}</strong>
-                              </p>
-                            
-                           
+
+                            <p style={{ textAlign: "center" }}>
+                              <strong>{eleve.participation}</strong>
+                            </p>
                           </a>
                         </div>
                       );
@@ -400,14 +412,7 @@ export default function Classe() {
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onMouseDown={() => handlers.onMouseDown()}
-                            onMouseUp={() => handlers.onMouseUp()}
-                            onTouchStart={() => handlers.onTouchStart()}
-                            onTouchEnd={() => handlers.onTouchEnd()}
-                            onClick={() => {                  
-                              handlers.onClick(eleve, 'bonus');
-                              handleStudentClick(eleve);
-                            }}
+                            onClick={() => {}}
                             onBlur={() => saveBonus(eleve)}
                           >
                             <img
@@ -427,8 +432,8 @@ export default function Classe() {
                               })}
                             />
                             <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.bonus}</strong>
-                              </p>
+                              <strong>{eleve.bonus}</strong>
+                            </p>
                           </a>
                         </div>
                       );
@@ -452,9 +457,7 @@ export default function Classe() {
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onClick={() => {
-                              handleStudentClick(eleve);
-                            }}
+                            onClick={() => {}}
                             onBlur={() => {
                               saveAvertissement(eleve);
                             }}
@@ -476,8 +479,8 @@ export default function Classe() {
                               })}
                             />
                             <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.avertissement}</strong>
-                              </p>
+                              <strong>{eleve.avertissement}</strong>
+                            </p>
                           </a>
                         </div>
                       );
@@ -507,8 +510,8 @@ export default function Classe() {
                             href={`#${eleve.id}`}
                             onClick={() => {
                               // setIsSwitching(true);
+                              // setSwitchStudent(eleve);
                               handleStudentClick(eleve);
-                              setSwitchStudent(eleve);
                               // setShowModal(true)
                             }}
                           >

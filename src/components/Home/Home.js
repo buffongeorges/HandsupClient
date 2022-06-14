@@ -5,27 +5,6 @@ import Button from "react-bootstrap/Button";
 import "./Home.css";
 export default function Home({ handleNavbar }) {
   const [loading, setLoading] = useState(false);
-  const [enabled, setEnabled] = React.useState(true);
-
-  const handleLongClick = () => {
-    alert('click long')
-  }
-
-  const handleShortClick = () => {
-    alert('click court')
-  }
-  const callback = React.useCallback(() => {
-    handleLongClick();
-  }, []);
-  const bind = useLongPress(enabled ? callback : null, {
-    onStart: () => console.log("Press started"),
-    onFinish: () => console.log("Long press finished"),
-    onCancel: () => console.log("Press cancelled"),
-    threshold: 500,
-    captureEvent: true,
-    cancelOnMovement: false,
-    detect: LongPressDetectEvents.BOTH,
-  });
 
   useEffect(() => {
     if (typeof handleNavbar === "function") {
@@ -41,7 +20,6 @@ export default function Home({ handleNavbar }) {
   }, []);
 
   if (loading && typeof handleNavbar === "function")
-    // if (true)
     return (
       <>
         <div
@@ -77,22 +55,6 @@ export default function Home({ handleNavbar }) {
         }}
       >
         {"Bienvenue sur Handsup"}
-
-        <p id="demo">Test d'appui court et long: </p>
-        <Button onClick={() => {handleShortClick()}} {...bind} style={{ width: 400, height: 200, fontSize: 50 }}>
-          Press and hold
-        </Button>
-        {/* <div style={{ marginTop: 30, fontSize: 30 }}>
-          <label htmlFor="enabled">
-            <input
-              type="checkbox"
-              id="enabled"
-              checked={enabled}
-              onChange={() => setEnabled((current) => !current)}
-            />
-            Hook enabled
-          </label>
-        </div> */}
       </div>
     );
 }

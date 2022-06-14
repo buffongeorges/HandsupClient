@@ -1,4 +1,6 @@
 import React from "react";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
 import { useParams } from "react-router-dom";
 import {
   LineChart,
@@ -62,6 +64,76 @@ export default function EleveStats() {
       <h1 id="student-stats" style={{ marginBottom: "2rem" }}>
         Statistiques de Eleve 2
       </h1>
+
+      <Row style={{ marginBottom: "2rem", marginTop: "2rem" }}>
+        <Col>
+          <div>
+            <strong>Participations</strong>
+            <center>
+            <p
+              style={{
+                borderRadius: "50%",
+                backgroundColor: "#82ca9d",
+                marginTop: "1rem",
+                width: "5rem",
+                height: "5rem",
+                textAlign: 'center',
+                display: 'table-cell',
+                verticalAlign: 'middle',
+                fontSize: '2rem'
+              }}
+            >
+              55
+            </p>
+          </center>
+          </div>
+          
+        </Col>
+        <Col>
+          <div>
+            <strong>Bonus</strong>
+            <center>
+            <p
+              style={{
+                borderRadius: "50%",
+                backgroundColor: "#8884d8",
+                marginTop: "1rem",
+                width: "5rem",
+                height: "5rem",
+                textAlign: 'center',
+                display: 'table-cell',
+                verticalAlign: 'middle',
+                fontSize: '2rem'
+              }}
+            >
+              14
+            </p>
+          </center>
+          </div>
+        </Col>
+        <Col>
+          <div>
+            <strong>Avertissements</strong>
+            <center>
+            <p
+              style={{
+                borderRadius: "50%",
+                backgroundColor: "#c29825",
+                marginTop: "1rem",
+                width: "5rem",
+                height: "5rem",
+                textAlign: 'center',
+                display: 'table-cell',
+                verticalAlign: 'middle',
+                fontSize: '2rem'
+              }}
+            >
+              19
+            </p>
+          </center>
+          </div>
+        </Col>
+      </Row>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
           width={500}
