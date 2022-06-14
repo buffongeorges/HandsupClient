@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import CounterInput from "react-counter-input";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -12,6 +14,7 @@ const allowedExtensions = ["csv", "xls"];
 
 export default function Settings() {
   const [showCamera, setShowCamera] = useState(false);
+  const [college, setCollege] = useState('Choisir collège');
   const [photo, setPhoto] = useState(null);
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
@@ -51,7 +54,6 @@ export default function Settings() {
 
   return (
     <div style={{ margin: "2rem" }}>
-    
       <h2> Utilisateur</h2>
       <Form>
         <Form.Group className="mb-3" controlId="formFirstname">
@@ -71,27 +73,42 @@ export default function Settings() {
             defaultValue={"Antoine"}
           />
         </Form.Group>
+        <Form.Group className="mb-3" controlId="formLastname">
+          <Form.Label>Collège</Form.Label>
+          <DropdownButton id="dropdown-basic-button" title={college} style={{marginBottom: '1rem'}}>
+          <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>Soualiga</Dropdown.Item>
+          <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>Mont des Accords</Dropdown.Item>
+          <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>Autre...</Dropdown.Item>
+        </DropdownButton>
+        </Form.Group>
+       
 
         <Form.Group controlId="formFile" className="mb-3">
           <Form.Label>Photo</Form.Label>
           <Form.Control type="file" />
-          {photo && (<img src={photo}/>)}
+          {photo && <img src={photo} />}
           {showCamera && (
-        <div>
-          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" />
-          <br/><Button onClick={capture}>Capturer</Button>
-        </div>
-      )}
-      {!showCamera && (
-        <Button style={{marginTop: '0.5rem'}}
-          onClick={() => {
-            setPhoto(null);
-            setShowCamera(true);
-          }}
-        >
-          Prendre photo
-        </Button>
-      )}
+            <div>
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+              />
+              <br />
+              <Button onClick={capture}>Capturer</Button>
+            </div>
+          )}
+          {!showCamera && (
+            <Button
+              style={{ marginTop: "0.5rem" }}
+              onClick={() => {
+                setPhoto(null);
+                setShowCamera(true);
+              }}
+            >
+              Prendre photo
+            </Button>
+          )}
         </Form.Group>
 
         <h2 style={{ marginTop: "2rem" }}> Notation</h2>
@@ -161,7 +178,7 @@ export default function Settings() {
           </div>
         </div>
 
-        <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
+        {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
         <Form.Group
           controlId="formFile"
           className="mb-3"
@@ -169,11 +186,11 @@ export default function Settings() {
         >
           <Form.Label>Mettre à jour la base</Form.Label>
           <Form.Control type="file" onChange={handleFileChange} />
-        </Form.Group>
+        </Form.Group> */}
         <Button
           variant="primary"
           type="submit"
-          disabled={!file}
+          // disabled={!file}
           onClick={() => {
             handleClick();
           }}

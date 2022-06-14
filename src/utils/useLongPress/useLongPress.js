@@ -34,15 +34,14 @@ export default function useLongPress(
     }, 500);
   };
 
-  const handleOnClick = (eleve, note) => {
+  const handleOnClick = (event, eleve, note) => {
+    // event.preventDefault();
     if (isLongPress.current) {
       if (eleve[note] > 0) {
         if (
           typeof handleModal === "function" &&
           typeof handleModalParticipation === "function" && note === 'participation'
         ) {
-          console.log("handleModal");
-          console.log(eleve);
           handleModalParticipation(eleve);
           handleModal(true);
         }
@@ -51,10 +50,10 @@ export default function useLongPress(
           eleve[note] = eleve[note] - 1;
         }
       }
-      console.log("its a long press!");
+    //   console.log("its a long press!");
       return;
     }
-    console.log("its a short click!");
+    // console.log("its a short click!");
     setAction("click");
     if (!eleve.empty) eleve[note] = eleve[note] + 1;
   };

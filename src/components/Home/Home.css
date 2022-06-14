@@ -9,3 +9,47 @@
     height: 100px;
     background-color: blue;
   }
+/* 
+  button {
+    background-color: white;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 30px;
+    height: 40px;
+    width: 40px;
+    text-align: center;
+    position: relative;
+    transition: all 0.4s linear;
+    outline: none;
+  }
+  button:active {
+    border-color: crimson;
+  }
+  .top,
+  .right,
+  .bottom,
+  .left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateX(0, 0);
+    opacity: 0.1;
+  }
+  .top.go {
+    transform: translate(0, -42px);
+    opacity: 1;
+  }
+  .right.go {
+    transform: translate(40px, 0);
+    opacity: 1;
+  }
+  .bottom.go {
+    transform: translate(0, 40px);
+    opacity: 1;
+  }
+  .left.go {
+    transform: translate(-42px, 0);
+    opacity: 1;
+  } */

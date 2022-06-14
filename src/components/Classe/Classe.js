@@ -183,7 +183,20 @@ export default function Classe() {
     setIsSwitching(false);
   };
 
-  const handleStudentClick = (eleve) => {
+  const handleStudentClick = (event, eleve) => {
+    switch (event.detail) {
+      case 1:
+        console.log("click");
+        break;
+      case 2:
+        console.log("double click");
+        break;
+      case 3:
+        console.log("triple click");
+        break;
+      default:
+        return;
+    } 
     if (isSwitching && key === 'echange') {
       setShowModal(true);
       setSwitchStudent(eleve);
@@ -208,6 +221,17 @@ export default function Classe() {
   const decrementParticipation = () => {
     const index = eleves.findIndex(el => el.id === modalParticipationStudent.id);
     eleves[index].participation = eleves[index].participation - 1;
+  }
+
+  let clickCounts = 0;
+  let clickTimeout = null;
+  const timerRef = useRef();
+
+  const singleClick = () => {
+    console.log('only fire click')
+  }
+  const dblClick = () => {
+    console.log('only fire double click')
   }
 
   useEffect(() => {
@@ -322,10 +346,13 @@ export default function Classe() {
                             onMouseUp={() => handlers.onMouseUp()}
                             onTouchStart={() => handlers.onTouchStart()}
                             onTouchEnd={() => handlers.onTouchEnd()}
-                            onClick={() => {                  
-                              handlers.onClick(eleve, 'participation');
-                              handleStudentClick(eleve);
+                            onClick={(e) => {    
+                              singleClick();
+                              // handleStudentClick(e, eleve);              
+                              // handlers.onClick(e, eleve, 'participation');
+                              // handleStudentClick(eleve);
                             }}
+                            onDoubleClick={() => dblClick()}
                             onBlur={() => saveParticipation(eleve)}
                           >
                             <img
