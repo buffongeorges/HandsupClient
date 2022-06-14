@@ -34,7 +34,8 @@ export const Navbar = () => {
     return (
       <nav className="NavbarItems">
         {/* <h1 className="navbar-logo"> */}
-        <img src={'/images/handsup-removebg-preview.png'} style={{maxWidth: '100%', maxHeight: '100%'}}/>
+        <img src={'/images/handsup-removebg-preview.png'} style={{maxWidth: '100%', maxHeight: '70%'}}/>
+        <img src={'/images/thumbnail_hand-finger-up.png'} style={{maxWidth: '100%', maxHeight: '70%'}}/>
 
         {/* </h1> */}
         <div className="menu-icon" onClick={handleClick}>

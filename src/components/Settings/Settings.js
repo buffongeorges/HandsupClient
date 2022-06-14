@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import CounterInput from "react-counter-input";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Counter from "../../utils/Counter";
+import Counter from "../../utils/Counter/Counter";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 
@@ -108,7 +108,7 @@ export default function Settings() {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={9} max={20} value={10} delta={0.5}></Counter>
+            <Counter min={9} max={20} value={10} delta={0.25}></Counter>
           </div>
         </div>
 
@@ -125,7 +125,7 @@ export default function Settings() {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.5}></Counter>
+            <Counter min={0} max={20} value={0} delta={0.25}></Counter>
           </div>
         </div>
         <div>
@@ -141,7 +141,7 @@ export default function Settings() {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.5}></Counter>
+            <Counter min={0} max={20} value={0} delta={0.25}></Counter>
           </div>
         </div>
         <div>
@@ -157,7 +157,7 @@ export default function Settings() {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.5}></Counter>
+            <Counter min={0} max={20} value={0} delta={0.25}></Counter>
           </div>
         </div>
 

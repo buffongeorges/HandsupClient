@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Button from "react-bootstrap/Button";
 
 import "./Home.css"; 
 export default function Home({ handleNavbar }) {
@@ -18,6 +17,7 @@ export default function Home({ handleNavbar }) {
     }, 5000);
   }, []);
   if (loading && typeof handleNavbar === "function")
+  // if (true)
     return (
       <>
         <div
@@ -30,8 +30,11 @@ export default function Home({ handleNavbar }) {
         >
           <img
             src={"/images/handsup.png"}
-            style={{ maxWidth: "100%", maxHeight: "100%" }}
+            style={{ maxWidth: "100%", maxHeight: "20%" }}
           />
+        {/* <img src={'/images/icone_handsup.png'} style={{maxWidth: '100%', maxHeight: '20%'}}/> */}
+        <img src={'/images/thumbnail_hand-finger-up.png'} style={{maxWidth: '100%', maxHeight: '20%'}}/>
+        
         </div>
       </>
     );

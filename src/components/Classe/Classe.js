@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPath, useParams } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -9,7 +9,7 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import CounterInput from "react-counter-input";
+import useLongPress from "../../utils/useLongPress/useLongPress";
 
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -91,18 +91,32 @@ let sts = [
 ];
 
 export default function Classe() {
+  const [participationModal, setParticipationModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  const [modalParticipationStudent, setModalParticipationStudent] = useState(null);
+  const handleModalParticipation = useCallback((newValue) => {
+    setSelectedStudent(newValue);
+    setModalParticipationStudent(newValue)
+  });
+  const handleParticipationModalVisibilty = useCallback((newValue) => {
+    setParticipationModal(newValue);
+  });
+  
+  const {action, handlers} = useLongPress({handleModal: handleParticipationModalVisibilty}, {handleModalParticipation: handleModalParticipation});
   let { id } = useParams();
   let navigate = useNavigate();
   const location = useLocation();
   const classe = location.pathname.split("/classes/")[1];
   const [key, setKey] = useState("participation");
 
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [switchStudent, setSwitchStudent] = useState(null);
   const [eleves, setEleves] = useState(sts);
   const [counter, setCounter] = useState(eleves.length + 1);
   const [isSwitching, setIsSwitching] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
+
   const switchStudents = () => {
     alert("Sélectionnez le 2ème élève");
     setIsSwitching(true);
@@ -168,24 +182,13 @@ export default function Classe() {
     setIsSwitching(false);
   };
 
-  const handleStudentClick = (eleve, exchange) => {
-    console.log("selectedStudent");
-    console.log(selectedStudent);
-    console.log("eleve");
-    console.log(eleve);
-    console.log("key");
-    console.log(key);
-    // setSelectedStudent(eleve);
-
+  const handleStudentClick = (eleve) => {
     if (isSwitching) {
       setShowModal(true);
       setSwitchStudent(eleve);
     } else {
       if (key === "echange") switchStudents();
-      // setSwitchStudent(eleve);
       setSelectedStudent(eleve);
-
-      // setIsSwitching(false);
     }
   };
 
@@ -200,6 +203,11 @@ export default function Classe() {
   const saveBonus = (student) => {
     setSelectedStudent(null);
   };
+
+  const decrementParticipation = () => {
+    const index = eleves.findIndex(el => el.id === modalParticipationStudent.id);
+    eleves[index].participation = eleves[index].participation - 1;
+  }
 
   useEffect(() => {
     setEleves(sts);
@@ -249,6 +257,31 @@ export default function Classe() {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Modal show={participationModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Suppression participation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Etes vous supprimer un point à {modalParticipationStudent?.nom}?</Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setParticipationModal(false);
+            }}
+          >
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setParticipationModal(false);
+              decrementParticipation()
+            }}
+          >
+            Confirmer
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Row>
         <Col xs="9" md="9" lg="9">
           <div style={{ marginTop: "0.5rem" }}>
@@ -284,7 +317,12 @@ export default function Classe() {
                           <a
                             style={{ color: "black", textDecoration: "none" }}
                             href={`#${eleve.id}`}
-                            onClick={() => {
+                            onMouseDown={() => handlers.onMouseDown()}
+                            onMouseUp={() => handlers.onMouseUp()}
+                            onTouchStart={() => handlers.onTouchStart()}
+                            onTouchEnd={() => handlers.onTouchEnd()}
+                            onClick={() => {                  
+                              handlers.onClick(eleve, 'participation');
                               handleStudentClick(eleve);
                             }}
                             onBlur={() => saveParticipation(eleve)}
@@ -305,29 +343,12 @@ export default function Classe() {
                                 border: "2px solid purple",
                               })}
                             />
-                            {selectedStudent?.id !== eleve.id && (
+                            
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
                               </p>
-                            )}
-                            {selectedStudent?.id === eleve.id && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <CounterInput
-                                  count={eleve.participation}
-                                  min={0}
-                                  max={10}
-                                  onCountChange={(count) => {
-                                    console.log(count);
-                                    eleve.participation = count;
-                                  }}
-                                />
-                              </div>
-                            )}
+                            
+                           
                           </a>
                         </div>
                       );
@@ -372,29 +393,9 @@ export default function Classe() {
                                 border: "2px solid purple",
                               })}
                             />
-                            {selectedStudent?.id !== eleve.id && (
-                              <p style={{ textAlign: "center" }}>
+                            <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.bonus}</strong>
                               </p>
-                            )}
-                            {selectedStudent?.id === eleve.id && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <CounterInput
-                                  count={eleve.bonus}
-                                  min={0}
-                                  max={10}
-                                  onCountChange={(count) => {
-                                    console.log(count);
-                                    eleve.bonus = count;
-                                  }}
-                                />
-                              </div>
-                            )}
                           </a>
                         </div>
                       );
@@ -441,29 +442,9 @@ export default function Classe() {
                                 border: "2px solid purple",
                               })}
                             />
-                            {selectedStudent?.id !== eleve.id && (
-                              <p style={{ textAlign: "center" }}>
+                            <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.avertissement}</strong>
                               </p>
-                            )}
-                            {selectedStudent?.id === eleve.id && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <CounterInput
-                                  count={eleve.avertissement}
-                                  min={0}
-                                  max={10}
-                                  onCountChange={(count) => {
-                                    console.log(count);
-                                    eleve.avertissement = count;
-                                  }}
-                                />
-                              </div>
-                            )}
                           </a>
                         </div>
                       );
