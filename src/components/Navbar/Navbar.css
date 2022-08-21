@@ -133,8 +133,8 @@
         background: #fff;
     }
 
-    Button {
-        display: none;
-    }
+    /* Button {
+        display: none; sera a decommenter lorsque je retravaillerai la navbar
+    } */
     
 }

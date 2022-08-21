@@ -139,11 +139,11 @@ export default function Classe() {
   const downloadClassFile = () => {
     // alert("Vous pourrez bientot télécharger le fichier!");
  
-   let liste = eleves.filter(el => el.empty != true)
+  //  let liste = eleves.filter(el => el.empty != true)
 
-    console.log(liste)
-    console.log(counter == eleves.length + 2)
-    setExportList(liste);
+  //   console.log(liste)
+  //   console.log(counter == eleves.length + 2)
+  //   setExportList(liste);
   };
 
   const addNewStudent = () => {

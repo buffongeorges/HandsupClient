@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Axios from 'axios';
 
 import "./Home.css";
 export default function Home({ handleNavbar }) {
@@ -6,6 +7,9 @@ export default function Home({ handleNavbar }) {
 
  
   useEffect(() => {
+    Axios.get('http://localhost:3001/api/get/teachers').then((response) => {
+      console.log(response.data)
+    })
     if (typeof handleNavbar === "function") {
       handleNavbar(false);
     }
