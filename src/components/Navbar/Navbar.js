@@ -3,18 +3,18 @@ import { Button } from "../Button";
 import { MenuItems } from "./MenuItems";
 import "./Navbar.css";
 import { useNavigate } from "react-router-dom";
+import store from "../../auth/store";
+import { sessionService } from "redux-react-session";
 
 export const Navbar = () => {
   const [clicked, setClicked] = useState(false);
   // const [connected, setConnected] = useState(false);
   const authent = localStorage.getItem("connected");
-  const authenticated = JSON.parse(authent);
-  console.log("authenticated");
-  console.log(authenticated);
+  const authenticated = (store.getState().session.authenticated) ? true : false;
+  console.log('connecté?')
+  console.log(store.getState().session.authenticated)
 
   let navigate = useNavigate();
-
-  // state = { clicked: false, connected: false };
 
   const handleClick = () => {
     setClicked(!clicked);
@@ -27,8 +27,9 @@ export const Navbar = () => {
   };
 
   const Logout = () => {
-    localStorage.removeItem("connected");
-    navigate("/");
+    sessionService.deleteSession();
+    sessionService.deleteUser();
+    navigate("/dashboard");
   };
 
   return (

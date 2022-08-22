@@ -103,7 +103,7 @@ const Login = ({loginUser}) => {
           onSubmit={(values, { setSubmitting, setFieldError }) => {
             console.log('coucou')
             console.log(values);
-            loginUser(values, null, setFieldError, setSubmitting);
+            loginUser(values, navigate, setFieldError, setSubmitting);
           }}
         >
           {({ isSubmitting }) => (

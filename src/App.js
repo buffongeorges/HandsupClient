@@ -22,53 +22,84 @@ import ForgottenPassword from "./components/UserManagement/ForgottenPassword.js"
 import EmailSent from "./components/UserManagement/EmailSent.js";
 import PasswordReset from "./components/UserManagement/PasswordReset.js";
 import Dashboard from "./components/Dashboard/Dashboard";
+import { sessionService } from "redux-react-session";
+import store from "./auth/store";
+import { AuthContext } from "./auth/context/AuthContext";
 
 function App({ checked }) {
+  const [currentUser, setCurrentUser] = useState();
+
   const [navbarVisibility, setNavbarVisibility] = useState(true);
+  console.log("checked");
+  console.log(checked);
+  console.log("test");
+  console.log(store.getState());
+  // checked = true => authenticated
+  // checked = false => not authenticiated
 
   const handleNavbarVisibilty = useCallback((newValue) => {
     setNavbarVisibility(newValue);
   });
-  return (
-    <Router>
-      {true && (
-        <div className="App">
-          {navbarVisibility && <Navbar></Navbar>}
-          <Routes>
-            <Route
-              path="/"
-              element={<Home handleNavbar={handleNavbarVisibilty} />}
-            />
-            <Route path="/home" element={<Home />} />
-            <Route element={<AuthRoutes />}>
-              {/* all private routes go in here */}
-              <Route path="/dashboard" element={<Dashboard />}></Route>
-              <Route path="/classes" element={<Classes />} />
-              <Route path="/classes/:id" element={<Classe />} />
-              <Route path="/student/:studentId/edit" element={<EleveEdit />} />
-              <Route
-                path="/student/:studentId/stats"
-                element={<EleveStats />}
-              />
-            </Route>
-            <Route path="/login" element={<Login />} />
-            <Route path="/login/:userEmail" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route
-              path="/emailsent/:userEmail/:reset"
-              element={<EmailSent />}
-            />
-            <Route
-              path="/emailsent/:userEmail"
-              element={<EmailSent />}
-            />
-            <Route
-              path="/emailsent"
-              element={<EmailSent />}
-            />
-            <Route path="/forgottenpassword" element={<ForgottenPassword />} />
 
-            {/* <Route path="/contact" element={<Contact />} />
+  const setAuth = (data) => {
+    if(data) {
+        sessionStorage.setItem('username', data.username);
+        sessionStorage.setItem('firstname', data.firstname);
+        sessionStorage.setItem('lastname', data.lastname);
+        sessionStorage.setItem('isAdmin', data.isAdmin);
+        setCurrentUser({username: data.username, firstname: data.firstname, lastname: data.lastname, isAdmin: data.isAdmin});
+    } else {
+      sessionStorage.removeItem('username');
+      sessionStorage.removeItem('firstname');
+      sessionStorage.removeItem('lastname');
+      sessionStorage.removeItem('isAdmin');
+      setCurrentUser();
+    }
+  }
+
+  return (
+    <AuthContext.Provider value={{ currentUser, setCurrentUser: setAuth }}>
+      <Router>
+        {checked && (
+          <div className="App">
+            {navbarVisibility && <Navbar></Navbar>}
+            <Routes>
+              <Route
+                path="/"
+                element={<Home handleNavbar={handleNavbarVisibilty} />}
+              />
+              <Route path="/home" element={<Home />} />
+              <Route element={<AuthRoutes />}>
+                {/* all private routes go in here */}
+                <Route path="/dashboard" element={<Dashboard />}></Route>
+                <Route path="/classes" element={<Classes />} />
+                <Route path="/classes/:id" element={<Classe />} />
+                <Route
+                  path="/student/:studentId/edit"
+                  element={<EleveEdit />}
+                />
+                <Route path="/settings" element={<Settings />} />
+
+                <Route
+                  path="/student/:studentId/stats"
+                  element={<EleveStats />}
+                />
+              </Route>
+              <Route path="/login" element={<Login />} />
+              <Route path="/login/:userEmail" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route
+                path="/emailsent/:userEmail/:reset"
+                element={<EmailSent />}
+              />
+              <Route path="/emailsent/:userEmail" element={<EmailSent />} />
+              <Route path="/emailsent" element={<EmailSent />} />
+              <Route
+                path="/forgottenpassword"
+                element={<ForgottenPassword />}
+              />
+
+              {/* <Route path="/contact" element={<Contact />} />
             <Route path="/import" element={<Uploader />} />
             <Route path="/classes" element={<Classes />} />
             <Route path="/classes/:id" element={<Classe />} />
@@ -92,10 +123,11 @@ function App({ checked }) {
             <Route path="/dashboard" element={<AuthRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
             </Route> */}
-          </Routes>
-        </div>
-      )}
-    </Router>
+            </Routes>
+          </div>
+        )}
+      </Router>
+    </AuthContext.Provider>
   );
 }
 

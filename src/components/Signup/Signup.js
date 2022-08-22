@@ -54,7 +54,8 @@ const Signup = ({ signupUser }) => {
             password: "",
             repeatPassword: "",
             dateOfBirth: "",
-            name: "",
+            firstname: "",
+            lastname: "",
           }}
           validationSchema={Yup.object({
             email: Yup.string()
@@ -64,7 +65,8 @@ const Signup = ({ signupUser }) => {
               .min(8, "Password is too short")
               .max(30, "Password is too long")
               .required("Required"),
-            name: Yup.string().required("Required"),
+            firstname: Yup.string().required("Required"),
+            lastname: Yup.string().required("Required"),
             dateOfBirth: Yup.date().required("Required"),
             repeatPassword: Yup.string()
               .required("Required")
@@ -78,10 +80,17 @@ const Signup = ({ signupUser }) => {
           {({ isSubmitting }) => (
             <Form>
               <TextInput
-                name="name"
+                name="lastname"
                 type="text"
-                label="NOM Prénom"
-                placeholder="DOE John"
+                label="NOM"
+                placeholder="DOE"
+                icon={<FiUser />}
+              />
+              <TextInput
+                name="firstname"
+                type="text"
+                label="Prénom"
+                placeholder="John"
                 icon={<FiUser />}
               />
               <TextInput

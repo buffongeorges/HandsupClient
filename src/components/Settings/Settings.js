@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -9,10 +9,22 @@ import Col from "react-bootstrap/Col";
 import Counter from "../../utils/Counter/Counter";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
+import store from "../../auth/store";
+import { AuthContext, useAuth } from "../../auth/context/AuthContext";
+
+// auth & redux
+import { connect } from "react-redux";
+import { logoutUser } from "../../auth/actions/userActions";
+
 
 const allowedExtensions = ["csv", "xls"];
 
-export default function Settings() {
+const Settings = () => {
+  const { currentUser, setCurrentUser } = useAuth();
+
+  const [professeur, setProfesseur] = useState(store.getState().session.user);
+  const [firstname, setFirstname] = useState(null);
+  const [lastname, setLastname] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
   const [college, setCollege] = useState('Choisir collège');
   const [photo, setPhoto] = useState(null);
@@ -25,6 +37,17 @@ export default function Settings() {
     setPhoto(imageSrc);
   }, [webcamRef]);
   let navigate = useNavigate();
+
+  useEffect(() => {
+    console.log(store.getState())
+    console.log(currentUser);
+    console.log(sessionStorage.getItem("username"))
+    console.log(sessionStorage.getItem("isAdmin"))
+    console.log(sessionStorage.getItem("firstname"))
+    console.log(sessionStorage.getItem("lastname"))
+    setFirstname(sessionStorage.getItem("firstname"));
+    setLastname(sessionStorage.getItem("lastname"));
+  }, [])
 
   const handleClick = () => {
     alert("Mise à jour réussie !");
@@ -61,7 +84,7 @@ export default function Settings() {
           <Form.Control
             type="email"
             placeholder="Entrer votre nom"
-            defaultValue={"Grandemange"}
+            defaultValue={lastname}
           />
         </Form.Group>
 
@@ -70,7 +93,7 @@ export default function Settings() {
           <Form.Control
             type="email"
             placeholder="Entrer votre prénom"
-            defaultValue={"Antoine"}
+            defaultValue={firstname}
           />
         </Form.Group>
         <Form.Group className="mb-3" controlId="formLastname">
@@ -201,3 +224,10 @@ export default function Settings() {
     </div>
   );
 }
+
+const mapStateToProps = ({ session }) => ({
+  checked: session.checked,
+});
+
+export default connect(mapStateToProps)(Settings);
+
