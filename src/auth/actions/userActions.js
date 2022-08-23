@@ -2,11 +2,10 @@ import axios from "axios";
 import { sessionService } from "redux-react-session";
 import { useNavigate } from "react-router-dom";
 
-
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const currentUrl = remoteUrl;
+const currentUrl = localUrl;
 
 export const loginUser = (
   credentials,
@@ -17,7 +16,7 @@ export const loginUser = (
   //Make checks and get some data
 
   return () => {
-    console.log('dans loginUser')
+    console.log("dans loginUser");
     axios
       .post(`${currentUrl}/professeur/signin`, credentials, {
         headers: {
@@ -83,9 +82,7 @@ export const signupUser = (
           //checking for specific error
           if (message.includes("name")) {
             setFieldError("name", message);
-          } 
-          
-          else if (message.includes("email")) {
+          } else if (message.includes("email")) {
             setFieldError("email", message);
           } else if (message.includes("date")) {
             setFieldError("dateOfBirth", message);
@@ -142,8 +139,8 @@ export const forgottenPassword = (
             setFieldError("email", message);
           }
         } else if (data.status === "PENDING") {
-          const {email} = credentials;
-          navigate.push(`/emailsent/${email}/${true}`)
+          const { email } = credentials;
+          navigate(`/emailsent/${email}/${true}`);
         }
 
         //complete submission
@@ -155,38 +152,58 @@ export const forgottenPassword = (
 
 //Actual reset
 export const resetPassword = (
-    credentials,
-    navigate,
-    setFieldError,
-    setSubmitting
-  ) => {
-    //Make checks and get some data
-    return () => {
-      axios
-        .post(`${currentUrl}/professeur/resetPassword`, credentials, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then((response) => {
-          const { data } = response;
-  
-          if (data.status === "FAILED") {
-            const { message } = data;
-  
-            //check for specific error
-            if (
-              message.toLowerCase().includes("password") 
-            ) {
-              setFieldError("newPassword", message);
-            }
-          } else if (data.status === "SUCCESS") {
-            navigate.push(`/emailsent`)
+  credentials,
+  navigate,
+  setFieldError,
+  setSubmitting
+) => {
+  //Make checks and get some data
+  return () => {
+    axios
+      .post(`${currentUrl}/professeur/resetPassword`, credentials, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        const { data } = response;
+
+        if (data.status === "FAILED") {
+          const { message } = data;
+
+          //check for specific error
+          if (message.toLowerCase().includes("password")) {
+            setFieldError("newPassword", message);
           }
-  
-          //complete submission
-          setSubmitting(false);
-        })
-        .catch((err) => console.log(err));
-    };
+        } else if (data.status === "SUCCESS") {
+          navigate(`/emailsent`);
+        }
+
+        //complete submission
+        setSubmitting(false);
+      })
+      .catch((err) => console.log(err));
   };
+};
+
+//Update teacher fields
+export const editProfesseur = (
+  credentials,
+  navigate,
+  setFieldError,
+  setSubmitting
+) => {
+  return () => {
+    axios
+      .post(`${currentUrl}/professeur/edit`, credentials, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        console.log('response');
+        console.log(response);
+      })
+      .catch((err) => console.log(err));
+  };
+};

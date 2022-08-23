@@ -42,20 +42,26 @@ function App({ checked }) {
   });
 
   const setAuth = (data) => {
-    if(data) {
-        sessionStorage.setItem('username', data.username);
-        sessionStorage.setItem('firstname', data.firstname);
-        sessionStorage.setItem('lastname', data.lastname);
-        sessionStorage.setItem('isAdmin', data.isAdmin);
-        setCurrentUser({username: data.username, firstname: data.firstname, lastname: data.lastname, isAdmin: data.isAdmin});
+    if (data) {
+      sessionStorage.setItem("unTest", JSON.stringify(data));
+      sessionStorage.setItem("username", data.username);
+      sessionStorage.setItem("firstname", data.firstname);
+      sessionStorage.setItem("lastname", data.lastname);
+      sessionStorage.setItem("isAdmin", data.isAdmin);
+      setCurrentUser({
+        username: data.username,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        isAdmin: data.isAdmin,
+      });
     } else {
-      sessionStorage.removeItem('username');
-      sessionStorage.removeItem('firstname');
-      sessionStorage.removeItem('lastname');
-      sessionStorage.removeItem('isAdmin');
+      sessionStorage.removeItem("username");
+      sessionStorage.removeItem("firstname");
+      sessionStorage.removeItem("lastname");
+      sessionStorage.removeItem("isAdmin");
       setCurrentUser();
     }
-  }
+  };
 
   return (
     <AuthContext.Provider value={{ currentUser, setCurrentUser: setAuth }}>
@@ -68,7 +74,11 @@ function App({ checked }) {
                 path="/"
                 element={<Home handleNavbar={handleNavbarVisibilty} />}
               />
-              <Route path="/home" element={<Home />} />
+              <Route path="/home" element={<Dashboard />} />
+              <Route
+                path="/passwordreset/:professeurId/:resetString"
+                element={<PasswordReset />}
+              />
               <Route element={<AuthRoutes />}>
                 {/* all private routes go in here */}
                 <Route path="/dashboard" element={<Dashboard />}></Route>

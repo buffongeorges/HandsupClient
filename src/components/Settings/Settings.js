@@ -14,8 +14,9 @@ import { AuthContext, useAuth } from "../../auth/context/AuthContext";
 
 // auth & redux
 import { connect } from "react-redux";
-import { logoutUser } from "../../auth/actions/userActions";
-
+import { editProfesseur, logoutUser } from "../../auth/actions/userActions";
+import { colors } from "../../utils/Styles";
+import { ThreeDots } from "react-loader-spinner";
 
 const allowedExtensions = ["csv", "xls"];
 
@@ -23,10 +24,16 @@ const Settings = () => {
   const { currentUser, setCurrentUser } = useAuth();
 
   const [professeur, setProfesseur] = useState(store.getState().session.user);
+
+  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
-  const [college, setCollege] = useState('Choisir collège');
+  const [college, setCollege] = useState("Choisir collège");
   const [photo, setPhoto] = useState(null);
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
@@ -36,18 +43,28 @@ const Settings = () => {
     setShowCamera(false);
     setPhoto(imageSrc);
   }, [webcamRef]);
+
+  const [noteDepart, setNoteDepart] = useState(null);
+  const [participation, setParticipation] = useState(null);
+  const [avertissement, setAvertissement] = useState(null);
+  const [bonus, setBonus] = useState(null);
   let navigate = useNavigate();
 
   useEffect(() => {
-    console.log(store.getState())
+    console.log(store.getState());
     console.log(currentUser);
-    console.log(sessionStorage.getItem("username"))
-    console.log(sessionStorage.getItem("isAdmin"))
-    console.log(sessionStorage.getItem("firstname"))
-    console.log(sessionStorage.getItem("lastname"))
+    console.log(sessionStorage.getItem("username"));
+    console.log(sessionStorage.getItem("isAdmin"));
+    console.log(sessionStorage.getItem("firstname"));
+    console.log(sessionStorage.getItem("lastname"));
     setFirstname(sessionStorage.getItem("firstname"));
     setLastname(sessionStorage.getItem("lastname"));
-  }, [])
+
+    setForm({
+      firstname: sessionStorage.getItem("firstname"),
+      lastname: sessionStorage.getItem("lastname"),
+    });
+  }, []);
 
   const handleClick = () => {
     alert("Mise à jour réussie !");
@@ -75,36 +92,155 @@ const Settings = () => {
     }
   };
 
+  const findFormErrors = () => {
+    const { firstname, lastname } = form;
+
+    var regName = /^[a-z ,.'-]+$/i;
+
+    const newErrors = {};
+    // name errors
+    if (!lastname || lastname === "")
+      newErrors.lastname = "Veuillez saisir un nom";
+
+    console.log(firstname);
+    console.log(lastname);
+    if (!regName.test(lastname))
+      newErrors.lastname = "Veuillez saisir un nom correct";
+    if (!regName.test(firstname))
+      newErrors.firstname = "Veuillez saisir un prénom correct";
+    if (!firstname || firstname === "")
+      newErrors.firstname = "Veuillez saisir un prénom";
+    else if (firstname.length > 30) newErrors.name = "name is too long!";
+    // food errors
+    if (!college || college === "") newErrors.food = "select a food!";
+
+    return newErrors;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // get our new errors
+    const newErrors = findFormErrors();
+    // Conditional logic:
+    if (Object.keys(newErrors).length > 0) {
+      // We got errors!
+      setErrors(newErrors);
+      console.log("errors");
+      console.log(errors);
+    } else if (college == "Choisir collège") {
+      alert("Veuillez choisir un collège");
+    } else {
+      // No errors! Put any logic here for the form submission!
+      alert("Thank you for your feedback!");
+      setIsSubmitting(true);
+      saveProfesseur();
+    }
+  };
+
+  const saveProfesseur = () => {
+    let credentials = {
+      professeur: professeur,
+      newFirstname: firstname,
+      newLastname: lastname,
+      newCollege: college,
+      newPhoto: photo,
+      newNoteDepart: noteDepart,
+      newParticipation: participation,
+      newAvertissement: avertissement,
+      newBonus: bonus,
+    }
+    editProfesseur(credentials, navigate);
+  }
+
+  const setField = (field, value) => {
+    setForm({
+      ...form,
+      [field]: value,
+    });
+    // Check and see if errors exist, and remove them from the error object:
+    if (!!errors[field])
+      setErrors({
+        ...errors,
+        [field]: null,
+      });
+  };
+
+  const handleNoteDepart = (value) => {
+    console.log('valeur actuelle')
+    console.log(value);
+    setNoteDepart(value.current);
+  }
+  const handleParticipation = (value) => {
+    console.log('valeur actuelle')
+    console.log(value);
+    setParticipation(value.current);
+  }
+  const handleAvertissement = (value) => {
+    console.log('valeur actuelle')
+    console.log(value);
+    setAvertissement(value.current);
+  }
+  const handleBonus = (value) => {
+    console.log('valeur actuelle')
+    console.log(value);
+    setBonus(value.current);
+  }
+
   return (
     <div style={{ margin: "2rem" }}>
       <h2> Utilisateur</h2>
-      <Form>
+      <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="formFirstname">
           <Form.Label>Nom</Form.Label>
           <Form.Control
-            type="email"
+            type="text"
             placeholder="Entrer votre nom"
-            defaultValue={lastname}
+            value={lastname}
+            onChange={(e) => {
+              setLastname(e.target.value);
+              setField("lastname", e.target.value);
+            }}
+            isInvalid={!!errors.lastname}
           />
+          <Form.Control.Feedback type="invalid">
+            {errors.lastname}
+          </Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mb-3" controlId="formLastname">
           <Form.Label>Prénom</Form.Label>
           <Form.Control
-            type="email"
+            type="text"
             placeholder="Entrer votre prénom"
-            defaultValue={firstname}
+            value={firstname}
+            onChange={(e) => {
+              setFirstname(e.target.value);
+              setField("firstname", e.target.value);
+            }}
+            isInvalid={!!errors.firstname}
           />
+          <Form.Control.Feedback type="invalid">
+            {errors.firstname}
+          </Form.Control.Feedback>
         </Form.Group>
         <Form.Group className="mb-3" controlId="formLastname">
           <Form.Label>Collège</Form.Label>
-          <DropdownButton id="dropdown-basic-button" title={college} style={{marginBottom: '1rem'}}>
-          <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>Soualiga</Dropdown.Item>
-          <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>Mont des Accords</Dropdown.Item>
-          <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>Autre...</Dropdown.Item>
-        </DropdownButton>
+          <DropdownButton
+            id="dropdown-basic-button"
+            title={college}
+            style={{ marginBottom: "1rem" }}
+          >
+            <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>
+              Soualiga
+            </Dropdown.Item>
+            <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>
+              Mont des Accords
+            </Dropdown.Item>
+            <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>
+              Autre...
+            </Dropdown.Item>
+          </DropdownButton>
         </Form.Group>
-       
 
         <Form.Group controlId="formFile" className="mb-3">
           <Form.Label>Photo</Form.Label>
@@ -148,7 +284,7 @@ const Settings = () => {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={9} max={20} value={10} delta={0.25}></Counter>
+            <Counter min={9} max={20} value={10} delta={0.25} handleCounterValue={handleNoteDepart}></Counter>
           </div>
         </div>
 
@@ -165,7 +301,7 @@ const Settings = () => {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.25}></Counter>
+            <Counter min={0} max={20} value={0} delta={0.25} handleCounterValue={handleParticipation}></Counter>
           </div>
         </div>
         <div>
@@ -181,7 +317,7 @@ const Settings = () => {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={-20} max={0} value={0} delta={0.25}></Counter>
+            <Counter min={-20} max={0} value={0} delta={0.25} handleCounterValue={handleAvertissement}></Counter>
           </div>
         </div>
         <div>
@@ -197,7 +333,7 @@ const Settings = () => {
             </p>
           </strong>
           <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.25}></Counter>
+            <Counter min={0} max={20} value={0} delta={0.25} handleCounterValue={handleBonus}></Counter>
           </div>
         </div>
 
@@ -210,24 +346,28 @@ const Settings = () => {
           <Form.Label>Mettre à jour la base</Form.Label>
           <Form.Control type="file" onChange={handleFileChange} />
         </Form.Group> */}
-        <Button
-          variant="primary"
-          type="submit"
-          // disabled={!file}
-          onClick={() => {
-            handleClick();
-          }}
-        >
-          Sauvegarder
-        </Button>
+        {!isSubmitting && (
+          <Button
+            variant="primary"
+            type="submit"
+            // disabled={!file}
+            // onClick={() => {
+            //   handleClick();
+            // }}
+          >
+            Sauvegarder
+          </Button>
+        )}
+        {isSubmitting && (
+          <ThreeDots color={colors.theme} height={49} width={100} />
+        )}
       </Form>
     </div>
   );
-}
+};
 
 const mapStateToProps = ({ session }) => ({
   checked: session.checked,
 });
 
 export default connect(mapStateToProps)(Settings);
-

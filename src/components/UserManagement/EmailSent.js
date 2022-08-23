@@ -69,15 +69,15 @@ import {
   
         {!reset && !userEmail && (
           <StyledFormArea bg={colors.dark2}>
-            <StyledTitle size={65}>Password Reset</StyledTitle>
+            <StyledTitle size={65}>Mot de passe modifié</StyledTitle>
             <ExtraText color={colors.light1}>
-              Your password has been reset successfully.
+              Votre nouveau mot de passe a été enregistré avec succès.
             </ExtraText>
             <ExtraText color={colors.light1}>
-              You may now login!
+              Vous pouvez maintenant vous connecter!
             </ExtraText>
             <ButtonGroup>
-              <StyledButton to={`/login`}>Login</StyledButton>
+              <StyledButton to={`/login`}>Se connecter</StyledButton>
             </ButtonGroup>
           </StyledFormArea>
         )}

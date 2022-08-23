@@ -30,9 +30,11 @@ const Dashboard = ({ logoutUser, user }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setCurrentUser({username: professeur.email, firstname: professeur.firstname, lastname: professeur.lastname, isAdmin: false} );
+    setCurrentUser({username: professeur.email, firstname: professeur.firstname, lastname: 'Kamui', isAdmin: false} );
+    // setCurrentUser(professeur);
     console.log("le user");
-    console.log(sessionStorage.getItem("username"));
+    // console.log(sessionStorage.getItem("username"));
+    // console.log(sessionStorage.getItem("unTest"));
     console.log(store.getState().session.user);
 
     console.log(currentUser);

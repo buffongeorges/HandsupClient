@@ -33,19 +33,27 @@ import {
   
   const PasswordReset = ({ resetPassword }) => {
     const history = useNavigate();
-    const { userId, resetString } = useParams();
+    const { professeurId, resetString } = useParams();
     return (
-      <div>
+      <div
+      className="Login"
+      style={{
+        width: "25rem",
+        height: "60rem",
+        marginLeft: "auto",
+        marginRight: "auto",
+      }}
+    >
         <StyledFormArea>
           <Avatar image={Logo} />
           <StyledTitle color={colors.theme} size={30}>
-            Password Reset
+            Réinitialiser mot de passe
           </StyledTitle>
           <Formik
             initialValues={{
               newPassword: "",
               confirmNewPassword: "",
-              userId,
+              professeurId,
               resetString,
             }}
             validationSchema={Yup.object({
@@ -68,16 +76,16 @@ import {
                 <TextInput
                   name="newPassword"
                   type="password"
-                  label="New Password"
-                  placeholder="******"
+                  label="Nouveau mot de passe"
+                  placeholder="********"
                   icon={<FiLock />}
                 />
   
                 <TextInput
                   name="confirmNewPassword"
                   type="password"
-                  label="Confirm New Password"
-                  placeholder="******"
+                  label="Confirmer mot de passe"
+                  placeholder="********"
                   icon={<FiLock />}
                 />
                 <ButtonGroup>
