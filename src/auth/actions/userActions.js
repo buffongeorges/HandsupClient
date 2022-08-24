@@ -189,11 +189,11 @@ export const resetPassword = (
 //Update teacher fields
 export const editProfesseur = (
   credentials,
-  navigate,
-  setFieldError,
-  setSubmitting
+  navigate
 ) => {
+  console.log('yoooo')
   return () => {
+    console.log('yoooo')
     axios
       .post(`${currentUrl}/professeur/edit`, credentials, {
         headers: {

@@ -36,6 +36,11 @@ const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
 const currentUrl = localUrl;
 
+//the frontend url 
+const frontendLocalUrl = "http://localhost:3000";
+const frontendRemoteUrl = "https://handsup-client-354369.netlify.app/"
+const frontendUrl = frontendRemoteUrl;
+
 const ForgottenPassword = ({ forgottenPassword }) => {
   const history = useNavigate();
   const { userEmail } = useParams();
@@ -57,7 +62,7 @@ const ForgottenPassword = ({ forgottenPassword }) => {
         <Formik
           initialValues={{
             email: userEmail,
-            redirectUrl: `http://localhost:3000/passwordreset`,
+            redirectUrl: `${frontendUrl}/passwordreset`,
           }}
           validationSchema={Yup.object({
             email: Yup.string()

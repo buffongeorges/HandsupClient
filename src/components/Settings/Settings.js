@@ -149,7 +149,7 @@ const Settings = () => {
       newAvertissement: avertissement,
       newBonus: bonus,
     }
-    editProfesseur(credentials, navigate);
+    editProfesseur(credentials, navigate); //todo : a debugguer ici. Ne fait rien...
   }
 
   const setField = (field, value) => {
