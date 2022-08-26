@@ -24,20 +24,39 @@ import { useEffect } from "react";
 
 const Dashboard = ({ logoutUser, user }) => {
   const { currentUser, setCurrentUser } = useAuth();
-//   console.log(setCurrentUser);
-  const professeur = store.getState().session.user;
+  let professeur = store.getState().session.user;
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    setCurrentUser({username: professeur.email, firstname: professeur.firstname, lastname: professeur.lastname, isAdmin: false} );
-    // setCurrentUser(professeur);
-    console.log("le user");
-    // console.log(sessionStorage.getItem("username"));
-    // console.log(sessionStorage.getItem("unTest"));
-    console.log(store.getState().session.user);
+    if (sessionStorage.getItem('professeur'))
+    {
+      let teacherUpdatedValues = JSON.parse(sessionStorage.getItem('professeur'));
+      if (teacherUpdatedValues) {
+        console.log('teacherUpdatedValues')
+        console.log(teacherUpdatedValues)
 
-    console.log(currentUser);
+        professeur.firstname = teacherUpdatedValues.firstname;
+        professeur.lastname = teacherUpdatedValues.lastname;
+        professeur.college = teacherUpdatedValues.college;
+        professeur.classes = teacherUpdatedValues.classes;
+        professeur.noteDepart = teacherUpdatedValues.noteDepart;
+        professeur.bonus = teacherUpdatedValues.bonus;
+        professeur.avertissement = teacherUpdatedValues.avertissement;
+        professeur.participation = teacherUpdatedValues.participation;
+        professeur.photo = teacherUpdatedValues.photo;
+      }
+    }
+    console.log('professeur maj')
+    console.log(professeur)
+  
+    setCurrentUser({
+      user: professeur,
+      username: professeur.email,
+      firstname: professeur.firstname,
+      lastname: professeur.lastname,
+      isAdmin: false,
+    });
   }, []);
   return (
     <div>
@@ -57,11 +76,11 @@ const Dashboard = ({ logoutUser, user }) => {
       </div>
       <StyledFormArea bg={colors.dark2}>
         <StyledTitle size={65}>
-          Bienvenue, {user.firstname} {user.lastname}
+          Bienvenue, {professeur.firstname} {professeur.lastname}
         </StyledTitle>
-        <ExtraText color={colors.light1}>{user.email}</ExtraText>
+        <ExtraText color={colors.light1}>{professeur.email}</ExtraText>
         <ExtraText color={colors.light1}>
-          {new Date(user.dateOfBirth).toLocaleDateString()}
+          {new Date(professeur.dateOfBirth).toLocaleDateString()}
         </ExtraText>
         <ButtonGroup>
           <StyledButton

@@ -42,8 +42,10 @@ function App({ checked }) {
   });
 
   const setAuth = (data) => {
+    console.log('data dans setAuth')
+    console.log(data);
     if (data) {
-      sessionStorage.setItem("unTest", JSON.stringify(data));
+      sessionStorage.setItem("professeurId", JSON.stringify(data.user._id));
       sessionStorage.setItem("username", data.username);
       sessionStorage.setItem("firstname", data.firstname);
       sessionStorage.setItem("lastname", data.lastname);

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
+import Modal from "react-bootstrap/Modal";
 import CounterInput from "react-counter-input";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import { MultiSelect } from "react-multi-select-component";
+
 import Counter from "../../utils/Counter/Counter";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
@@ -14,16 +18,33 @@ import { AuthContext, useAuth } from "../../auth/context/AuthContext";
 
 // auth & redux
 import { connect } from "react-redux";
-import { editProfesseur, logoutUser } from "../../auth/actions/userActions";
+import {
+  editProfesseur,
+  getProfesseurData,
+  logoutUser,
+  signupUser,
+} from "../../auth/actions/userActions";
 import { colors } from "../../utils/Styles";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, TailSpin } from "react-loader-spinner";
 
 const allowedExtensions = ["csv", "xls"];
+const options = [
+  { label: "Grapes 🍇", value: "grapes", tt: "okokok" },
+  { label: "Mango 🥭", value: "mango" },
+  { label: "Strawberry 🍓", value: "strawberry", disabled: true },
+];
 
 const Settings = () => {
   const { currentUser, setCurrentUser } = useAuth();
+  const [selected, setSelected] = useState([]);
+  const [multiselectOptions, setMultiselectOptions] = useState([]);
+
+  const [showModal, setShowModal] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [selectedSchool, setSelectedSchool] = useState(null);
 
   const [professeur, setProfesseur] = useState(store.getState().session.user);
+  const [userId, setUserId] = useState(null);
 
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({});
@@ -34,6 +55,8 @@ const Settings = () => {
   const [lastname, setLastname] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
   const [college, setCollege] = useState("Choisir collège");
+  const [ecoles, setEcoles] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [photo, setPhoto] = useState(null);
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
@@ -53,18 +76,68 @@ const Settings = () => {
   useEffect(() => {
     console.log(store.getState());
     console.log(currentUser);
-    console.log(sessionStorage.getItem("username"));
-    console.log(sessionStorage.getItem("isAdmin"));
-    console.log(sessionStorage.getItem("firstname"));
-    console.log(sessionStorage.getItem("lastname"));
-    setFirstname(sessionStorage.getItem("firstname"));
-    setLastname(sessionStorage.getItem("lastname"));
+    console.log("prof de la session:");
+    console.log(sessionStorage.professeurId);
+    console.log("id");
+    // console.log(JSON.parse(sessionStorage.professeurId));
+    setUserId(JSON.parse(sessionStorage.professeurId));
+    // setProfesseur(JSON.parse(sessionStorage.professeur));
+
+    getProfesseurData(JSON.parse(sessionStorage.professeurId))
+      .then((response) => {
+        console.log("les infos prof");
+        console.log(response.data);
+        const user = response.data.data;
+        setFirstname(user.firstname);
+        setLastname(user.lastname);
+        setCollege(user.college[0]);
+        setAvertissement(user.avertissement);
+        setBonus(user.bonus);
+        setParticipation(user.participation);
+        setNoteDepart(user.noteDepart);
+        setEcoles(user.ecoles);
+        setClasses(user.classes);
+        const initialSchoolId = user.college[0]._id;
+        const initialClasses = user.ecoles.find(
+          (ecole) => ecole._id === initialSchoolId
+        ).classes;
+        const newOptions = multiselectOptions;
+        initialClasses.forEach((classe) => {
+          const option = {
+            label: classe.name,
+            value: classe.name,
+            _id: classe._id,
+          };
+          newOptions.push(option);
+        });
+        setMultiselectOptions(newOptions);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
 
     setForm({
       firstname: sessionStorage.getItem("firstname"),
       lastname: sessionStorage.getItem("lastname"),
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedSchool) {
+      console.log(selectedSchool);
+      const newOptions = [];
+      selectedSchool.classes.forEach((classe) => {
+        const option = {
+          label: classe.name,
+          value: classe.name,
+          _id: classe._id,
+        };
+        newOptions.push(option);
+      });
+      setMultiselectOptions(newOptions);
+      setClasses([])
+    }
+  }, [selectedSchool]);
 
   const handleClick = () => {
     alert("Mise à jour réussie !");
@@ -104,9 +177,9 @@ const Settings = () => {
 
     console.log(firstname);
     console.log(lastname);
-    if (!regName.test(lastname))
+    if (!regName.test(lastname) && lastname !== "")
       newErrors.lastname = "Veuillez saisir un nom correct";
-    if (!regName.test(firstname))
+    if (!regName.test(firstname) && firstname !== "")
       newErrors.firstname = "Veuillez saisir un prénom correct";
     if (!firstname || firstname === "")
       newErrors.firstname = "Veuillez saisir un prénom";
@@ -131,15 +204,20 @@ const Settings = () => {
       alert("Veuillez choisir un collège");
     } else {
       // No errors! Put any logic here for the form submission!
-      alert("Thank you for your feedback!");
       setIsSubmitting(true);
+      console.log("avertissement");
+      console.log(avertissement);
       saveProfesseur();
     }
   };
 
   const saveProfesseur = () => {
+    // setCurrentUser({firstname: firstname, lastname: lastname, ...professeur} );
+    console.log("les classes sont");
+    console.log(classes);
+
     let credentials = {
-      professeur: professeur,
+      professeurId: userId,
       newFirstname: firstname,
       newLastname: lastname,
       newCollege: college,
@@ -148,9 +226,32 @@ const Settings = () => {
       newParticipation: participation,
       newAvertissement: avertissement,
       newBonus: bonus,
-    }
-    editProfesseur(credentials, navigate); //todo : a debugguer ici. Ne fait rien...
-  }
+      newClasses: classes,
+    };
+
+    let sessionStorageValues = {
+      firstname: firstname,
+      lastname: lastname,
+      college: college,
+      classes: classes,
+      photo: photo,
+      noteDepart: noteDepart,
+      participation: participation,
+      avertissement: avertissement,
+      bonus: bonus,
+    };
+
+    sessionStorage.setItem("professeur", JSON.stringify(sessionStorageValues));
+    editProfesseur(credentials, navigate).then(async (response) => {
+      console.log("réponse de edit");
+      console.log(response);
+      if (response.status === 200 && response.data.status === "SUCCESS") {
+        console.log(multiselectOptions);
+        console.log(classes);
+        setShowModal(true);
+      }
+    });
+  };
 
   const setField = (field, value) => {
     setForm({
@@ -166,178 +267,241 @@ const Settings = () => {
   };
 
   const handleNoteDepart = (value) => {
-    console.log('valeur actuelle')
+    console.log("valeur actuelle");
     console.log(value);
     setNoteDepart(value.current);
-  }
+  };
   const handleParticipation = (value) => {
-    console.log('valeur actuelle')
+    console.log("valeur actuelle");
     console.log(value);
     setParticipation(value.current);
-  }
+  };
   const handleAvertissement = (value) => {
-    console.log('valeur actuelle')
+    console.log("valeur actuelle");
     console.log(value);
     setAvertissement(value.current);
-  }
+  };
   const handleBonus = (value) => {
-    console.log('valeur actuelle')
+    console.log("valeur actuelle");
     console.log(value);
     setBonus(value.current);
-  }
+  };
 
-  return (
-    <div style={{ margin: "2rem" }}>
-      <h2> Utilisateur</h2>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="formFirstname">
-          <Form.Label>Nom</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Entrer votre nom"
-            value={lastname}
-            onChange={(e) => {
-              setLastname(e.target.value);
-              setField("lastname", e.target.value);
-            }}
-            isInvalid={!!errors.lastname}
-          />
-          <Form.Control.Feedback type="invalid">
-            {errors.lastname}
-          </Form.Control.Feedback>
-        </Form.Group>
+  const handleCloseModal = () => {
+    setShowModal(false);
+    navigate("/dashboard");
+  };
 
-        <Form.Group className="mb-3" controlId="formLastname">
-          <Form.Label>Prénom</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Entrer votre prénom"
-            value={firstname}
-            onChange={(e) => {
-              setFirstname(e.target.value);
-              setField("firstname", e.target.value);
-            }}
-            isInvalid={!!errors.firstname}
-          />
-          <Form.Control.Feedback type="invalid">
-            {errors.firstname}
-          </Form.Control.Feedback>
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="formLastname">
-          <Form.Label>Collège</Form.Label>
-          <DropdownButton
-            id="dropdown-basic-button"
-            title={college}
-            style={{ marginBottom: "1rem" }}
+  if (isFetching) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-around",
+        }}
+      >
+        <TailSpin width={500} height={500} color={colors.theme} />
+      </div>
+    );
+  } else if (!isFetching) {
+    return (
+      <div style={{ margin: "2rem" }}>
+        <h2> Utilisateur</h2>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="formFirstname">
+            <Form.Label>Nom</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Entrer votre nom"
+              value={lastname}
+              onChange={(e) => {
+                setLastname(e.target.value);
+                setField("lastname", e.target.value);
+              }}
+              isInvalid={!!errors.lastname}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.lastname}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="formLastname">
+            <Form.Label>Prénom</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Entrer votre prénom"
+              value={firstname}
+              onChange={(e) => {
+                setFirstname(e.target.value);
+                setField("firstname", e.target.value);
+              }}
+              isInvalid={!!errors.firstname}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.firstname}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="formCollege">
+            <Form.Label>Collège</Form.Label>
+            <DropdownButton
+              id="dropdown-schools"
+              title={college.name}
+              style={{ marginBottom: "1rem" }}
+            >
+              {ecoles.map((ecole, index) => (
+                <Dropdown.Item
+                  key={`${index}`}
+                  onClick={(e) => {
+                    setCollege(ecole);
+                    setSelectedSchool(ecole);
+                  }}
+                >
+                  {ecole.name}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
+          </Form.Group>
+
+          <Form.Group
+            className="mb-3"
+            controlId="formCollege"
+            style={{ marginBottom: "2rem" }}
           >
-            <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>
-              Soualiga
-            </Dropdown.Item>
-            <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>
-              Mont des Accords
-            </Dropdown.Item>
-            <Dropdown.Item onClick={(e) => setCollege(e.target.textContent)}>
-              Autre...
-            </Dropdown.Item>
-          </DropdownButton>
-        </Form.Group>
+            <Form.Label>Ecoles</Form.Label>
+            <MultiSelect
+              options={multiselectOptions}
+              value={classes}
+              //setSelectedSchool.classes
+              onChange={(selectedItems) => {
+                setClasses(selectedItems);
+              }}
+              labelledBy="Select"
+            />
+          </Form.Group>
 
-        <Form.Group controlId="formFile" className="mb-3">
-          <Form.Label>Photo</Form.Label>
-          <Form.Control type="file" />
-          {photo && <img src={photo} />}
-          {showCamera && (
-            <div>
-              <Webcam
-                audio={false}
-                ref={webcamRef}
-                screenshotFormat="image/jpeg"
-              />
-              <br />
-              <Button onClick={capture}>Capturer</Button>
+          <Form.Group controlId="formFile" className="mb-3">
+            <Form.Label>Photo</Form.Label>
+            <Form.Control type="file" />
+            {photo && <img src={photo} />}
+            {showCamera && (
+              <div>
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                />
+                <br />
+                <Button onClick={capture}>Capturer</Button>
+              </div>
+            )}
+            {!showCamera && (
+              <Button
+                style={{ marginTop: "0.5rem" }}
+                onClick={() => {
+                  setPhoto(null);
+                  setShowCamera(true);
+                }}
+              >
+                Prendre photo
+              </Button>
+            )}
+          </Form.Group>
+
+          <h2 style={{ marginTop: "2rem" }}> Notation</h2>
+          <div style={{ marginTop: "2rem" }}>
+            <strong>
+              <p
+                style={{
+                  display: "inline-block",
+                  marginRight: "2rem",
+                  width: "10rem",
+                }}
+              >
+                Note de départ
+              </p>
+            </strong>
+            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+              <Counter
+                min={9}
+                max={20}
+                value={noteDepart}
+                delta={0.25}
+                handleCounterValue={handleNoteDepart}
+              ></Counter>
             </div>
-          )}
-          {!showCamera && (
-            <Button
-              style={{ marginTop: "0.5rem" }}
-              onClick={() => {
-                setPhoto(null);
-                setShowCamera(true);
-              }}
-            >
-              Prendre photo
-            </Button>
-          )}
-        </Form.Group>
+          </div>
 
-        <h2 style={{ marginTop: "2rem" }}> Notation</h2>
-        <div style={{ marginTop: "2rem" }}>
-          <strong>
-            <p
-              style={{
-                display: "inline-block",
-                marginRight: "2rem",
-                width: "10rem",
-              }}
-            >
-              Note de départ
-            </p>
-          </strong>
-          <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={9} max={20} value={10} delta={0.25} handleCounterValue={handleNoteDepart}></Counter>
+          <div>
+            <strong>
+              <p
+                style={{
+                  display: "inline-block",
+                  marginRight: "2rem",
+                  width: "10rem",
+                }}
+              >
+                Participation
+              </p>
+            </strong>
+            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+              <Counter
+                min={0}
+                max={20}
+                value={participation}
+                delta={0.25}
+                handleCounterValue={handleParticipation}
+              ></Counter>
+            </div>
           </div>
-        </div>
+          <div>
+            <strong>
+              <p
+                style={{
+                  display: "inline-block",
+                  marginRight: "2rem",
+                  width: "10rem",
+                }}
+              >
+                Avertissement (-)
+              </p>
+            </strong>
+            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+              <Counter
+                min={-20}
+                max={0}
+                value={avertissement}
+                delta={0.25}
+                handleCounterValue={handleAvertissement}
+              ></Counter>
+            </div>
+          </div>
+          <div>
+            <strong>
+              <p
+                style={{
+                  display: "inline-block",
+                  marginRight: "2rem",
+                  width: "10rem",
+                }}
+              >
+                Bonus (+)
+              </p>
+            </strong>
+            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+              <Counter
+                min={0}
+                max={20}
+                value={bonus}
+                delta={0.25}
+                handleCounterValue={handleBonus}
+              ></Counter>
+            </div>
+          </div>
 
-        <div>
-          <strong>
-            <p
-              style={{
-                display: "inline-block",
-                marginRight: "2rem",
-                width: "10rem",
-              }}
-            >
-              Participation
-            </p>
-          </strong>
-          <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.25} handleCounterValue={handleParticipation}></Counter>
-          </div>
-        </div>
-        <div>
-          <strong>
-            <p
-              style={{
-                display: "inline-block",
-                marginRight: "2rem",
-                width: "10rem",
-              }}
-            >
-              Avertissement (-)
-            </p>
-          </strong>
-          <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={-20} max={0} value={0} delta={0.25} handleCounterValue={handleAvertissement}></Counter>
-          </div>
-        </div>
-        <div>
-          <strong>
-            <p
-              style={{
-                display: "inline-block",
-                marginRight: "2rem",
-                width: "10rem",
-              }}
-            >
-              Bonus (+)
-            </p>
-          </strong>
-          <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-            <Counter min={0} max={20} value={0} delta={0.25} handleCounterValue={handleBonus}></Counter>
-          </div>
-        </div>
-
-        {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
+          {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
         <Form.Group
           controlId="formFile"
           className="mb-3"
@@ -346,24 +510,34 @@ const Settings = () => {
           <Form.Label>Mettre à jour la base</Form.Label>
           <Form.Control type="file" onChange={handleFileChange} />
         </Form.Group> */}
-        {!isSubmitting && (
-          <Button
-            variant="primary"
-            type="submit"
-            // disabled={!file}
-            // onClick={() => {
-            //   handleClick();
-            // }}
-          >
-            Sauvegarder
-          </Button>
-        )}
-        {isSubmitting && (
-          <ThreeDots color={colors.theme} height={49} width={100} />
-        )}
-      </Form>
-    </div>
-  );
+          {!isSubmitting && (
+            <Button variant="primary" type="submit">
+              Sauvegarder
+            </Button>
+          )}
+          {isSubmitting && (
+            <ThreeDots color={colors.theme} height={49} width={100} />
+          )}
+        </Form>
+        <Modal
+          show={showModal}
+          onHide={handleCloseModal}
+          backdrop="static"
+          keyboard={false}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Informations mises à jour</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Vos modifications ont été bien sauvegardées.</Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={handleCloseModal}>
+              Continuer
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
+    );
+  }
 };
 
 const mapStateToProps = ({ session }) => ({

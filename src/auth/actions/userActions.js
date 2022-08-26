@@ -67,6 +67,7 @@ export const signupUser = (
   setSubmitting
 ) => {
   return (dispatch) => {
+    console.log("hello");
     axios
       .post(`${currentUrl}/professeur/signup`, credentials, {
         headers: {
@@ -186,24 +187,52 @@ export const resetPassword = (
   };
 };
 
-//Update teacher fields
-export const editProfesseur = (
-  credentials,
-  navigate
-) => {
-  console.log('yoooo')
-  return () => {
-    console.log('yoooo')
-    axios
-      .post(`${currentUrl}/professeur/edit`, credentials, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        console.log('response');
-        console.log(response);
-      })
-      .catch((err) => console.log(err));
-  };
+//Update teacher data
+export const editProfesseur = (credentials) => {
+  return axios
+    .post(`${currentUrl}/professeur/edit`, credentials, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//Get teacher data
+export const getProfesseurData = (profId) => {
+  return axios
+    .get(`${currentUrl}/professeur/get/${profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//Get teacher registered classes
+export const getProfesseurClasses = (profId) => {
+  console.log("profId")
+  console.log(profId)
+  return axios
+    .get(`${currentUrl}/classes/get/${profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
 };
