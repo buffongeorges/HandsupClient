@@ -53,6 +53,7 @@ const Classes = () => {
   const goToClass = (selectedClass) => {
     console.log("selectedClass")
     console.log(selectedClass)
+    sessionStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
     let classeName = selectedClass.value;
     classeName = classeName.replace(/\s/g, "");
 

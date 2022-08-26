@@ -236,3 +236,21 @@ export const getProfesseurClasses = (profId) => {
     })
     .catch((err) => console.log(err));
 };
+
+//Get teacher registered classes
+export const addEleveToClasse = (credentials) => {
+  console.log("credentials")
+  console.log(credentials)
+  return axios
+    .post(`${currentUrl}/classes/add/student`, credentials, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
