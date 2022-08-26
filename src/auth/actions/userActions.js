@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const currentUrl = localUrl;
+const currentUrl = remoteUrl;
 
 export const loginUser = (
   credentials,
@@ -221,8 +221,8 @@ export const getProfesseurData = (profId) => {
 
 //Get teacher registered classes
 export const getProfesseurClasses = (profId) => {
-  console.log("profId")
-  console.log(profId)
+  console.log("profId");
+  console.log(profId);
   return axios
     .get(`${currentUrl}/classes/get/${profId}`, {
       headers: {
@@ -237,15 +237,29 @@ export const getProfesseurClasses = (profId) => {
     .catch((err) => console.log(err));
 };
 
-//Get teacher registered classes
+//Add student to a specific class
 export const addEleveToClasse = (credentials) => {
-  console.log("credentials")
-  console.log(credentials)
+  console.log("credentials");
+  console.log(credentials);
   return axios
     .post(`${currentUrl}/classes/add/student`, credentials, {
       headers: {
         "Content-Type": "application/json",
       },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//Upload teacher picture
+export const uploadTeacherPicture = (formData) => {
+  return axios
+    .post(`${currentUrl}/images`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     })
     .then((response) => {
       console.log("response");

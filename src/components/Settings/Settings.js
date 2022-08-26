@@ -23,6 +23,7 @@ import {
   getProfesseurData,
   logoutUser,
   signupUser,
+  uploadTeacherPicture,
 } from "../../auth/actions/userActions";
 import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
@@ -58,6 +59,7 @@ const Settings = () => {
   const [ecoles, setEcoles] = useState([]);
   const [classes, setClasses] = useState([]);
   const [photo, setPhoto] = useState(null);
+  const [selectedPicture, setSelectedPicture] = useState(null);
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
   const capture = React.useCallback(() => {
@@ -135,7 +137,7 @@ const Settings = () => {
         newOptions.push(option);
       });
       setMultiselectOptions(newOptions);
-      setClasses([])
+      setClasses([]);
     }
   }, [selectedSchool]);
 
@@ -292,6 +294,21 @@ const Settings = () => {
     navigate("/dashboard");
   };
 
+  useEffect(() => {
+    const formData = new FormData();
+    if (selectedPicture) {
+      formData.append("image", selectedPicture);
+      uploadTeacherPicture(formData)
+        .then((response) => {
+          console.log("response")
+          console.log(response)
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [selectedPicture]);
+
   if (isFetching) {
     return (
       <div
@@ -384,8 +401,16 @@ const Settings = () => {
 
           <Form.Group controlId="formFile" className="mb-3">
             <Form.Label>Photo</Form.Label>
-            <Form.Control type="file" />
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                console.log(e);
+                setSelectedPicture(e.target.files[0]);
+              }}
+            />
             {photo && <img src={photo} />}
+
             {showCamera && (
               <div>
                 <Webcam
