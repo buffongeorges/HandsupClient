@@ -20,7 +20,7 @@ import { colors } from "../../utils/Styles.js";
 
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { addEleveToClasse } from "../../auth/actions/userActions";
+import { addEleveToClasse, getElevesInClasse } from "../../auth/actions/userActions";
 
 var ObjectID = require('bson').ObjectID;
 
@@ -108,6 +108,7 @@ let sts = [
   },
 ];
 const Classe = () => {
+  const [user, setUser] = useState(store.getState().session.user);
   const [participationModal, setParticipationModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [eleves, setEleves] = useState(sts);
@@ -127,10 +128,10 @@ const Classe = () => {
   });
 
   // const {action, handlers} = useLongPress({handleModal: handleParticipationModalVisibilty}, {handleModalParticipation: handleModalParticipation});
-  let { id } = useParams();
+  let { classId } = useParams();
   let navigate = useNavigate();
   const location = useLocation();
-  const classe = location.pathname.split("/classes/")[1];
+  const [classe, setClasse] = useState(null);
   const [key, setKey] = useState("participation");
   let val = "participation";
   const [exportList, setExportList] = useState([]);
@@ -170,7 +171,7 @@ const Classe = () => {
     updatedStudent.bonus = 0;
     updatedStudent.avertissement = 0;
     updatedStudent.participation = 0;
-    updatedStudent.classe = JSON.parse(sessionStorage.selectedClasse);
+    updatedStudent.classe = classId
     updatedStudent._id = new ObjectID();
 
     newList[firstEmptyStudentIndex] = updatedStudent;
@@ -352,15 +353,30 @@ const Classe = () => {
   }, [counter]);
 
   useEffect(() => {
-    console.log("sessionStorage.selectedClasse")
-    console.log(sessionStorage.selectedClasse)
+    console.log("first call")
+    console.log(user)
+    console.log("classId")
+    console.log(classId)
+    setIsFetching(true);
+    getElevesInClasse(classId).then((response) => {
+      console.log('les eleves')
+      console.log(response.data)
+      console.log('la classe')
+      console.log(response.data.data.classe)
+      setClasse(response.data.data.classe.value);
+    }).catch((error) => {
+      console.log("error while fetching students")
+      console.log(error)
+    }).finally(() => {
+      setIsFetching(false)
+    })
     let studentsList = [...sts];
     for (var i = 1; i <= 48 - sts.length; i++) {
       studentsList.push({
         id: studentsList.length + 1,
         lastname: `Eleve ${studentsList.length + 1}`,
         firstname: `Eleve ${studentsList.length + 1}`,
-        classe: JSON.parse(sessionStorage.selectedClasse),
+        classe: classId ,//*the classId,
         photo: "/images/blank.png",
         position: studentsList.length + 1,
         participation: null,

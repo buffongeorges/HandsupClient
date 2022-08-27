@@ -42,6 +42,7 @@ let classesTest = [
 const Classes = () => {
   let navigate = useNavigate();
   const location = useLocation();
+  const [user, setUser] = useState(null); 
   let professeur = store.getState().session.user;
   const [classes, setClasses] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
@@ -51,9 +52,29 @@ const Classes = () => {
     console.log(selectedClass);
     sessionStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
     let classeName = selectedClass.value;
+    const classeId = selectedClass._id
     classeName = classeName.replace(/\s/g, "");
 
-    let path = `${location.pathname}/${classeName}`;
+    sessionService.loadUser().then((user) => {
+      console.log('mon utilisateur')
+      console.log(user);
+    })
+
+    let updatedUserFields = {
+      ...user,
+      selectedClass: selectedClass
+    }
+
+    console.log("updatedUserFields")
+    console.log(updatedUserFields)
+    sessionService.saveUser(updatedUserFields).then(() => {
+      console.log("user has been saved in session successfully");
+    }).catch((err) => {
+      console.log('error while updating user selected class');
+      console.log(err)
+    })
+
+    let path = `${location.pathname}/${classeId}`;
 
     navigate(`${path}`, { replace: true });
   };
@@ -61,6 +82,7 @@ const Classes = () => {
   useEffect(() => {
     sessionService.loadUser().then((user) => {
       let teacherClasses = user.classes;
+      setUser(user);
       if (teacherClasses) {
         console.log("teacherClasses");
         console.log(teacherClasses);

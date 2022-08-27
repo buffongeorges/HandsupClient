@@ -86,7 +86,7 @@ function App({ checked }) {
                 <Route path="/home" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />}></Route>
                 <Route path="/classes" element={<Classes />} />
-                <Route path="/classes/:id" element={<Classe />} />
+                <Route path="/classes/:classId" element={<Classe />} />
                 <Route
                   path="/student/:studentId/edit"
                   element={<EleveEdit />}

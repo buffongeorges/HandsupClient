@@ -31,11 +31,6 @@ import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 import { sessionService } from "redux-react-session";
 
-//the remote endpoint and local
-const remoteUrl = "https://young-dusk-42243.herokuapp.com";
-const localUrl = "http://localhost:3002";
-const backendUrl = localUrl;
-
 const allowedExtensions = ["csv", "xls"];
 
 const Settings = () => {
@@ -69,7 +64,13 @@ const Settings = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     console.log(imageSrc);
     setShowCamera(false);
-    setPhoto(imageSrc);
+    // setPhoto(imageSrc);
+    fetch(imageSrc)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const file = new File([blob], "File name", { type: "image/png" });
+        setSelectedPicture(file);
+      });
   }, [webcamRef]);
 
   const [noteDepart, setNoteDepart] = useState(null);
@@ -261,7 +262,7 @@ const Settings = () => {
       //What if both the object has same key, it simply merge the last objects value and have only one key value.
     };
 
-    sessionService.saveUser(newUserFields).then((newUser) => {
+    sessionService.saveUser(newUserFields).then(() => {
       console.log("user has been saved in session successfully");
     });
     sessionStorage.setItem("professeur", JSON.stringify(sessionStorageValues));
@@ -342,8 +343,6 @@ const Settings = () => {
               console.log("after s3 upload");
               console.log(s3Response);
               if (s3Response.status === 200 && s3Response.statusText === "OK") {
-                console.log("on a accès?");
-                console.log(response.data);
                 const imageUrl = response.data.url.split("?")[0];
                 console.log(imageUrl);
                 setPhoto(imageUrl);
@@ -461,6 +460,7 @@ const Settings = () => {
               accept="image/*"
               onChange={(e) => {
                 console.log(e);
+                setShowCamera(false);
                 setSelectedPicture(e.target.files[0]);
               }}
             />
@@ -468,7 +468,7 @@ const Settings = () => {
               <div
                 style={{
                   marginTop: "2rem",
-                  width: "400px"
+                  width: "400px",
                 }}
               >
                 <img
@@ -476,7 +476,7 @@ const Settings = () => {
                   style={{
                     objectFit: "contain",
                     height: "250px",
-                    maxWidth: "100%"
+                    maxWidth: "100%",
                   }}
                 />
               </div>
