@@ -384,7 +384,7 @@ const Classe = () => {
           justifyContent: "space-around",
         }}
       >
-        <TailSpin width={500} height={500} color={colors.theme} />
+        <TailSpin width="20rem" height="20rem" color={colors.theme} />
       </div>
     );
   } else if (!isFetching) {

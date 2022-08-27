@@ -39,7 +39,7 @@ const currentUrl = remoteUrl;
 //the frontend url 
 const frontendLocalUrl = "http://localhost:3000";
 const frontendRemoteUrl = "https://handsup-client-354369.netlify.app/"
-const frontendUrl = frontendRemoteUrl;
+const frontendUrl = frontendLocalUrl;
 
 const ForgottenPassword = ({ forgottenPassword }) => {
   const history = useNavigate();

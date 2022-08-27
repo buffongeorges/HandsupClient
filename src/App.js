@@ -42,7 +42,7 @@ function App({ checked }) {
   });
 
   const setAuth = (data) => {
-    console.log('data dans setAuth')
+    console.log("data dans setAuth");
     console.log(data);
     if (data) {
       sessionStorage.setItem("professeurId", JSON.stringify(data.user._id));
@@ -72,17 +72,18 @@ function App({ checked }) {
           <div className="App">
             {navbarVisibility && <Navbar></Navbar>}
             <Routes>
-              <Route
+              {/* <Route
                 path="/"
                 element={<Home handleNavbar={handleNavbarVisibilty} />}
-              />
-              <Route path="/home" element={<Dashboard />} />
+              /> */}
               <Route
                 path="/passwordreset/:professeurId/:resetString"
                 element={<PasswordReset />}
               />
               <Route element={<AuthRoutes />}>
                 {/* all private routes go in here */}
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/home" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />}></Route>
                 <Route path="/classes" element={<Classes />} />
                 <Route path="/classes/:id" element={<Classe />} />

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const currentUrl = remoteUrl;
+const backendUrl = localUrl;
 
 export const loginUser = (
   credentials,
@@ -18,7 +18,7 @@ export const loginUser = (
   return () => {
     console.log("dans loginUser");
     axios
-      .post(`${currentUrl}/professeur/signin`, credentials, {
+      .post(`${backendUrl}/professeur/signin`, credentials, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -69,7 +69,7 @@ export const signupUser = (
   return (dispatch) => {
     console.log("hello");
     axios
-      .post(`${currentUrl}/professeur/signup`, credentials, {
+      .post(`${backendUrl}/professeur/signup`, credentials, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -106,6 +106,8 @@ export const logoutUser = (navigate) => {
   return () => {
     sessionService.deleteSession();
     sessionService.deleteUser();
+    sessionService.invalidateSession();
+    sessionService.
     navigate("/login");
   };
 };
@@ -120,7 +122,7 @@ export const forgottenPassword = (
 
   return () => {
     axios
-      .post(`${currentUrl}/professeur/requestPasswordReset`, credentials, {
+      .post(`${backendUrl}/professeur/requestPasswordReset`, credentials, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -161,7 +163,7 @@ export const resetPassword = (
   //Make checks and get some data
   return () => {
     axios
-      .post(`${currentUrl}/professeur/resetPassword`, credentials, {
+      .post(`${backendUrl}/professeur/resetPassword`, credentials, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -190,7 +192,7 @@ export const resetPassword = (
 //Update teacher data
 export const editProfesseur = (credentials) => {
   return axios
-    .post(`${currentUrl}/professeur/edit`, credentials, {
+    .post(`${backendUrl}/professeur/edit`, credentials, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -206,7 +208,7 @@ export const editProfesseur = (credentials) => {
 //Get teacher data
 export const getProfesseurData = (profId) => {
   return axios
-    .get(`${currentUrl}/professeur/get/${profId}`, {
+    .get(`${backendUrl}/professeur/get/${profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -224,7 +226,7 @@ export const getProfesseurClasses = (profId) => {
   console.log("profId");
   console.log(profId);
   return axios
-    .get(`${currentUrl}/classes/get/${profId}`, {
+    .get(`${backendUrl}/classes/get/${profId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -242,7 +244,7 @@ export const addEleveToClasse = (credentials) => {
   console.log("credentials");
   console.log(credentials);
   return axios
-    .post(`${currentUrl}/classes/add/student`, credentials, {
+    .post(`${backendUrl}/classes/add/student`, credentials, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -258,7 +260,7 @@ export const addEleveToClasse = (credentials) => {
 //Upload teacher picture
 export const uploadTeacherPicture = (formData) => {
   return axios
-    .post(`${currentUrl}/images`, formData, {
+    .post(`${backendUrl}/images`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     })
     .then((response) => {
@@ -268,3 +270,28 @@ export const uploadTeacherPicture = (formData) => {
     })
     .catch((err) => console.log(err));
 };
+
+//get secure url for image
+export const getS3SecureURL = () => {
+  return axios
+  .get(`${backendUrl}/s3Url`)
+  .then((response) => {
+    return response;
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+};
+
+//upload image to S3 bucket
+export const uploadImageToS3 = (url, file) => {
+  console.log(url)
+  return axios
+  .put(`${url}`, file, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }).then((response) => {
+    return response;
+  }).catch((err) => {
+    console.log(err);
+  })
+}

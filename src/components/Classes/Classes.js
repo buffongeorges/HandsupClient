@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
+import Alert from "react-bootstrap/Alert";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 
 import { useNavigate } from "react-router-dom";
@@ -9,8 +10,9 @@ import { connect } from "react-redux";
 import store from "../../auth/store.js";
 import { colors } from "../../utils/Styles.js";
 import { getProfesseurClasses } from "../../auth/actions/userActions.js";
+import { sessionService } from "redux-react-session";
 
-let classes = [
+let classesTest = [
   "6EME 1",
   "6EME 2",
   "6EME 3",
@@ -44,15 +46,9 @@ const Classes = () => {
   const [classes, setClasses] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
 
-  const Input = () => {
-    return <input placeholder="Your input here" />;
-  };
-
-  const [inputList, setInputList] = useState([]);
-
   const goToClass = (selectedClass) => {
-    console.log("selectedClass")
-    console.log(selectedClass)
+    console.log("selectedClass");
+    console.log(selectedClass);
     sessionStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
     let classeName = selectedClass.value;
     classeName = classeName.replace(/\s/g, "");
@@ -63,33 +59,30 @@ const Classes = () => {
   };
 
   useEffect(() => {
-    console.log("sessionStorage.getItem('professeur')");
-    console.log(sessionStorage.getItem("professeur"));
-    console.log(professeur);
-    //first check if session contains the teacher classes:
-    if (sessionStorage.getItem("professeur")) {
-      let teacherClasses = JSON.parse(
-        sessionStorage.getItem("professeur")
-      ).classes;
-      console.log("teacherClasses");
-      console.log(teacherClasses);
-      setClasses(teacherClasses);
-      setIsFetching(false);
-    }
-
-    //if not call api for teacher classes:
-    else {
-      getProfesseurClasses(JSON.parse(sessionStorage.professeurId))
-      .then((response) => {
-        console.log("les classes:")
-        console.log(response.data.data.classes)
-        setClasses(response.data.data.classes)
-      })
-      .catch((error) => {console.log(error)})
-      .finally(() => {
+    sessionService.loadUser().then((user) => {
+      let teacherClasses = user.classes;
+      if (teacherClasses) {
+        console.log("teacherClasses");
+        console.log(teacherClasses);
+        setClasses(teacherClasses);
         setIsFetching(false);
-      });
-    }
+      }
+      //if not call api for teacher classes:
+      else {
+        getProfesseurClasses(user._id)
+          .then((response) => {
+            console.log("les classes:");
+            console.log(response.data.data.classes);
+            setClasses(response.data.data.classes);
+          })
+          .catch((error) => {
+            console.log(error);
+          })
+          .finally(() => {
+            setIsFetching(false);
+          });
+      }
+    });
   }, []);
 
   if (isFetching) {
@@ -102,39 +95,67 @@ const Classes = () => {
           justifyContent: "space-around",
         }}
       >
-        <TailSpin width={500} height={500} color={colors.theme} />
+        <TailSpin width="20rem" height="20rem" color={colors.theme} />
       </div>
     );
   } else if (!isFetching) {
     return (
-      <div
-        className="container"
-        style={{
-          textAlign: "center",
-          position: "relative",
-          justifyContent: "center",
-          paddingTop: "2rem",
-          paddingLeft: "2rem",
-        }}
-      >
-        {/* <Container fluid> */}
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          {classes.map((classe, index) => {
-            return (
-              <div
-                style={{
-                  marginBottom: "2rem",
-                  marginRight: "2rem",
-                  flex: "1 0 21%",
-                }}
-              >
-                <Button onClick={() => goToClass(classe)}>{classe.value}</Button>
-              </div>
-            );
-          })}
-        </div>
-        {/* </Container> */}
-      </div>
+      <>
+        {classes.length > 0 && (
+          <div
+            className="container"
+            style={{
+              textAlign: "center",
+              position: "relative",
+              justifyContent: "center",
+              paddingTop: "2rem",
+              paddingLeft: "2rem",
+            }}
+          >
+            {/* <Container fluid> */}
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              {classes.map((classe, index) => {
+                return (
+                  <div
+                    style={{
+                      marginBottom: "2rem",
+                      marginRight: "2rem",
+                      flex: "1 0 21%",
+                    }}
+                    key={index}
+                  >
+                    <Button onClick={() => goToClass(classe)}>
+                      {classe.value}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            {/* </Container> */}
+          </div>
+        )}
+        {classes.length == 0 && (
+          <div
+            style={{
+              minHeight: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-around",
+              paddingBottom: "15rem",
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              <Alert key={"warning"} variant={"warning"}>
+                Vous n'avez pas de classes enregistrées sur votre profil <br />
+                <center>
+                  {" "}
+                  <Alert.Link href="/settings">Rajouter des classes</Alert.Link>
+                </center>
+              </Alert>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 };

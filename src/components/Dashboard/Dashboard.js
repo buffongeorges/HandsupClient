@@ -15,6 +15,7 @@ import Logo from "./../../images/icone_handsup.png";
 // auth & redux
 import { connect } from "react-redux";
 import { logoutUser } from "../../auth/actions/userActions";
+import { sessionService } from "redux-react-session";
 
 // React router
 import { useNavigate } from "react-router-dom";
@@ -29,27 +30,11 @@ const Dashboard = ({ logoutUser, user }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (sessionStorage.getItem('professeur'))
-    {
-      let teacherUpdatedValues = JSON.parse(sessionStorage.getItem('professeur'));
-      if (teacherUpdatedValues) {
-        console.log('teacherUpdatedValues')
-        console.log(teacherUpdatedValues)
+    sessionService.loadUser().then((user) => {
+      console.log('user est-il à jour?');
+      console.log(user)
+    })
 
-        professeur.firstname = teacherUpdatedValues.firstname;
-        professeur.lastname = teacherUpdatedValues.lastname;
-        professeur.college = teacherUpdatedValues.college;
-        professeur.classes = teacherUpdatedValues.classes;
-        professeur.noteDepart = teacherUpdatedValues.noteDepart;
-        professeur.bonus = teacherUpdatedValues.bonus;
-        professeur.avertissement = teacherUpdatedValues.avertissement;
-        professeur.participation = teacherUpdatedValues.participation;
-        professeur.photo = teacherUpdatedValues.photo;
-      }
-    }
-    console.log('professeur maj')
-    console.log(professeur)
-  
     setCurrentUser({
       user: professeur,
       username: professeur.email,
@@ -84,7 +69,7 @@ const Dashboard = ({ logoutUser, user }) => {
         </ExtraText>
         <ButtonGroup>
           <StyledButton
-            to="#"
+            to="/login"
             onClick={() => {
               logoutUser(navigate);
             }}

@@ -21,19 +21,22 @@ import { connect } from "react-redux";
 import {
   editProfesseur,
   getProfesseurData,
+  getS3SecureURL,
   logoutUser,
   signupUser,
+  uploadImageToS3,
   uploadTeacherPicture,
 } from "../../auth/actions/userActions";
 import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
+import { sessionService } from "redux-react-session";
+
+//the remote endpoint and local
+const remoteUrl = "https://young-dusk-42243.herokuapp.com";
+const localUrl = "http://localhost:3002";
+const backendUrl = localUrl;
 
 const allowedExtensions = ["csv", "xls"];
-const options = [
-  { label: "Grapes 🍇", value: "grapes", tt: "okokok" },
-  { label: "Mango 🥭", value: "mango" },
-  { label: "Strawberry 🍓", value: "strawberry", disabled: true },
-];
 
 const Settings = () => {
   const { currentUser, setCurrentUser } = useAuth();
@@ -44,7 +47,7 @@ const Settings = () => {
   const [isFetching, setIsFetching] = useState(true);
   const [selectedSchool, setSelectedSchool] = useState(null);
 
-  const [professeur, setProfesseur] = useState(store.getState().session.user);
+  const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
 
   const [errors, setErrors] = useState({});
@@ -76,52 +79,61 @@ const Settings = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
-    console.log(store.getState());
-    console.log(currentUser);
-    console.log("prof de la session:");
-    console.log(sessionStorage.professeurId);
-    console.log("id");
-    // console.log(JSON.parse(sessionStorage.professeurId));
-    setUserId(JSON.parse(sessionStorage.professeurId));
-    // setProfesseur(JSON.parse(sessionStorage.professeur));
-
-    getProfesseurData(JSON.parse(sessionStorage.professeurId))
-      .then((response) => {
-        console.log("les infos prof");
-        console.log(response.data);
-        const user = response.data.data;
-        setFirstname(user.firstname);
-        setLastname(user.lastname);
-        setCollege(user.college[0]);
-        setAvertissement(user.avertissement);
-        setBonus(user.bonus);
-        setParticipation(user.participation);
-        setNoteDepart(user.noteDepart);
-        setEcoles(user.ecoles);
-        setClasses(user.classes);
-        const initialSchoolId = user.college[0]._id;
-        const initialClasses = user.ecoles.find(
-          (ecole) => ecole._id === initialSchoolId
-        ).classes;
-        const newOptions = multiselectOptions;
-        initialClasses.forEach((classe) => {
-          const option = {
-            label: classe.name,
-            value: classe.name,
-            _id: classe._id,
-          };
-          newOptions.push(option);
+    sessionService.loadUser().then((user) => {
+      console.log("user");
+      console.log(user);
+      console.log(user._id);
+      setUserId(user._id);
+      setUser(user);
+      getProfesseurData(user._id)
+        .then((response) => {
+          console.log("les infos prof");
+          console.log(response.data);
+          const professeur = response.data.data;
+          setFirstname(professeur.firstname);
+          setLastname(professeur.lastname);
+          setCollege(professeur.college[0]);
+          setAvertissement(professeur.avertissement);
+          setBonus(professeur.bonus);
+          setParticipation(professeur.participation);
+          setNoteDepart(professeur.noteDepart);
+          setEcoles(professeur.ecoles);
+          setClasses(professeur.classes);
+          setPhoto(professeur.photo);
+          const initialSchoolId = professeur.college[0]._id;
+          const initialClasses = professeur.ecoles.find(
+            (ecole) => ecole._id === initialSchoolId
+          ).classes;
+          const newOptions = multiselectOptions;
+          initialClasses.forEach((classe) => {
+            const option = {
+              label: classe.name,
+              value: classe.name,
+              _id: classe._id,
+            };
+            newOptions.push(option);
+          });
+          setMultiselectOptions(newOptions);
+        })
+        .finally(() => {
+          setIsFetching(false);
         });
-        setMultiselectOptions(newOptions);
-      })
-      .finally(() => {
-        setIsFetching(false);
-      });
 
-    setForm({
-      firstname: sessionStorage.getItem("firstname"),
-      lastname: sessionStorage.getItem("lastname"),
+      setForm({
+        firstname: sessionStorage.getItem("firstname"),
+        lastname: sessionStorage.getItem("lastname"),
+      });
     });
+    // console.log(store.getState());
+    // console.log(currentUser);
+    // console.log("prof de la session:");
+    // console.log(sessionStorage.professeurId);
+    // console.log("id");
+    // console.log(JSON.parse(sessionStorage.professeurId));
+    // setUserId(JSON.parse(sessionStorage.professeurId));
+    // setProfesseur(JSON.parse(sessionStorage.professeur));
+    console.log("userId");
+    console.log(userId);
   }, []);
 
   useEffect(() => {
@@ -243,13 +255,22 @@ const Settings = () => {
       bonus: bonus,
     };
 
+    let newUserFields = {
+      ...user,
+      ...sessionStorageValues,
+      //What if both the object has same key, it simply merge the last objects value and have only one key value.
+    };
+
+    sessionService.saveUser(newUserFields).then((newUser) => {
+      console.log("user has been saved in session successfully");
+    });
     sessionStorage.setItem("professeur", JSON.stringify(sessionStorageValues));
     editProfesseur(credentials, navigate).then(async (response) => {
       console.log("réponse de edit");
       console.log(response);
+      console.log("url de la photo du prof");
+      console.log(photo);
       if (response.status === 200 && response.data.status === "SUCCESS") {
-        console.log(multiselectOptions);
-        console.log(classes);
         setShowModal(true);
       }
     });
@@ -269,23 +290,15 @@ const Settings = () => {
   };
 
   const handleNoteDepart = (value) => {
-    console.log("valeur actuelle");
-    console.log(value);
     setNoteDepart(value.current);
   };
   const handleParticipation = (value) => {
-    console.log("valeur actuelle");
-    console.log(value);
     setParticipation(value.current);
   };
   const handleAvertissement = (value) => {
-    console.log("valeur actuelle");
-    console.log(value);
     setAvertissement(value.current);
   };
   const handleBonus = (value) => {
-    console.log("valeur actuelle");
-    console.log(value);
     setBonus(value.current);
   };
 
@@ -295,16 +308,58 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    const formData = new FormData();
+    //methode 1 : passer par le serveur pour appeler S3
+    // const formData = new FormData();
+    // if (selectedPicture) {
+    //   formData.append("image", selectedPicture);
+    //   setIsFetching(true)
+    //   uploadTeacherPicture(formData)
+    //     .then((response) => {
+    //       console.log("response");
+    //       console.log(response.data.imagePath);
+    //       console.log('url formé:')
+    //       console.log(backendUrl+response.data.imagePath)
+    //       setPhoto(backendUrl+response.data.imagePath)
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     })
+    //     .finally(() => {
+    //       setIsFetching(false);
+    //     });
+    // }
+
+    //methode 2 : appeler directement s3 depuis le front
     if (selectedPicture) {
-      formData.append("image", selectedPicture);
-      uploadTeacherPicture(formData)
+      setIsFetching(true);
+      getS3SecureURL()
         .then((response) => {
-          console.log("response")
-          console.log(response)
+          console.log("secure url:");
+          console.log(response);
+
+          uploadImageToS3(response.data.url, selectedPicture)
+            .then((s3Response) => {
+              console.log("after s3 upload");
+              console.log(s3Response);
+              if (s3Response.status === 200 && s3Response.statusText === "OK") {
+                console.log("on a accès?");
+                console.log(response.data);
+                const imageUrl = response.data.url.split("?")[0];
+                console.log(imageUrl);
+                setPhoto(imageUrl);
+              }
+            })
+            .catch((err) => {
+              console.log("error uploading image to S3");
+              console.log(err);
+            })
+            .finally(() => {
+              setIsFetching(false);
+            });
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((error) => {
+          console.log("error getting secure url from server");
+          console.log(error);
         });
     }
   }, [selectedPicture]);
@@ -319,7 +374,7 @@ const Settings = () => {
           justifyContent: "space-around",
         }}
       >
-        <TailSpin width={500} height={500} color={colors.theme} />
+        <TailSpin width="20rem" height="20rem" color={colors.theme} />
       </div>
     );
   } else if (!isFetching) {
@@ -409,13 +464,30 @@ const Settings = () => {
                 setSelectedPicture(e.target.files[0]);
               }}
             />
-            {photo && <img src={photo} />}
-
+            {photo && (
+              <div
+                style={{
+                  marginTop: "2rem",
+                  width: "400px"
+                }}
+              >
+                <img
+                  src={photo}
+                  style={{
+                    objectFit: "contain",
+                    height: "250px",
+                    maxWidth: "100%"
+                  }}
+                />
+              </div>
+            )}
+            {/* <img src={`${backendUrl}/images/af2ed533f2d98d08819dd1b108a723ea`}></img> */}
             {showCamera && (
-              <div>
+              <div style={{ marginTop: "2rem" }}>
                 <Webcam
                   audio={false}
                   ref={webcamRef}
+                  width="350rem"
                   screenshotFormat="image/jpeg"
                 />
                 <br />
@@ -424,7 +496,7 @@ const Settings = () => {
             )}
             {!showCamera && (
               <Button
-                style={{ marginTop: "0.5rem" }}
+                style={{ marginTop: "2rem" }}
                 onClick={() => {
                   setPhoto(null);
                   setShowCamera(true);
