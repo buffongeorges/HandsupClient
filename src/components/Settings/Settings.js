@@ -39,7 +39,7 @@ const Settings = () => {
   const [multiselectOptions, setMultiselectOptions] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
+  const [isFetching, setIsFetching] = useState(null);
   const [selectedSchool, setSelectedSchool] = useState(null);
 
   const [user, setUser] = useState(null);
@@ -80,6 +80,7 @@ const Settings = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
+    setIsFetching(true);
     sessionService.loadUser().then((user) => {
       console.log("user");
       console.log(user);
@@ -93,28 +94,31 @@ const Settings = () => {
           const professeur = response.data.data;
           setFirstname(professeur.firstname);
           setLastname(professeur.lastname);
-          setCollege(professeur.college[0]);
+          setCollege(professeur?.college[0]);
           setAvertissement(professeur.avertissement);
           setBonus(professeur.bonus);
           setParticipation(professeur.participation);
           setNoteDepart(professeur.noteDepart);
           setEcoles(professeur.ecoles);
-          setClasses(professeur.classes);
+          setClasses(professeur?.classes);
           setPhoto(professeur.photo);
-          const initialSchoolId = professeur.college[0]._id;
-          const initialClasses = professeur.ecoles.find(
-            (ecole) => ecole._id === initialSchoolId
-          ).classes;
-          const newOptions = multiselectOptions;
-          initialClasses.forEach((classe) => {
-            const option = {
-              label: classe.name,
-              value: classe.name,
-              _id: classe._id,
-            };
-            newOptions.push(option);
-          });
-          setMultiselectOptions(newOptions);
+          if (professeur.college.length > 0)
+          {
+            const initialSchoolId = professeur.college[0]._id;
+            const initialClasses = professeur.ecoles.find(
+              (ecole) => ecole._id === initialSchoolId
+            ).classes;
+            const newOptions = multiselectOptions;
+            initialClasses.forEach((classe) => {
+              const option = {
+                label: classe.name,
+                value: classe.name,
+                _id: classe._id,
+              };
+              newOptions.push(option);
+            });
+            setMultiselectOptions(newOptions);
+          }
         })
         .finally(() => {
           setIsFetching(false);
@@ -419,7 +423,7 @@ const Settings = () => {
             <Form.Label>Collège</Form.Label>
             <DropdownButton
               id="dropdown-schools"
-              title={college.name}
+              title={college? college.name : 'Choisir un collège'}
               style={{ marginBottom: "1rem" }}
             >
               {ecoles.map((ecole, index) => (
