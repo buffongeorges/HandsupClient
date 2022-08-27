@@ -102,6 +102,7 @@ const Settings = () => {
           setEcoles(professeur.ecoles);
           setClasses(professeur?.classes);
           setPhoto(professeur.photo);
+          
           if (professeur.college.length > 0)
           {
             const initialSchoolId = professeur.college[0]._id;
@@ -448,7 +449,7 @@ const Settings = () => {
             <Form.Label>Ecoles</Form.Label>
             <MultiSelect
               options={multiselectOptions}
-              value={classes}
+              {... (classes && {value: classes })}
               //setSelectedSchool.classes
               onChange={(selectedItems) => {
                 setClasses(selectedItems);
