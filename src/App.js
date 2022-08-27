@@ -88,13 +88,13 @@ function App({ checked }) {
                 <Route path="/classes" element={<Classes />} />
                 <Route path="/classes/:classId" element={<Classe />} />
                 <Route
-                  path="/student/:studentId/edit"
+                  path="/eleves/:eleveId"
                   element={<EleveEdit />}
                 />
                 <Route path="/settings" element={<Settings />} />
 
                 <Route
-                  path="/student/:studentId/stats"
+                  path="/eleves/:studentId/stats"
                   element={<EleveStats />}
                 />
               </Route>

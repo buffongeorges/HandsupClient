@@ -12,6 +12,7 @@ import Tabs from "react-bootstrap/Tabs";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import CsvDownloader from "react-csv-downloader";
+import { ObjectID } from "bson";
 
 // auth & redux
 import { connect } from "react-redux";
@@ -20,13 +21,14 @@ import { colors } from "../../utils/Styles.js";
 
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { addEleveToClasse, getElevesInClasse } from "../../auth/actions/userActions";
-
-var ObjectID = require('bson').ObjectID;
+import {
+  addEleveToClasse,
+  getElevesInClasse,
+} from "../../auth/actions/userActions";
 
 let sts = [
   {
-    id: 1,
+    _id: 1,
     lastname: "Eleve 1",
     firstname: "Eleve 1",
     photo: "/images/unknown.png",
@@ -36,7 +38,7 @@ let sts = [
     avertissement: 0,
   },
   {
-    id: 2,
+    _id: 2,
     lastname: "Eleve 2",
     firstname: "Eleve 2",
     photo: "/images/unknown.png",
@@ -46,7 +48,7 @@ let sts = [
     avertissement: 2,
   },
   {
-    id: 3,
+    _id: 3,
     lastname: "Eleve 3",
     firstname: "Eleve 3",
     photo: "/images/unknown.png",
@@ -56,7 +58,7 @@ let sts = [
     avertissement: 1,
   },
   {
-    id: 4,
+    _id: 4,
     lastname: "Eleve 4",
     firstname: "Eleve 4",
     photo: "/images/unknown.png",
@@ -66,7 +68,7 @@ let sts = [
     avertissement: 2,
   },
   {
-    id: 5,
+    _id: 5,
     lastname: "Eleve 5",
     firstname: "Eleve 5",
     photo: "/images/unknown.png",
@@ -76,7 +78,7 @@ let sts = [
     avertissement: 0,
   },
   {
-    id: 6,
+    _id: 6,
     lastname: "Eleve 6",
     firstname: "Eleve 6",
     photo: "/images/unknown.png",
@@ -87,7 +89,7 @@ let sts = [
     avertissement: 3,
   },
   {
-    id: 7,
+    _id: 7,
     lastname: "Eleve 7",
     firstname: "Eleve 7",
     photo: "/images/unknown.png",
@@ -97,7 +99,7 @@ let sts = [
     avertissement: 3,
   },
   {
-    id: 8,
+    _id: 8,
     lastname: "Eleve 8",
     firstname: "Eleve 8",
     photo: "/images/unknown.png",
@@ -171,35 +173,43 @@ const Classe = () => {
     updatedStudent.bonus = 0;
     updatedStudent.avertissement = 0;
     updatedStudent.participation = 0;
-    updatedStudent.classe = classId
+    updatedStudent.classe = classId;
     updatedStudent._id = new ObjectID();
+    const defaultBirthday = '02/01/2010'; //february 1st
+    updatedStudent.dateOfBirth = new Date(defaultBirthday);
 
     newList[firstEmptyStudentIndex] = updatedStudent;
-    console.log("la nouvelle liste des eleves de la classe")
+    console.log("la nouvelle liste des eleves de la classe");
     console.log(newList);
     setIsFetching(true);
 
-    addEleveToClasse(updatedStudent).then((response) => {
-      console.log("reponse de l'ajout");
-      console.log(response);
-    }).catch((error) => {
-      console.log(error);
-    }).finally(() => {
-      setIsFetching(false);
-    });
+    addEleveToClasse(updatedStudent)
+      .then((response) => {
+        console.log("reponse de l'ajout");
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
 
     setEleves(newList);
   };
 
   const goToStudentStats = (eleve) => {
     console.log(location);
-    let path = `../student/${eleve.id}/stats`;
+    let path = `../eleves/${eleve._id}/stats`;
     console.log(path);
     navigate(`${path}`);
   };
 
-  const goToStudentEdit = (id) => {
-    let path = `../student/${id}/edit`;
+  const goToStudentEdit = (eleve) => {
+    console.log(" a quoi ressemble l'eleve");
+    console.log(eleve);
+    console.log(eleve._id.toString());
+    let path = `../eleves/${eleve._id}`;
     navigate(`${path}`, { replace: true });
   };
 
@@ -213,11 +223,11 @@ const Classe = () => {
     // change position of 2 students :
     const tmp = selectedStudent.position;
     const tmp2 = switchStudent.position;
-    let itemIndex = eleves.findIndex((x) => x.id == tmp);
+    let itemIndex = eleves.findIndex((x) => x._id == tmp);
     let item = eleves[itemIndex];
     item.position = tmp2;
 
-    let itemIndex2 = eleves.findIndex((x) => x.id == tmp2);
+    let itemIndex2 = eleves.findIndex((x) => x._id == tmp2);
     let item2 = eleves[itemIndex2];
     item2.position = tmp;
 
@@ -347,36 +357,36 @@ const Classe = () => {
       placement: el.position,
     };
   });
-
   useEffect(() => {
     setEleves(eleves);
   }, [counter]);
 
   useEffect(() => {
-    console.log("first call")
-    console.log(user)
-    console.log("classId")
-    console.log(classId)
+    console.log("first call");
+    console.log(user);
+    console.log("classId");
+    console.log(classId);
     setIsFetching(true);
-    getElevesInClasse(classId).then((response) => {
-      console.log('les eleves')
-      console.log(response.data)
-      console.log('la classe')
-      console.log(response.data.data.classe)
-      setClasse(response.data.data.classe.value);
-    }).catch((error) => {
-      console.log("error while fetching students")
-      console.log(error)
-    }).finally(() => {
-      setIsFetching(false)
-    })
+    getElevesInClasse(classId)
+      .then((response) => {
+        console.log("les eleves");
+        console.log(response.data);
+        setClasse(response.data.data.classe[0].name);
+      })
+      .catch((error) => {
+        console.log("error while fetching students");
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
     let studentsList = [...sts];
     for (var i = 1; i <= 48 - sts.length; i++) {
       studentsList.push({
-        id: studentsList.length + 1,
+        _id: new ObjectID(),
         lastname: `Eleve ${studentsList.length + 1}`,
         firstname: `Eleve ${studentsList.length + 1}`,
-        classe: classId ,//*the classId,
+        classe: classId, //*the classId,
         photo: "/images/blank.png",
         position: studentsList.length + 1,
         participation: null,
@@ -436,7 +446,8 @@ const Classe = () => {
             <Modal.Title>Suppression participation</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            Etes vous supprimer un point à {modalParticipationStudent?.lastname}?
+            Etes vous supprimer un point à {modalParticipationStudent?.lastname}
+            ?
           </Modal.Body>
           <Modal.Footer>
             <Button
@@ -485,7 +496,7 @@ const Classe = () => {
                       {eleves.map((eleve) => {
                         return (
                           <div
-                            key={eleve.id}
+                            key={eleve._id}
                             style={{
                               marginBottom: "0.5rem",
                               marginRight: "0.5rem",
@@ -506,14 +517,14 @@ const Classe = () => {
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve.id}`} 
-                              //je viens d'enlever ce commentaire 
+                              // href={`#${eleve._id}`}
+                              //je viens d'enlever ce commentaire
                               //peut etre important, un moment que j'ai pas bossé sur le front, à voir les effets de bord...
                               onBlur={() => saveParticipation(eleve)}
                             >
                               <div>
                                 <img
-                                  id={eleve.id}
+                                  id={eleve._id}
                                   src={eleve.photo}
                                   onClick={() => {
                                     handleStudentClick(eleve, "participation");
@@ -529,7 +540,7 @@ const Classe = () => {
                                     display: "inline-block",
                                     verticalAlign: "middle",
                                   }}
-                                  {...(selectedStudent?.id == eleve.id && {
+                                  {...(selectedStudent?._id == eleve._id && {
                                     border: "2px solid purple",
                                   })}
                                 />
@@ -555,7 +566,7 @@ const Classe = () => {
                       {eleves.map((eleve) => {
                         return (
                           <div
-                            key={eleve.id}
+                            key={eleve._id}
                             style={{
                               marginBottom: "0.5rem",
                               marginRight: "0.5rem",
@@ -576,7 +587,7 @@ const Classe = () => {
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve.id}`} 
+                              // href={`#${eleve._id}`}
                               //a remettre???
                               onBlur={() => saveBonus(eleve)}
                             >
@@ -596,7 +607,7 @@ const Classe = () => {
                                   display: "inline-block",
                                   verticalAlign: "middle",
                                 }}
-                                {...(selectedStudent?.id == eleve.id && {
+                                {...(selectedStudent?._id == eleve._id && {
                                   border: "2px solid purple",
                                 })}
                               />
@@ -620,7 +631,7 @@ const Classe = () => {
                       {eleves.map((eleve) => {
                         return (
                           <div
-                            key={eleve.id}
+                            key={eleve._id}
                             style={{
                               marginBottom: "0.5rem",
                               marginRight: "0.5rem",
@@ -641,7 +652,7 @@ const Classe = () => {
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve.id}`} 
+                              // href={`#${eleve._id}`}
                               // a remettre???
                               onBlur={() => {
                                 saveAvertissement(eleve);
@@ -662,7 +673,7 @@ const Classe = () => {
                                   marginRight: "auto",
                                   display: "block",
                                 }}
-                                {...(selectedStudent?.id == eleve.id && {
+                                {...(selectedStudent?._id == eleve._id && {
                                   border: "2px solid purple",
                                 })}
                               />
@@ -686,7 +697,7 @@ const Classe = () => {
                       {eleves.map((eleve) => {
                         return (
                           <div
-                            key={eleve.id}
+                            key={eleve._id}
                             style={{
                               marginBottom: "0.5rem",
                               marginRight: "0.5rem",
@@ -695,8 +706,8 @@ const Classe = () => {
                           >
                             <a
                               style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve.id}`} 
-                              // a remettre??? 
+                              // href={`#${eleve._id}`}
+                              // a remettre???
                               onClick={() => {
                                 // setIsSwitching(true);
                                 // setSwitchStudent(eleve);
@@ -716,7 +727,7 @@ const Classe = () => {
                                   marginRight: "auto",
                                   display: "block",
                                 }}
-                                {...(selectedStudent?.id == eleve.id && {
+                                {...(selectedStudent?._id == eleve._id && {
                                   border: "2px solid purple",
                                 })}
                               />
@@ -740,7 +751,7 @@ const Classe = () => {
                       {eleves.map((eleve) => {
                         return (
                           <div
-                            key={eleve.id}
+                            key={eleve._id}
                             style={{
                               marginBottom: "0.5rem",
                               marginRight: "0.5rem",
@@ -765,19 +776,19 @@ const Classe = () => {
                                   marginRight: "auto",
                                   display: "block",
                                 }}
-                                {...(selectedStudent?.id == eleve.id && {
+                                {...(selectedStudent?._id == eleve._id && {
                                   border: "2px solid purple",
                                 })}
                               />
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
                               </p>
-                              {/* {selectedStudent?.id !== eleve.id && (
+                              {/* {selectedStudent?._id !== eleve._id && (
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
                               </p>
                             )}
-                            {selectedStudent?.id === eleve.id && (
+                            {selectedStudent?._id === eleve._id && (
                               <div
                                 style={{
                                   display: "flex",
@@ -824,9 +835,9 @@ const Classe = () => {
                   if (!eleve.empty)
                     return (
                       <ListGroup.Item
-                        key={eleve.id}
+                        key={eleve._id}
                         action
-                        active={eleve.id === selectedStudent?.id}
+                        active={eleve._id === selectedStudent?._id}
                         onClick={() => studentInTableClick(eleve)}
                       >
                         {eleve.lastname}
@@ -834,7 +845,7 @@ const Classe = () => {
                           className="fa-solid fa-pen-to-square"
                           style={{ marginLeft: "2rem" }}
                           onClick={() => {
-                            goToStudentEdit(eleve.id);
+                            goToStudentEdit(eleve);
                           }}
                         ></i>
                       </ListGroup.Item>

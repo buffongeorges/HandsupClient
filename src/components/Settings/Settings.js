@@ -102,7 +102,12 @@ const Settings = () => {
           setEcoles(professeur.ecoles);
           setClasses(professeur?.classes);
           setPhoto(professeur.photo);
-          
+
+          setForm({
+            firstname: professeur.firstname,
+            lastname: professeur.lastname,
+          });
+
           if (professeur.college.length > 0)
           {
             const initialSchoolId = professeur.college[0]._id;
@@ -124,11 +129,6 @@ const Settings = () => {
         .finally(() => {
           setIsFetching(false);
         });
-
-      setForm({
-        firstname: sessionStorage.getItem("firstname"),
-        lastname: sessionStorage.getItem("lastname"),
-      });
     });
     // console.log(store.getState());
     // console.log(currentUser);
@@ -205,7 +205,7 @@ const Settings = () => {
       newErrors.firstname = "Veuillez saisir un prénom";
     else if (firstname.length > 30) newErrors.name = "name is too long!";
     // food errors
-    if (!college || college === "") newErrors.food = "select a food!";
+    if (!college || college === "") newErrors.food = "select a college!";
 
     return newErrors;
   };
@@ -446,12 +446,17 @@ const Settings = () => {
             controlId="formCollege"
             style={{ marginBottom: "2rem" }}
           >
-            <Form.Label>Ecoles</Form.Label>
+            <Form.Label>Classes</Form.Label>
             <MultiSelect
               options={multiselectOptions}
               {... (classes && {value: classes })}
               //setSelectedSchool.classes
               onChange={(selectedItems) => {
+                selectedItems.sort((classeA, classeB) => {
+                  const numA = classeA.value[0] + classeA.value[classeA.value.length - 1];
+                  const numB = classeB.value[0] + classeB.value[classeB.value.length - 1];
+                  return numB - numA;
+                });
                 setClasses(selectedItems);
               }}
               labelledBy="Select"
@@ -473,14 +478,14 @@ const Settings = () => {
               <div
                 style={{
                   marginTop: "2rem",
-                  width: "400px",
+                  width: "400rem",
                 }}
               >
                 <img
                   src={photo}
                   style={{
                     objectFit: "contain",
-                    height: "250px",
+                    height: "15rem",
                     maxWidth: "100%",
                   }}
                 />

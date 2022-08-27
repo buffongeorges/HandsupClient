@@ -190,9 +190,41 @@ export const resetPassword = (
 };
 
 //Update teacher data
-export const editProfesseur = (credentials) => {
+export const editProfesseur = (data) => {
   return axios
-    .post(`${backendUrl}/professeur/edit`, credentials, {
+    .post(`${backendUrl}/professeur/edit`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//Update student data
+export const editEleve = (data) => {
+  return axios
+    .post(`${backendUrl}/eleve/edit`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//Update student data
+export const deleteEleve = (eleveId) => {
+  return axios
+    .delete(`${backendUrl}/eleve/delete/${eleveId}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -315,4 +347,20 @@ export const getElevesInClasse = (classeId) => {
       return response;
     })
     .catch((err) => console.log(err));
+};
+
+//get data for a specific student
+export const getElevesData = (eleveId) => {
+  return axios
+  .get(`${backendUrl}/eleves/get/${eleveId}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  .then((response) => {
+    console.log("response");
+    console.log(response);
+    return response;
+  })
+  .catch((err) => console.log(err));
 };

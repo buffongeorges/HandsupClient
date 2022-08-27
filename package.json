@@ -30,6 +30,7 @@
     "react-loader-spinner": "^5.2.0",
     "react-multi-select-component": "^4.3.3",
     "react-redux": "^8.0.2",
+    "react-responsive-datepicker": "^1.0.6",
     "react-router-dom": "^6.3.0",
     "react-script-tag": "^1.1.2",
     "react-scripts": "5.0.1",
