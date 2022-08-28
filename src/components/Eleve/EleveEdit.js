@@ -317,6 +317,7 @@ const EleveEdit = () => {
   };
 
   const hideModalDelete = () => {
+    setIsSubmitting(false);
     setShowModalDelete(false);
   };
 
@@ -488,6 +489,7 @@ const EleveEdit = () => {
               <Button
                 variant="secondary"
                 onClick={() => {
+                  setIsSubmitting(false);
                   setShowModalDelete(false);
                 }}
               >
