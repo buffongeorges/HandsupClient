@@ -66,28 +66,27 @@ const EleveEdit = () => {
       .then((response) => {
         if (response.status === 200 && response.data.status === "SUCCESS") {
           console.log("infos eleve");
-        console.log(response);
-        const eleve = response.data.data;
-        setFirstname(eleve.firstname);
-        setLastname(eleve.lastname);
-        setPhoto(eleve.photo);
-        setCollege(eleve.college.name);
-        setClasse(eleve.classe);
-        const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
-          "en-CA"
-        );
-        setBirthday(birthday);
+          console.log(response);
+          const eleve = response.data.data;
+          setFirstname(eleve.firstname);
+          setLastname(eleve.lastname);
+          setPhoto(eleve.photo);
+          setCollege(eleve.college.name);
+          setClasse(eleve.classe);
+          const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
+            "en-CA"
+          );
+          setBirthday(birthday);
 
-        setForm({
-          firstname: eleve.firstname,
-          lastname: eleve.lastname,
-          birthday: birthday,
-        });
-      }
-      else {
-        navigate("/classes")
-      }
-    }) 
+          setForm({
+            firstname: eleve.firstname,
+            lastname: eleve.lastname,
+            birthday: birthday,
+          });
+        } else {
+          navigate("/classes");
+        }
+      })
       .catch((err) => {
         console.log(err);
       })
@@ -178,6 +177,7 @@ const EleveEdit = () => {
   };
 
   const confirmDelete = () => {
+    setIsSubmitting(true);
     setShowModalDelete(true);
   };
 
@@ -211,15 +211,19 @@ const EleveEdit = () => {
       });
   };
 
+  function isValidDate(d) {
+    return d instanceof Date && !isNaN(d);
+  }
+
   const findFormErrors = () => {
-    const { firstname, lastname } = form;
+    const { firstname, lastname, birthday } = form;
 
     var regName = /^[a-z ,.'-]+$/i;
 
     const newErrors = {};
 
     //birtdhday empty
-    if (!birthday)
+    if (!isValidDate(new Date(birthday)))
       newErrors.birthday = "Veuillez choisir une date de naissance";
     // name errors
     if (!lastname || lastname === "")
@@ -242,6 +246,9 @@ const EleveEdit = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    console.log("la date avant soumission")
+    console.log(birthday)
     // get our new errors
     const newErrors = findFormErrors();
     // Conditional logic:
@@ -287,9 +294,8 @@ const EleveEdit = () => {
       console.log(photo);
       if (response.status === 200 && response.data.status === "SUCCESS") {
         setShowModalSave(true);
-      }
-      else {
-        navigate("/classes")
+      } else {
+        navigate("/classes");
       }
     });
   };
@@ -445,13 +451,22 @@ const EleveEdit = () => {
             </Form.Group>
           </Form.Group>
           {!isSubmitting && (
-            <Button
-              variant="primary"
-              type="submit"
-              style={{ marginTop: "2rem" }}
-            >
-              Sauvegarder
-            </Button>
+            <>
+              <Button
+                variant="primary"
+                type="submit"
+                style={{ marginTop: "2rem" }}
+              >
+                Sauvegarder
+              </Button>
+              <Button
+                style={{ marginTop: "2rem", marginLeft: "1rem" }}
+                variant="outline-danger"
+                onClick={() => confirmDelete()}
+              >
+                Supprimer l'élève
+              </Button>
+            </>
           )}
           {isSubmitting && (
             <ThreeDots
@@ -461,13 +476,7 @@ const EleveEdit = () => {
               style={{ marginTop: "2rem" }}
             />
           )}
-          <Button
-            style={{ marginTop: "2rem", marginLeft: "1rem" }}
-            variant="outline-danger"
-            onClick={() => confirmDelete()}
-          >
-            Supprimer l'élève
-          </Button>{" "}
+
           <Modal show={showModalDelete} onHide={hideModalDelete}>
             <Modal.Header closeButton>
               <Modal.Title>Suppression</Modal.Title>

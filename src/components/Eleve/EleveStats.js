@@ -13,7 +13,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export default function EleveStats() {
+// auth & redux
+import { connect } from "react-redux";
+
+const EleveStats = () => {
   let { studentId } = useParams();
   console.log("studentId");
   console.log(studentId);
@@ -163,4 +166,11 @@ export default function EleveStats() {
       </ResponsiveContainer>
     </div>
   );
-}
+};
+
+const mapStateToProps = ({ session }) => ({
+  checked: session.checked,
+});
+
+export default connect(mapStateToProps)(EleveStats);
+

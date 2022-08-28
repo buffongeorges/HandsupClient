@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPath, useParams } from "react-router-dom";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
+import BootstrapSwitchButton from "bootstrap-switch-button-react";
 
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -23,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import {
   addEleveToClasse,
+  editEleveNote,
   getElevesInClasse,
 } from "../../auth/actions/userActions";
 
@@ -36,6 +38,7 @@ let sts = [
     participation: 2,
     bonus: 1,
     avertissement: 0,
+    visible: true,
   },
   {
     _id: 2,
@@ -46,6 +49,7 @@ let sts = [
     participation: 3,
     bonus: 4,
     avertissement: 2,
+    visible: true,
   },
   {
     _id: 3,
@@ -56,6 +60,7 @@ let sts = [
     participation: 0,
     bonus: 1,
     avertissement: 1,
+    visible: true,
   },
   {
     _id: 4,
@@ -66,6 +71,7 @@ let sts = [
     participation: 2,
     bonus: 2,
     avertissement: 2,
+    visible: true,
   },
   {
     _id: 5,
@@ -76,17 +82,18 @@ let sts = [
     participation: 0,
     bonus: 0,
     avertissement: 0,
+    visible: true,
   },
   {
     _id: 6,
     lastname: "Eleve 6",
     firstname: "Eleve 6",
     photo: "/images/unknown.png",
-
     position: 6,
     participation: 1,
     bonus: 1,
     avertissement: 3,
+    visible: true,
   },
   {
     _id: 7,
@@ -97,6 +104,7 @@ let sts = [
     participation: 1,
     bonus: 1,
     avertissement: 3,
+    visible: true,
   },
   {
     _id: 8,
@@ -107,15 +115,16 @@ let sts = [
     participation: 2,
     bonus: 0,
     avertissement: 8,
+    visible: true,
   },
 ];
 const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
   const [participationModal, setParticipationModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [eleves, setEleves] = useState(sts);
+  const [eleves, setEleves] = useState(null);
 
-  const [counter, setCounter] = useState(eleves.length + 1);
+  const [counter, setCounter] = useState(null);
 
   const [modalParticipationStudent, setModalParticipationStudent] =
     useState(null);
@@ -139,6 +148,7 @@ const Classe = () => {
   const [exportList, setExportList] = useState([]);
 
   const [switchStudent, setSwitchStudent] = useState(null);
+  const [showEmptyStudents, setShowEmptyStudents] = useState(true);
 
   const [isSwitching, setIsSwitching] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -167,7 +177,11 @@ const Classe = () => {
 
   const addNewStudent = () => {
     let newList = [...eleves];
+    console.log("eleves");
+    console.log(eleves);
     let firstEmptyStudentIndex = newList.findIndex((el) => el.empty == true);
+    console.log("firstEmptyStudentIndex");
+    console.log(firstEmptyStudentIndex);
     let updatedStudent = newList[firstEmptyStudentIndex];
     updatedStudent.empty = false;
     updatedStudent.bonus = 0;
@@ -175,7 +189,7 @@ const Classe = () => {
     updatedStudent.participation = 0;
     updatedStudent.classe = classId;
     updatedStudent._id = new ObjectID();
-    const defaultBirthday = '02/01/2010'; //february 1st
+    const defaultBirthday = "02/01/2010"; //february 1st
     updatedStudent.dateOfBirth = new Date(defaultBirthday);
 
     newList[firstEmptyStudentIndex] = updatedStudent;
@@ -240,20 +254,70 @@ const Classe = () => {
   };
 
   const handleStudentClick = (eleve, note) => {
+    setIsFetching(true);
     if (note === "participation") {
       // setIsSwitching(true)
       console.log("on augmente");
       eleve.participation = eleve.participation + 1;
+      console.log("eleve.participation");
+      console.log(eleve.participation);
+      console.log(eleve);
+
+      const eleveData = {
+        eleveId: eleve._id,
+        newParticipation: eleve.participation,
+      };
+      editEleveNote(eleveData)
+        .then((response) => {
+          console.log("response");
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
     }
     if (note === "bonus") {
       // setIsSwitching(true)
       console.log("on augmente");
       eleve.bonus = eleve.bonus + 1;
+      const eleveData = {
+        eleveId: eleve._id,
+        newBonus: eleve.bonus,
+      };
+      editEleveNote(eleveData)
+        .then((response) => {
+          console.log("response");
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
     }
     if (note === "avertissement") {
       // setIsSwitching(true)
       console.log("on augmente");
       eleve.avertissement = eleve.avertissement + 1;
+      const eleveData = {
+        eleveId: eleve._id,
+        newAvertissement: eleve.avertissement,
+      };
+      editEleveNote(eleveData)
+        .then((response) => {
+          console.log("response");
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
     }
     if (isSwitching && key === "echange") {
       setShowModal(true);
@@ -283,26 +347,82 @@ const Classe = () => {
   const decrementParticipation = (eleve) => {
     console.log("on diminue");
     console.log(eleve);
+    setIsFetching(true);
+
     if (eleve.participation > 0) eleve.participation = eleve.participation - 1;
+    console.log("eleve.participation");
+    console.log(eleve.participation);
     console.log(eleve);
     setCounter(counter + 1);
     setSelectedStudent(eleve);
+
+    const eleveData = {
+      eleveId: eleve._id,
+      newParticipation: eleve.participation,
+    };
+    editEleveNote(eleveData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
   };
   const decrementBonus = (eleve) => {
     console.log("on diminue");
     console.log(eleve);
+    setIsFetching(true);
     if (eleve.bonus > 0) eleve.bonus = eleve.bonus - 1;
     console.log(eleve);
     setCounter(counter + 1);
     setSelectedStudent(eleve);
+
+    const eleveData = {
+      eleveId: eleve._id,
+      newBonus: eleve.bonus,
+    };
+    editEleveNote(eleveData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
   };
   const decrementAvertissement = (eleve) => {
     console.log("on diminue");
     console.log(eleve);
+    setIsFetching(true);
+
     if (eleve.avertissement > 0) eleve.avertissement = eleve.avertissement - 1;
     console.log(eleve);
     setCounter(counter + 1);
     setSelectedStudent(eleve);
+
+    const eleveData = {
+      eleveId: eleve._id,
+      newAvertissement: eleve.avertissement,
+    };
+
+    editEleveNote(eleveData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
   };
 
   const handleKey = (key) => {
@@ -362,16 +482,33 @@ const Classe = () => {
   }, [counter]);
 
   useEffect(() => {
-    console.log("first call");
-    console.log(user);
-    console.log("classId");
-    console.log(classId);
     setIsFetching(true);
     getElevesInClasse(classId)
       .then((response) => {
+        const students = response.data.data.students;
         console.log("les eleves");
         console.log(response.data);
-        setClasse(response.data.data.classe[0].name);
+        setClasse(response.data.data.classe.name);
+        setEleves(response.data.data.students);
+        setCounter(students.length);
+
+        let studentsList = [...students];
+        for (var i = 1; i <= 48 - students.length; i++) {
+          studentsList.push({
+            _id: new ObjectID(),
+            lastname: `Eleve ${studentsList.length + 1}`,
+            firstname: `Eleve ${studentsList.length + 1}`,
+            classe: classId, //*the classId,
+            photo: "/images/blank.png",
+            position: studentsList.length + 1,
+            participation: null,
+            bonus: null,
+            avertissement: null,
+            empty: true,
+          });
+        }
+        setEleves(studentsList);
+        setExportList(students);
       })
       .catch((error) => {
         console.log("error while fetching students");
@@ -380,25 +517,20 @@ const Classe = () => {
       .finally(() => {
         setIsFetching(false);
       });
-    let studentsList = [...sts];
-    for (var i = 1; i <= 48 - sts.length; i++) {
-      studentsList.push({
-        _id: new ObjectID(),
-        lastname: `Eleve ${studentsList.length + 1}`,
-        firstname: `Eleve ${studentsList.length + 1}`,
-        classe: classId, //*the classId,
-        photo: "/images/blank.png",
-        position: studentsList.length + 1,
-        participation: null,
-        bonus: null,
-        avertissement: null,
-        empty: true,
-      });
-    }
-    setEleves(studentsList);
-    setExportList(sts);
-    setIsFetching(false);
+    console.log("eleves");
+    console.log(eleves);
   }, []);
+
+  const isEmptyPlace = (studentIndex) => {
+    console.log('coucou')
+    console.log(studentIndex);
+    console.log("eleves")
+    console.log(eleves)
+    const studentInArray = eleves.find(el =>el._id == studentIndex);
+    console.log("studentInArray")
+    console.log(studentInArray.empty)
+    return studentInArray.empty;
+  }
 
   if (isFetching) {
     return (
@@ -493,19 +625,24 @@ const Classe = () => {
                 >
                   <div id="students-cells-participation">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {eleves.map((eleve) => {
+                      {eleves.map((eleve, index) => {
                         return (
                           <div
                             key={eleve._id}
                             style={{
-                              marginBottom: "0.5rem",
+                              marginBottom: "-0.5rem",
                               marginRight: "0.5rem",
                               flex: "1 0 10%",
                             }}
                           >
                             <div>
-                              <i
+                              {!isEmptyPlace(eleve._id) && (<i
                                 className="fa-solid fa-circle-minus"
+                                hidden={
+                                  eleve.empty && !showEmptyStudents
+                                    ? true
+                                    : false
+                                }
                                 style={{
                                   marginLeft: "2rem",
                                   display: "inline-block",
@@ -513,7 +650,19 @@ const Classe = () => {
                                 onClick={() => {
                                   decrementParticipation(eleve);
                                 }}
-                              ></i>
+                              ></i>)}
+                              {isEmptyPlace(eleve._id) && (<i
+                                className="fa-solid fa-circle-minus"
+                                
+                                style={{
+                                  marginLeft: "2rem",
+                                  display: "inline-block",
+                                  visibility: "hidden"
+                                }}
+                                onClick={() => {
+                                  decrementParticipation(eleve);
+                                }}
+                              ></i>)}
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
@@ -530,6 +679,10 @@ const Classe = () => {
                                     handleStudentClick(eleve, "participation");
                                   }}
                                   style={{
+                                    opacity:
+                                      eleve.empty == true && !showEmptyStudents
+                                        ? 0
+                                        : 1,
                                     objectFit: "cover",
                                     width: "60px",
                                     height: "60px",
@@ -547,7 +700,7 @@ const Classe = () => {
                               </div>
 
                               <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation}</strong>
+                                <strong>{eleve.participation} </strong>
                               </p>
                             </a>
                           </div>
@@ -568,7 +721,7 @@ const Classe = () => {
                           <div
                             key={eleve._id}
                             style={{
-                              marginBottom: "0.5rem",
+                              marginBottom: "-0.5rem",
                               marginRight: "0.5rem",
                               flex: "1 0 10%",
                             }}
@@ -597,6 +750,10 @@ const Classe = () => {
                                   handleStudentClick(eleve, "bonus");
                                 }}
                                 style={{
+                                  opacity:
+                                    eleve.empty == true && !showEmptyStudents
+                                      ? 0
+                                      : 1,
                                   objectFit: "cover",
                                   width: "60px",
                                   height: "60px",
@@ -633,7 +790,7 @@ const Classe = () => {
                           <div
                             key={eleve._id}
                             style={{
-                              marginBottom: "0.5rem",
+                              marginBottom: "-0.5rem",
                               marginRight: "0.5rem",
                               flex: "1 0 10%",
                             }}
@@ -664,6 +821,10 @@ const Classe = () => {
                                   handleStudentClick(eleve, "avertissement");
                                 }}
                                 style={{
+                                  opacity:
+                                    eleve.empty == true && !showEmptyStudents
+                                      ? 0
+                                      : 1,
                                   objectFit: "cover",
                                   width: "60px",
                                   height: "60px",
@@ -699,7 +860,7 @@ const Classe = () => {
                           <div
                             key={eleve._id}
                             style={{
-                              marginBottom: "0.5rem",
+                              marginBottom: "-0.5rem",
                               marginRight: "0.5rem",
                               flex: "1 0 10%",
                             }}
@@ -718,6 +879,10 @@ const Classe = () => {
                               <img
                                 src={eleve.photo}
                                 style={{
+                                  opacity:
+                                    eleve.empty == true && !showEmptyStudents
+                                      ? 0
+                                      : 1,
                                   objectFit: "cover",
                                   width: "60px",
                                   height: "60px",
@@ -753,7 +918,7 @@ const Classe = () => {
                           <div
                             key={eleve._id}
                             style={{
-                              marginBottom: "0.5rem",
+                              marginBottom: "-0.5rem",
                               marginRight: "0.5rem",
                               flex: "1 0 10%",
                             }}
@@ -767,6 +932,10 @@ const Classe = () => {
                               <img
                                 src={eleve.photo}
                                 style={{
+                                  opacity:
+                                    eleve.empty == true && !showEmptyStudents
+                                      ? 0
+                                      : 1,
                                   objectFit: "cover",
                                   width: "60px",
                                   height: "60px",
@@ -829,6 +998,22 @@ const Classe = () => {
                   </a>
                 </CsvDownloader>
                 {/* </div> */}
+              </div>
+              <div id="hide-empty-students" style={{ marginBottom: "0.5rem" }}>
+                Places vides:
+                <span style={{ marginLeft: "2rem" }}>
+                  <BootstrapSwitchButton
+                    onlabel="Oui"
+                    offlabel="Non"
+                    checked={true}
+                    size="xs"
+                    onChange={() => {
+                      setShowEmptyStudents(!showEmptyStudents);
+                      console.log("showEmptyStudents");
+                      console.log(showEmptyStudents);
+                    }}
+                  />
+                </span>
               </div>
               <ListGroup>
                 {eleves.map((eleve, index) => {

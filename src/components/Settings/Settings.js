@@ -44,6 +44,7 @@ const Settings = () => {
 
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({});
@@ -102,14 +103,14 @@ const Settings = () => {
           setEcoles(professeur.ecoles);
           setClasses(professeur?.classes);
           setPhoto(professeur.photo);
+          setIsAdmin(professeur?.admin);
 
           setForm({
             firstname: professeur.firstname,
             lastname: professeur.lastname,
           });
 
-          if (professeur.college.length > 0)
-          {
+          if (professeur.college.length > 0) {
             const initialSchoolId = professeur.college[0]._id;
             const initialClasses = professeur.ecoles.find(
               (ecole) => ecole._id === initialSchoolId
@@ -424,7 +425,7 @@ const Settings = () => {
             <Form.Label>Collège</Form.Label>
             <DropdownButton
               id="dropdown-schools"
-              title={college? college.name : 'Choisir un collège'}
+              title={college ? college.name : "Choisir un collège"}
               style={{ marginBottom: "1rem" }}
             >
               {ecoles.map((ecole, index) => (
@@ -449,12 +450,14 @@ const Settings = () => {
             <Form.Label>Classes</Form.Label>
             <MultiSelect
               options={multiselectOptions}
-              {... (classes && {value: classes })}
+              {...(classes && { value: classes })}
               //setSelectedSchool.classes
               onChange={(selectedItems) => {
                 selectedItems.sort((classeA, classeB) => {
-                  const numA = classeA.value[0] + classeA.value[classeA.value.length - 1];
-                  const numB = classeB.value[0] + classeB.value[classeB.value.length - 1];
+                  const numA =
+                    classeA.value[0] + classeA.value[classeA.value.length - 1];
+                  const numB =
+                    classeB.value[0] + classeB.value[classeB.value.length - 1];
                   return numB - numA;
                 });
                 setClasses(selectedItems);
@@ -607,6 +610,26 @@ const Settings = () => {
               ></Counter>
             </div>
           </div>
+
+          {isAdmin && (
+            <div style={{ marginTop: "2rem", marginBottom: "3rem" }}>
+              <Form.Group controlId="formFile" className="mb-3">
+                
+                <Form.Label style={{ fontSize: "1.5rem" }}>
+                  Nouvelle base de données Elève
+                </Form.Label>
+                <Form.Control
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    console.log(e);
+                    setShowCamera(false);
+                    setSelectedPicture(e.target.files[0]);
+                  }}
+                />
+              </Form.Group>
+            </div>
+          )}
 
           {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
         <Form.Group

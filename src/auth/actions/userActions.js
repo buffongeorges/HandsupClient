@@ -364,3 +364,17 @@ export const getElevesData = (eleveId) => {
   })
   .catch((err) => console.log(err));
 };
+
+//edit student marks
+export const editEleveNote = (eleveData) => {
+  return axios
+    .post(`${backendUrl}/eleve/updateMark`, eleveData, {
+      headers: { "Content-Type": "application/json" },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
