@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const backendUrl = localUrl;
+const backendUrl = remoteUrl;
 
 export const loginUser = (
   credentials,
@@ -348,11 +348,11 @@ export const uploadImageToS3 = (url, file) => {
 
 //get students in a specific class
 //Get teacher registered classes
-export const getElevesInClasse = (classeId) => {
-  console.log("classeId");
-  console.log(classeId);
+export const getElevesInClasse = (data) => {
+  console.log("data");
+  console.log(data);
   return axios
-    .get(`${backendUrl}/classe/get/${classeId}`, {
+    .post(`${backendUrl}/classe/getClassStudents`, data,  {
       headers: {
         "Content-Type": "application/json",
       },

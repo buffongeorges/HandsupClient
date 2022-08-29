@@ -27,6 +27,7 @@ import {
   editEleveNote,
   getElevesInClasse,
 } from "../../auth/actions/userActions";
+import { sessionService } from "redux-react-session";
 
 let sts = [
   {
@@ -257,10 +258,10 @@ const Classe = () => {
     let item2 = elevesCopy[itemIndex2];
     item2.position = tmp;
 
-    //reorder whole list :
-    elevesCopy.sort(function (a, b) {
-      return a.position - b.position;
-    });
+    // //reorder whole list :
+    // elevesCopy.sort(function (a, b) {
+    //   return a.position - b.position;
+    // });
 
     const defaultBirthday = "02/01/2010"; //february 1st
 
@@ -278,6 +279,42 @@ const Classe = () => {
       .then((response) => {
         console.log("response");
         console.log(response);
+
+        //now let's get the updated student list
+        sessionService.loadUser().then((user) => {
+          console.log("my user");
+          console.log(user);
+          // console.log(user.college.name);
+          let userCollege;
+          if (Array.isArray(user.college)) {
+            userCollege = user.college[0].name;
+          } else {
+            userCollege = user.college;
+          }
+          let data = {
+            classId,
+            college: userCollege,
+          };
+          getElevesInClasse(data)
+            .then((response) => {
+              const students = response.data.data.students;
+              console.log("les eleves");
+              console.log(response.data.data.students);
+              setClasse(response.data.data.classe.name);
+              setEleves(response.data.data.students);
+              setCollege(response.data.data.classe.ecole.name);
+              setCounter(students.length);
+              setEleves(students);
+              setExportList(students);
+            })
+            .catch((error) => {
+              console.log("error while fetching students");
+              console.log(error);
+            })
+            .finally(() => {
+              setIsFetching(false);
+            });
+        });
       })
       .catch((error) => {
         console.log(error);
@@ -300,8 +337,8 @@ const Classe = () => {
         console.log(item);
         console.log(item2);
         console.log(elevesCopy);
-        setEleves(elevesCopy);
-        setCounter(counter + 1);
+        // setEleves(elevesCopy);
+        // setCounter(counter + 1);
       })
       .catch((error) => {
         console.log(error);
@@ -549,41 +586,40 @@ const Classe = () => {
 
   useEffect(() => {
     setIsFetching(true);
-    getElevesInClasse(classId)
-      .then((response) => {
-        const students = response.data.data.students;
-        console.log("les eleves");
-        console.log(response.data.data.students);
-        setClasse(response.data.data.classe.name);
-        setEleves(response.data.data.students);
-        setCollege(response.data.data.classe.ecole.name);
-        setCounter(students.length);
-
-        let studentsList = [...students];
-        for (var i = 1; i <= 48 - students.length; i++) {
-          studentsList.push({
-            _id: new ObjectID(),
-            lastname: `Eleve ${studentsList.length + 1}`,
-            firstname: `Eleve ${studentsList.length + 1}`,
-            classe: classId, //*the classId,
-            photo: "/images/blank.png",
-            position: studentsList.length + 1,
-            participation: null,
-            bonus: null,
-            avertissement: null,
-            empty: true,
-          });
-        }
-        setEleves(studentsList);
-        setExportList(students);
-      })
-      .catch((error) => {
-        console.log("error while fetching students");
-        console.log(error);
-      })
-      .finally(() => {
-        setIsFetching(false);
-      });
+    sessionService.loadUser().then((user) => {
+      console.log("my user");
+      console.log(user);
+      // console.log(user.college.name);
+      let userCollege;
+      if (Array.isArray(user.college)) {
+        userCollege = user.college[0].name;
+      } else {
+        userCollege = user.college;
+      }
+      let data = {
+        classId,
+        college: userCollege,
+      };
+      getElevesInClasse(data)
+        .then((response) => {
+          const students = response.data.data.students;
+          console.log("les eleves");
+          console.log(response.data.data.students);
+          setClasse(response.data.data.classe.name);
+          setEleves(response.data.data.students);
+          setCollege(response.data.data.classe.ecole.name);
+          setCounter(students.length);
+          setEleves(students);
+          setExportList(students);
+        })
+        .catch((error) => {
+          console.log("error while fetching students");
+          console.log(error);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
+    });
     console.log("eleves");
     console.log(eleves);
   }, []);
@@ -686,96 +722,103 @@ const Classe = () => {
                 >
                   <div id="students-cells-participation">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {eleves.map((eleve, index) => {
-                        return (
-                          <div
-                            key={eleve._id}
-                            style={{
-                              marginBottom: "-0.5rem",
-                              marginRight: "0.5rem",
-                              flex: "1 0 10%",
-                            }}
-                          >
-                            <div>
-                              {!isEmptyPlace(eleve._id) && (
-                                <i
-                                  className="fa-solid fa-circle-minus"
-                                  hidden={
-                                    eleve.empty && !showEmptyStudents
-                                      ? true
-                                      : false
-                                  }
+                      {Array.isArray(eleves)
+                        ? eleves.map((eleve, index) => {
+                            return (
+                              <div
+                                key={eleve._id}
+                                style={{
+                                  marginBottom: "-0.5rem",
+                                  marginRight: "0.5rem",
+                                  flex: "1 0 10%",
+                                }}
+                              >
+                                <div>
+                                  {!isEmptyPlace(eleve._id) && (
+                                    <i
+                                      className="fa-solid fa-circle-minus"
+                                      hidden={
+                                        eleve.empty && !showEmptyStudents
+                                          ? true
+                                          : false
+                                      }
+                                      style={{
+                                        marginLeft: "2rem",
+                                        display: "inline-block",
+                                      }}
+                                      onClick={() => {
+                                        decrementParticipation(eleve); //place is occupied decrease participation
+                                      }}
+                                    ></i>
+                                  )}
+                                  {isEmptyPlace(eleve._id) && (
+                                    <i
+                                      className="fa-solid fa-circle-minus"
+                                      style={{
+                                        marginLeft: "2rem",
+                                        display: "inline-block",
+                                        visibility: "hidden",
+                                      }}
+                                      // onClick={() => {
+                                      // decrementParticipation(eleve); //don't do anything place is empty
+                                      // }}
+                                    ></i>
+                                  )}
+                                </div>
+                                <a
                                   style={{
-                                    marginLeft: "2rem",
-                                    display: "inline-block",
+                                    color: "black",
+                                    textDecoration: "none",
                                   }}
-                                  onClick={() => {
-                                    decrementParticipation(eleve); //place is occupied decrease participation
-                                  }}
-                                ></i>
-                              )}
-                              {isEmptyPlace(eleve._id) && (
-                                <i
-                                  className="fa-solid fa-circle-minus"
-                                  style={{
-                                    marginLeft: "2rem",
-                                    display: "inline-block",
-                                    visibility: "hidden",
-                                  }}
-                                  // onClick={() => {
-                                  // decrementParticipation(eleve); //don't do anything place is empty
-                                  // }}
-                                ></i>
-                              )}
-                            </div>
-                            <a
-                              style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve._id}`}
-                              //je viens d'enlever ce commentaire
-                              //peut etre important, un moment que j'ai pas bossé sur le front, à voir les effets de bord...
-                              onBlur={() => saveParticipation(eleve)}
-                            >
-                              <div>
-                                <img
-                                  id={eleve._id}
-                                  src={eleve.photo}
-                                  onClick={() => {
-                                    if (!isEmptyPlace(eleve._id))
-                                      handleStudentClick(
-                                        eleve,
-                                        "participation"
-                                      );
-                                  }}
-                                  style={{
-                                    opacity:
-                                      eleve.empty == true && !showEmptyStudents
-                                        ? 0
-                                        : 1,
-                                    objectFit: "cover",
-                                    width: "60px",
-                                    height: "60px",
-                                    borderRadius: "50%",
-                                    flex: "1 0 10%",
-                                    marginLeft: "auto",
-                                    marginRight: "auto",
-                                    display: "inline-block",
-                                    verticalAlign: "middle",
-                                  }}
-                                  {...(selectedStudent?._id == eleve._id && {
-                                    border: "2px solid purple",
-                                  })}
-                                />
-                              </div>
+                                  // href={`#${eleve._id}`}
+                                  //je viens d'enlever ce commentaire
+                                  //peut etre important, un moment que j'ai pas bossé sur le front, à voir les effets de bord...
+                                  onBlur={() => saveParticipation(eleve)}
+                                >
+                                  <div>
+                                    <img
+                                      id={eleve._id}
+                                      src={eleve.photo}
+                                      onClick={() => {
+                                        if (!isEmptyPlace(eleve._id))
+                                          handleStudentClick(
+                                            eleve,
+                                            "participation"
+                                          );
+                                      }}
+                                      style={{
+                                        opacity:
+                                          eleve.empty == true &&
+                                          !showEmptyStudents
+                                            ? 0
+                                            : 1,
+                                        objectFit: "cover",
+                                        width: "60px",
+                                        height: "60px",
+                                        borderRadius: "50%",
+                                        flex: "1 0 10%",
+                                        marginLeft: "auto",
+                                        marginRight: "auto",
+                                        display: "inline-block",
+                                        verticalAlign: "middle",
+                                      }}
+                                      {...(selectedStudent?._id ==
+                                        eleve._id && {
+                                        border: "2px solid purple",
+                                      })}
+                                    />
+                                  </div>
 
-                              <p style={{ textAlign: "center" }}>
-                                {!eleve.empty && (
-                                  <strong>{eleve.participation} </strong>
-                                )}
-                              </p>
-                            </a>
-                          </div>
-                        );
-                      })}
+                                  <p style={{ textAlign: "center" }}>
+                                    {!eleve.empty && (
+                                      <strong>{eleve.participation} </strong>
+                                    )}
+                                  </p>
+                                </a>
+                              </div>
+                            );
+                          })
+                        : null}
                     </div>
                   </div>
                 </Tab>
@@ -786,88 +829,94 @@ const Classe = () => {
                 >
                   <div id="students-cells-bonus">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {eleves.map((eleve) => {
-                        return (
-                          <div
-                            key={eleve._id}
-                            style={{
-                              marginBottom: "-0.5rem",
-                              marginRight: "0.5rem",
-                              flex: "1 0 10%",
-                            }}
-                          >
-                            <div>
-                              {!isEmptyPlace(eleve._id) && (
-                                <i
-                                  className="fa-solid fa-circle-minus"
-                                  hidden={
-                                    eleve.empty && !showEmptyStudents
-                                      ? true
-                                      : false
-                                  }
-                                  style={{
-                                    marginLeft: "2rem",
-                                    display: "inline-block",
-                                  }}
-                                  onClick={() => {
-                                    decrementBonus(eleve); //place is occupied decrease bonus
-                                  }}
-                                ></i>
-                              )}
-                              {isEmptyPlace(eleve._id) && (
-                                <i
-                                  className="fa-solid fa-circle-minus"
-                                  style={{
-                                    marginLeft: "2rem",
-                                    display: "inline-block",
-                                    visibility: "hidden",
-                                  }}
-                                  // onClick={() => {
-                                  // decrementParticipation(eleve); //don't do anything place is empty
-                                  // }}
-                                ></i>
-                              )}
-                            </div>
-                            <a
-                              style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve._id}`}
-                              //a remettre???
-                              onBlur={() => saveBonus(eleve)}
-                            >
-                              <img
-                                src={eleve.photo}
-                                onClick={() => {
-                                  if (!isEmptyPlace(eleve._id))
-                                    handleStudentClick(eleve, "bonus");
-                                }}
+                      {Array.isArray(eleves)
+                        ? eleves.map((eleve) => {
+                            return (
+                              <div
+                                key={eleve._id}
                                 style={{
-                                  opacity:
-                                    eleve.empty == true && !showEmptyStudents
-                                      ? 0
-                                      : 1,
-                                  objectFit: "cover",
-                                  width: "60px",
-                                  height: "60px",
-                                  borderRadius: "50%",
+                                  marginBottom: "-0.5rem",
+                                  marginRight: "0.5rem",
                                   flex: "1 0 10%",
-                                  marginLeft: "auto",
-                                  marginRight: "auto",
-                                  display: "inline-block",
-                                  verticalAlign: "middle",
                                 }}
-                                {...(selectedStudent?._id == eleve._id && {
-                                  border: "2px solid purple",
-                                })}
-                              />
-                              <p style={{ textAlign: "center" }}>
-                                {!eleve.empty && (
-                                  <strong>{eleve.bonus} </strong>
-                                )}
-                              </p>
-                            </a>
-                          </div>
-                        );
-                      })}
+                              >
+                                <div>
+                                  {!isEmptyPlace(eleve._id) && (
+                                    <i
+                                      className="fa-solid fa-circle-minus"
+                                      hidden={
+                                        eleve.empty && !showEmptyStudents
+                                          ? true
+                                          : false
+                                      }
+                                      style={{
+                                        marginLeft: "2rem",
+                                        display: "inline-block",
+                                      }}
+                                      onClick={() => {
+                                        decrementBonus(eleve); //place is occupied decrease bonus
+                                      }}
+                                    ></i>
+                                  )}
+                                  {isEmptyPlace(eleve._id) && (
+                                    <i
+                                      className="fa-solid fa-circle-minus"
+                                      style={{
+                                        marginLeft: "2rem",
+                                        display: "inline-block",
+                                        visibility: "hidden",
+                                      }}
+                                      // onClick={() => {
+                                      // decrementParticipation(eleve); //don't do anything place is empty
+                                      // }}
+                                    ></i>
+                                  )}
+                                </div>
+                                <a
+                                  style={{
+                                    color: "black",
+                                    textDecoration: "none",
+                                  }}
+                                  // href={`#${eleve._id}`}
+                                  //a remettre???
+                                  onBlur={() => saveBonus(eleve)}
+                                >
+                                  <img
+                                    src={eleve.photo}
+                                    onClick={() => {
+                                      if (!isEmptyPlace(eleve._id))
+                                        handleStudentClick(eleve, "bonus");
+                                    }}
+                                    style={{
+                                      opacity:
+                                        eleve.empty == true &&
+                                        !showEmptyStudents
+                                          ? 0
+                                          : 1,
+                                      objectFit: "cover",
+                                      width: "60px",
+                                      height: "60px",
+                                      borderRadius: "50%",
+                                      flex: "1 0 10%",
+                                      marginLeft: "auto",
+                                      marginRight: "auto",
+                                      display: "inline-block",
+                                      verticalAlign: "middle",
+                                    }}
+                                    {...(selectedStudent?._id == eleve._id && {
+                                      border: "2px solid purple",
+                                    })}
+                                  />
+                                  <p style={{ textAlign: "center" }}>
+                                    {!eleve.empty && (
+                                      <strong>{eleve.bonus} </strong>
+                                    )}
+                                  </p>
+                                </a>
+                              </div>
+                            );
+                          })
+                        : null}
                     </div>
                   </div>
                 </Tab>
@@ -878,89 +927,98 @@ const Classe = () => {
                 >
                   <div id="students-cells-avertissement">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {eleves.map((eleve) => {
-                        return (
-                          <div
-                            key={eleve._id}
-                            style={{
-                              marginBottom: "-0.5rem",
-                              marginRight: "0.5rem",
-                              flex: "1 0 10%",
-                            }}
-                          >
-                            <div>
-                              {!isEmptyPlace(eleve._id) && (
-                                <i
-                                  className="fa-solid fa-circle-minus"
-                                  hidden={
-                                    eleve.empty && !showEmptyStudents
-                                      ? true
-                                      : false
-                                  }
-                                  style={{
-                                    marginLeft: "2rem",
-                                    display: "inline-block",
-                                  }}
-                                  onClick={() => {
-                                    decrementAvertissement(eleve); //place is occupied decrease avertissement
-                                  }}
-                                ></i>
-                              )}
-                              {isEmptyPlace(eleve._id) && (
-                                <i
-                                  className="fa-solid fa-circle-minus"
-                                  style={{
-                                    marginLeft: "2rem",
-                                    display: "inline-block",
-                                    visibility: "hidden",
-                                  }}
-                                  // onClick={() => {
-                                  // decrementParticipation(eleve); //don't do anything place is empty
-                                  // }}
-                                ></i>
-                              )}
-                            </div>
-                            <a
-                              style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve._id}`}
-                              // a remettre???
-                              onBlur={() => {
-                                saveAvertissement(eleve);
-                              }}
-                            >
-                              <img
-                                src={eleve.photo}
-                                onClick={() => {
-                                  if (!isEmptyPlace(eleve._id))
-                                    handleStudentClick(eleve, "avertissement");
-                                }}
+                      {Array.isArray(eleves)
+                        ? eleves.map((eleve) => {
+                            return (
+                              <div
+                                key={eleve._id}
                                 style={{
-                                  opacity:
-                                    eleve.empty == true && !showEmptyStudents
-                                      ? 0
-                                      : 1,
-                                  objectFit: "cover",
-                                  width: "60px",
-                                  height: "60px",
-                                  borderRadius: "50%",
+                                  marginBottom: "-0.5rem",
+                                  marginRight: "0.5rem",
                                   flex: "1 0 10%",
-                                  marginLeft: "auto",
-                                  marginRight: "auto",
-                                  display: "block",
                                 }}
-                                {...(selectedStudent?._id == eleve._id && {
-                                  border: "2px solid purple",
-                                })}
-                              />
-                              <p style={{ textAlign: "center" }}>
-                                {!eleve.empty && (
-                                  <strong>{eleve.avertissement} </strong>
-                                )}
-                              </p>
-                            </a>
-                          </div>
-                        );
-                      })}
+                              >
+                                <div>
+                                  {!isEmptyPlace(eleve._id) && (
+                                    <i
+                                      className="fa-solid fa-circle-minus"
+                                      hidden={
+                                        eleve.empty && !showEmptyStudents
+                                          ? true
+                                          : false
+                                      }
+                                      style={{
+                                        marginLeft: "2rem",
+                                        display: "inline-block",
+                                      }}
+                                      onClick={() => {
+                                        decrementAvertissement(eleve); //place is occupied decrease avertissement
+                                      }}
+                                    ></i>
+                                  )}
+                                  {isEmptyPlace(eleve._id) && (
+                                    <i
+                                      className="fa-solid fa-circle-minus"
+                                      style={{
+                                        marginLeft: "2rem",
+                                        display: "inline-block",
+                                        visibility: "hidden",
+                                      }}
+                                      // onClick={() => {
+                                      // decrementParticipation(eleve); //don't do anything place is empty
+                                      // }}
+                                    ></i>
+                                  )}
+                                </div>
+                                <a
+                                  style={{
+                                    color: "black",
+                                    textDecoration: "none",
+                                  }}
+                                  // href={`#${eleve._id}`}
+                                  // a remettre???
+                                  onBlur={() => {
+                                    saveAvertissement(eleve);
+                                  }}
+                                >
+                                  <img
+                                    src={eleve.photo}
+                                    onClick={() => {
+                                      if (!isEmptyPlace(eleve._id))
+                                        handleStudentClick(
+                                          eleve,
+                                          "avertissement"
+                                        );
+                                    }}
+                                    style={{
+                                      opacity:
+                                        eleve.empty == true &&
+                                        !showEmptyStudents
+                                          ? 0
+                                          : 1,
+                                      objectFit: "cover",
+                                      width: "60px",
+                                      height: "60px",
+                                      borderRadius: "50%",
+                                      flex: "1 0 10%",
+                                      marginLeft: "auto",
+                                      marginRight: "auto",
+                                      display: "block",
+                                    }}
+                                    {...(selectedStudent?._id == eleve._id && {
+                                      border: "2px solid purple",
+                                    })}
+                                  />
+                                  <p style={{ textAlign: "center" }}>
+                                    {!eleve.empty && (
+                                      <strong>{eleve.avertissement} </strong>
+                                    )}
+                                  </p>
+                                </a>
+                              </div>
+                            );
+                          })
+                        : null}
                     </div>
                   </div>
                 </Tab>
@@ -971,56 +1029,62 @@ const Classe = () => {
                 >
                   <div id="students-cells-exchange">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {eleves.map((eleve) => {
-                        return (
-                          <div
-                            key={eleve._id}
-                            style={{
-                              marginBottom: "-0.5rem",
-                              marginRight: "0.5rem",
-                              flex: "1 0 10%",
-                            }}
-                          >
-                            <a
-                              style={{ color: "black", textDecoration: "none" }}
-                              // href={`#${eleve._id}`}
-                              // a remettre???
-                              onClick={() => {
-                                // setIsSwitching(true);
-                                // setSwitchStudent(eleve);
-                                /*if (!isEmptyPlace(eleve._id))*/ handleStudentClick(
-                                  eleve
-                                );
-                                // setShowModal(true)
-                              }}
-                            >
-                              <img
-                                src={eleve.photo}
+                      {Array.isArray(eleves)
+                        ? eleves.map((eleve) => {
+                            return (
+                              <div
+                                key={eleve._id}
                                 style={{
-                                  opacity:
-                                    eleve.empty == true && !showEmptyStudents
-                                      ? 0
-                                      : 1,
-                                  objectFit: "cover",
-                                  width: "60px",
-                                  height: "60px",
-                                  borderRadius: "50%",
+                                  marginBottom: "-0.5rem",
+                                  marginRight: "0.5rem",
                                   flex: "1 0 10%",
-                                  marginLeft: "auto",
-                                  marginRight: "auto",
-                                  display: "block",
                                 }}
-                                {...(selectedStudent?._id == eleve._id && {
-                                  border: "2px solid purple",
-                                })}
-                              />
-                              <p style={{ textAlign: "center" }}>
-                                {/* no mark for switch tab */}
-                              </p>
-                            </a>
-                          </div>
-                        );
-                      })}
+                              >
+                                <a
+                                  style={{
+                                    color: "black",
+                                    textDecoration: "none",
+                                  }}
+                                  // href={`#${eleve._id}`}
+                                  // a remettre???
+                                  onClick={() => {
+                                    // setIsSwitching(true);
+                                    // setSwitchStudent(eleve);
+                                    /*if (!isEmptyPlace(eleve._id))*/ handleStudentClick(
+                                      eleve
+                                    );
+                                    // setShowModal(true)
+                                  }}
+                                >
+                                  <img
+                                    src={eleve.photo}
+                                    style={{
+                                      opacity:
+                                        eleve.empty == true &&
+                                        !showEmptyStudents
+                                          ? 0
+                                          : 1,
+                                      objectFit: "cover",
+                                      width: "60px",
+                                      height: "60px",
+                                      borderRadius: "50%",
+                                      flex: "1 0 10%",
+                                      marginLeft: "auto",
+                                      marginRight: "auto",
+                                      display: "block",
+                                    }}
+                                    {...(selectedStudent?._id == eleve._id && {
+                                      border: "2px solid purple",
+                                    })}
+                                  />
+                                  <p style={{ textAlign: "center" }}>
+                                    {/* no mark for switch tab */}
+                                  </p>
+                                </a>
+                              </div>
+                            );
+                          })
+                        : null}
                     </div>
                   </div>
                 </Tab>
@@ -1031,46 +1095,51 @@ const Classe = () => {
                 >
                   <div id="students-cells-stats">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {eleves.map((eleve) => {
-                        return (
-                          <div
-                            key={eleve._id}
-                            style={{
-                              marginBottom: "-0.5rem",
-                              marginRight: "0.5rem",
-                              flex: "1 0 10%",
-                            }}
-                          >
-                            <a
-                              style={{ color: "black", textDecoration: "none" }}
-                              onClick={() => {
-                                goToStudentStats(eleve);
-                              }}
-                            >
-                              <img
-                                src={eleve.photo}
+                      {Array.isArray(eleves)
+                        ? eleves.map((eleve) => {
+                            return (
+                              <div
+                                key={eleve._id}
                                 style={{
-                                  opacity:
-                                    eleve.empty == true && !showEmptyStudents
-                                      ? 0
-                                      : 1,
-                                  objectFit: "cover",
-                                  width: "60px",
-                                  height: "60px",
-                                  borderRadius: "50%",
+                                  marginBottom: "-0.5rem",
+                                  marginRight: "0.5rem",
                                   flex: "1 0 10%",
-                                  marginLeft: "auto",
-                                  marginRight: "auto",
-                                  display: "block",
                                 }}
-                                {...(selectedStudent?._id == eleve._id && {
-                                  border: "2px solid purple",
-                                })}
-                              />
-                              <p style={{ textAlign: "center" }}>
-                                {/* <strong>{eleve.participation}</strong> */}
-                              </p>
-                              {/* {selectedStudent?._id !== eleve._id && (
+                              >
+                                <a
+                                  style={{
+                                    color: "black",
+                                    textDecoration: "none",
+                                  }}
+                                  onClick={() => {
+                                    goToStudentStats(eleve);
+                                  }}
+                                >
+                                  <img
+                                    src={eleve.photo}
+                                    style={{
+                                      opacity:
+                                        eleve.empty == true &&
+                                        !showEmptyStudents
+                                          ? 0
+                                          : 1,
+                                      objectFit: "cover",
+                                      width: "60px",
+                                      height: "60px",
+                                      borderRadius: "50%",
+                                      flex: "1 0 10%",
+                                      marginLeft: "auto",
+                                      marginRight: "auto",
+                                      display: "block",
+                                    }}
+                                    {...(selectedStudent?._id == eleve._id && {
+                                      border: "2px solid purple",
+                                    })}
+                                  />
+                                  <p style={{ textAlign: "center" }}>
+                                    {/* <strong>{eleve.participation}</strong> */}
+                                  </p>
+                                  {/* {selectedStudent?._id !== eleve._id && (
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
                               </p>
@@ -1083,10 +1152,11 @@ const Classe = () => {
                                 }}
                               ></div>
                             )} */}
-                            </a>
-                          </div>
-                        );
-                      })}
+                                </a>
+                              </div>
+                            );
+                          })
+                        : null}
                     </div>
                   </div>
                 </Tab>
@@ -1134,26 +1204,28 @@ const Classe = () => {
                 </span>
               </div>
               <ListGroup>
-                {eleves.map((eleve, index) => {
-                  if (!eleve.empty)
-                    return (
-                      <ListGroup.Item
-                        key={eleve._id}
-                        action
-                        active={eleve._id === selectedStudent?._id}
-                        onClick={() => studentInTableClick(eleve)}
-                      >
-                        {eleve.lastname}
-                        <i
-                          className="fa-solid fa-pen-to-square"
-                          style={{ marginLeft: "2rem" }}
-                          onClick={() => {
-                            goToStudentEdit(eleve);
-                          }}
-                        ></i>
-                      </ListGroup.Item>
-                    );
-                })}
+                {Array.isArray(eleves)
+                  ? eleves.map((eleve, index) => {
+                      if (!eleve.empty)
+                        return (
+                          <ListGroup.Item
+                            key={eleve._id}
+                            action
+                            active={eleve._id === selectedStudent?._id}
+                            onClick={() => studentInTableClick(eleve)}
+                          >
+                            {eleve.lastname}
+                            <i
+                              className="fa-solid fa-pen-to-square"
+                              style={{ marginLeft: "2rem" }}
+                              onClick={() => {
+                                goToStudentEdit(eleve);
+                              }}
+                            ></i>
+                          </ListGroup.Item>
+                        );
+                    })
+                  : null}
               </ListGroup>
               <div
                 style={{

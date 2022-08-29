@@ -87,9 +87,12 @@ const Settings = () => {
   const [disciplines, setDisciplines] = useState(null);
   const [checkedDiscipline, setCheckedDiscipline] = useState(null);
   const [showDisciplineAlert, setShowDisciplineAlert] = useState(false);
+  const [showSuccessfulImport, setShowSuccessfulImport] = useState(false);
+  const [showFailureImport, setShowFailureImport] = useState(false);
 
   // const [importedStudentsSchool, setImportedStudentsSchool] = useState(null);
-  const [importedStudentsSchool, setImportedStudentsSchool] = useState('Mont des Accords'); // for importing purpose
+  const [importedStudentsSchool, setImportedStudentsSchool] =
+    useState("Mont des Accords"); // for importing purpose
 
   const [showModalImportedStudentsSchool, setShowModalImportedStudentsSchool] =
     useState(false);
@@ -463,6 +466,13 @@ const Settings = () => {
         console.log("response");
         console.log(response);
         setShowModalUploadStudentFile(false);
+        if (response.status === 200 && response.data.status === "SUCCESS") {
+          //the import went well
+          setShowSuccessfulImport(true)
+        } else {
+          //something went wrong while importing
+          setShowFailureImport(true);
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -476,8 +486,7 @@ const Settings = () => {
     if (importedStudentsSchool) {
       setShowModalImportedStudentsSchool(false);
       setShowModalUploadStudentFile(true);
-    }
-    else {
+    } else {
       alert("Veuillez choisir un collège");
     }
   };
@@ -902,6 +911,7 @@ const Settings = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+
         <Modal
           show={showModal}
           onHide={handleCloseModal}
@@ -915,6 +925,40 @@ const Settings = () => {
           <Modal.Footer>
             <Button variant="primary" onClick={handleCloseModal}>
               Continuer
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showSuccessfulImport}>
+          <Modal.Header>
+            <Modal.Title>Mise à jour réussie</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>L'import s'est terminé avec succès.</Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowSuccessfulImport(false);
+              }}
+            >
+              OK
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showFailureImport}>
+          <Modal.Header>
+            <Modal.Title>Echec de la mise à jour</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>La mise à jour ne s'est pas passée comme prévu. <br/>Veuillez vérifier votre fichier ou réessayer plus tard</Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="danger"
+              onClick={() => {
+                setShowFailureImport(false);
+              }}
+            >
+              OK
             </Button>
           </Modal.Footer>
         </Modal>
