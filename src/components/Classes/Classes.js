@@ -76,7 +76,7 @@ const Classes = () => {
 
     let path = `${location.pathname}/${classeId}`;
 
-    navigate(`${path}`, { replace: true });
+    navigate(`${path}`);
   };
 
   useEffect(() => {

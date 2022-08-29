@@ -260,6 +260,7 @@ const Settings = () => {
       participation: participation,
       avertissement: avertissement,
       bonus: bonus,
+      admin: isAdmin,
     };
 
     let newUserFields = {

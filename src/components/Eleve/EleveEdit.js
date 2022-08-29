@@ -17,6 +17,7 @@ import { colors } from "../../utils/Styles";
 
 // auth & redux
 import { connect } from "react-redux";
+import { sessionService } from "redux-react-session";
 
 const allowedExtensions = ["csv", "xls"];
 
@@ -38,6 +39,10 @@ const EleveEdit = () => {
   const [photo, setPhoto] = useState(null);
   const [classe, setClasse] = useState(null);
   const [birthday, setBirthday] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [password, setPassword] = useState(null);
+  const [emailExample, setEmailExample] = useState(null);
+  const [admin, setAdmin] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({});
@@ -62,8 +67,13 @@ const EleveEdit = () => {
 
   useEffect(() => {
     setIsFetching(true);
-    getElevesData(eleveId)
+    sessionService.loadUser().then((user) => {
+      console.log("mon utilisateur");
+      console.log(user);
+      setAdmin(user.admin);
+      getElevesData(eleveId)
       .then((response) => {
+        
         if (response.status === 200 && response.data.status === "SUCCESS") {
           console.log("infos eleve");
           console.log(response);
@@ -72,7 +82,16 @@ const EleveEdit = () => {
           setLastname(eleve.lastname);
           setPhoto(eleve.photo);
           setCollege(eleve.college.name);
+          setEmail(eleve.email);
+          setPassword(eleve.password);
           setClasse(eleve.classe);
+          const customFirstname = eleve.firstname.toLowerCase().replace(/\s/g, '');
+          const customLastname = eleve.lastname.toLowerCase().replace(/\s/g, '');
+          const emailHelper =
+            customFirstname.toLowerCase() + '.' +
+            customLastname.toLowerCase() +
+            "@example.com";
+          setEmailExample(emailHelper);
           const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
             "en-CA"
           );
@@ -93,7 +112,22 @@ const EleveEdit = () => {
       .finally(() => {
         setIsFetching(false);
       });
+    });
+    
   }, []);
+
+  useEffect(() => {
+    if (firstname && lastname)
+    {
+      const customFirstname = firstname.toLowerCase().replace(/\s/g, '');
+      const customLastname = lastname.toLowerCase().replace(/\s/g, '');
+      const emailHelper =
+      customFirstname + '.' +
+      customLastname +
+      "@example.com";    
+      setEmailExample(emailHelper)
+    }
+  }, [firstname, lastname])
 
   useEffect(() => {
     //methode 1 : passer par le serveur pour appeler S3
@@ -184,7 +218,14 @@ const EleveEdit = () => {
   const deleteStudent = () => {
     setIsSubmitting(true);
     setIsFetching(true);
-    deleteEleve(eleveId)
+
+    const imageName =
+      photo != "/images/blank.png"
+        ? photo.substring(photo.lastIndexOf("/") + 1)
+        : null;
+    console.log("imageName");
+    console.log(imageName);
+    deleteEleve(eleveId, imageName)
       .then((response) => {
         console.log(response);
       })
@@ -218,7 +259,7 @@ const EleveEdit = () => {
   const findFormErrors = () => {
     const { firstname, lastname, birthday } = form;
 
-    var regName = /^[a-z ,.'-]+$/i;
+    var regName = /^[A-zÀ-ú ,.'-]+$/i;
 
     const newErrors = {};
 
@@ -247,8 +288,8 @@ const EleveEdit = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    console.log("la date avant soumission")
-    console.log(birthday)
+    console.log("la date avant soumission");
+    console.log(birthday);
     // get our new errors
     const newErrors = findFormErrors();
     // Conditional logic:
@@ -260,6 +301,8 @@ const EleveEdit = () => {
     } else if (college == "Choisir collège") {
       alert("Veuillez choisir un collège");
     } else {
+      console.log(email)
+      console.log(password)
       // No errors! Put any logic here for the form submission!
       setIsSubmitting(true);
       setShowModalSave(true);
@@ -272,6 +315,8 @@ const EleveEdit = () => {
       eleveId: eleveId,
       newFirstname: firstname,
       newLastname: lastname,
+      newEmail: email,
+      newPassword: password,
       college: college,
       classe: classe,
       newBirthday: new Date(birthday).toISOString(),
@@ -280,6 +325,7 @@ const EleveEdit = () => {
 
     console.log("studentData");
     console.log(studentData);
+    
 
     // let newUserFields = {
     //   ...user,
@@ -430,6 +476,65 @@ const EleveEdit = () => {
                 Prendre photo
               </Button>
             )}
+
+            <Form.Group
+              className="mb-3"
+              controlId="formEmail"
+              style={{ marginTop: "1rem" }}
+            >
+              <Form.Label>E-mail</Form.Label>
+              <Form.Control
+                type="email"
+                value={email}
+                disabled={!admin}
+                placeholder={emailExample}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  // setField("firstname", e.target.value);
+                }}
+              />
+              <Form.Text className="text-muted">
+                {admin && (
+                  <>
+                    Communiquer cet email uniquement à {firstname} {lastname}
+                  </>
+                )}
+                {!admin && (
+                  <>
+                    Vous ne pouvez pas modifier l'email. Veuillez contacter un
+                    administrateur
+                  </>
+                )}
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formPassword">
+              <Form.Label>Mot de passe</Form.Label>
+              <Form.Control
+                type="password"
+                value={password}
+                disabled={!admin}
+                placeholder={"Mot de passe"}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  // setField("firstname", e.target.value);
+                }}
+              />
+              <Form.Text className="text-muted">
+                {admin && (
+                  <>
+                    Communiquer ce mot de passe uniquement à {firstname}{" "}
+                    {lastname}
+                  </>
+                )}
+                {!admin && (
+                  <>
+                    Vous ne pouvez pas modifier le mot de passe. Veuillez
+                    contacter un administrateur
+                  </>
+                )}
+              </Form.Text>
+            </Form.Group>
 
             <Form.Group
               className="mb-3"

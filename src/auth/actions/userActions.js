@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const backendUrl = remoteUrl;
+const backendUrl = localUrl;
 
 export const loginUser = (
   credentials,
@@ -214,24 +214,24 @@ export const editEleve = (data) => {
       },
     })
     .then((response) => {
-      console.log("response");
-      console.log(response);
       return response;
     })
     .catch((err) => console.log(err));
 };
 
 //Update student data
-export const deleteEleve = (eleveId) => {
+export const deleteEleve = (eleveId, imageName) => {
+  console.log("eleveId")
+  console.log(eleveId)
+  console.log("imageName")
+  console.log(imageName)
   return axios
-    .delete(`${backendUrl}/eleve/delete/${eleveId}`, {
+    .delete(`${backendUrl}/eleve/delete/${eleveId}/${imageName}`, {
       headers: {
         "Content-Type": "application/json",
       },
     })
     .then((response) => {
-      console.log("response");
-      console.log(response);
       return response;
     })
     .catch((err) => console.log(err));
@@ -246,8 +246,6 @@ export const getProfesseurData = (profId) => {
       },
     })
     .then((response) => {
-      console.log("response");
-      console.log(response);
       return response;
     })
     .catch((err) => console.log(err));
@@ -264,8 +262,6 @@ export const getProfesseurClasses = (profId) => {
       },
     })
     .then((response) => {
-      console.log("response");
-      console.log(response);
       return response;
     })
     .catch((err) => console.log(err));
@@ -282,8 +278,6 @@ export const addEleveToClasse = (credentials) => {
       },
     })
     .then((response) => {
-      console.log("response");
-      console.log(response);
       return response;
     })
     .catch((err) => console.log(err));
@@ -296,8 +290,6 @@ export const uploadTeacherPicture = (formData) => {
       headers: { "Content-Type": "multipart/form-data" },
     })
     .then((response) => {
-      console.log("response");
-      console.log(response);
       return response;
     })
     .catch((err) => console.log(err));
@@ -366,6 +358,7 @@ export const getElevesData = (eleveId) => {
 };
 
 //edit student marks
+// remarque : position n'est pas vraiment une note, mais dans les tabs à coté des notes.
 export const editEleveNote = (eleveData) => {
   return axios
     .post(`${backendUrl}/eleve/updateMark`, eleveData, {

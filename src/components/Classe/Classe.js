@@ -121,6 +121,7 @@ let sts = [
 const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
   const [participationModal, setParticipationModal] = useState(false);
+  const [college, setCollege] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [eleves, setEleves] = useState(null);
 
@@ -188,6 +189,7 @@ const Classe = () => {
     updatedStudent.avertissement = 0;
     updatedStudent.participation = 0;
     updatedStudent.classe = classId;
+    updatedStudent.college = college;
     updatedStudent._id = new ObjectID();
     const defaultBirthday = "02/01/2010"; //february 1st
     updatedStudent.dateOfBirth = new Date(defaultBirthday);
@@ -224,11 +226,15 @@ const Classe = () => {
     console.log(eleve);
     console.log(eleve._id.toString());
     let path = `../eleves/${eleve._id}`;
-    navigate(`${path}`, { replace: true });
+    navigate(`${path}`);
   };
 
   const processSwitch = () => {
+    console.log("comment sont les eleves?");
+    console.log(eleves);
+    setIsFetching(true);
     setShowModal(false);
+    let elevesCopy = eleves;
 
     console.log("selectedStudent");
     console.log(selectedStudent);
@@ -237,24 +243,80 @@ const Classe = () => {
     // change position of 2 students :
     const tmp = selectedStudent.position;
     const tmp2 = switchStudent.position;
-    let itemIndex = eleves.findIndex((x) => x._id == tmp);
-    let item = eleves[itemIndex];
+    console.log("tmp1");
+    console.log(tmp);
+    console.log("tmp2");
+    console.log(tmp2);
+    let itemIndex = elevesCopy.findIndex((student) => student.position == tmp);
+    let item = elevesCopy[itemIndex];
     item.position = tmp2;
 
-    let itemIndex2 = eleves.findIndex((x) => x._id == tmp2);
-    let item2 = eleves[itemIndex2];
+    let itemIndex2 = elevesCopy.findIndex(
+      (student) => student.position == tmp2
+    );
+    let item2 = elevesCopy[itemIndex2];
     item2.position = tmp;
 
     //reorder whole list :
-    eleves.sort(function (a, b) {
+    elevesCopy.sort(function (a, b) {
       return a.position - b.position;
     });
+
+    const defaultBirthday = "02/01/2010"; //february 1st
+
+    //change position of 1st student in DB
+    const firstStudentData = {
+      eleveId: selectedStudent._id,
+      newPosition: tmp2,
+      college: college,
+      classe: classId,
+      dateOfBirth: new Date(defaultBirthday),
+    };
+    editEleveNote(firstStudentData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
+    //change position of 2nd student in DB
+    const secondStudentData = {
+      eleveId: switchStudent._id,
+      newPosition: tmp,
+      college: college,
+      classe: classId,
+      dateOfBirth: new Date(defaultBirthday),
+    };
+    editEleveNote(secondStudentData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+        console.log(item);
+        console.log(item2);
+        console.log(elevesCopy);
+        setEleves(elevesCopy);
+        setCounter(counter + 1);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
 
     setIsSwitching(false);
   };
 
   const handleStudentClick = (eleve, note) => {
-    setIsFetching(true);
+    console.log("kkkkkkkkkkkkkkkk");
+    console.log(eleve);
+    console.log("key");
+    console.log(key);
+    if (key != "echange") {
+      setIsFetching(true);
+    }
     if (note === "participation") {
       // setIsSwitching(true)
       console.log("on augmente");
@@ -490,6 +552,7 @@ const Classe = () => {
         console.log(response.data);
         setClasse(response.data.data.classe.name);
         setEleves(response.data.data.students);
+        setCollege(response.data.data.classe.ecole.name);
         setCounter(students.length);
 
         let studentsList = [...students];
@@ -522,15 +585,9 @@ const Classe = () => {
   }, []);
 
   const isEmptyPlace = (studentIndex) => {
-    console.log('coucou')
-    console.log(studentIndex);
-    console.log("eleves")
-    console.log(eleves)
-    const studentInArray = eleves.find(el =>el._id == studentIndex);
-    console.log("studentInArray")
-    console.log(studentInArray.empty)
+    const studentInArray = eleves.find((el) => el._id == studentIndex);
     return studentInArray.empty;
-  }
+  };
 
   if (isFetching) {
     return (
@@ -636,33 +693,36 @@ const Classe = () => {
                             }}
                           >
                             <div>
-                              {!isEmptyPlace(eleve._id) && (<i
-                                className="fa-solid fa-circle-minus"
-                                hidden={
-                                  eleve.empty && !showEmptyStudents
-                                    ? true
-                                    : false
-                                }
-                                style={{
-                                  marginLeft: "2rem",
-                                  display: "inline-block",
-                                }}
-                                onClick={() => {
-                                  decrementParticipation(eleve);
-                                }}
-                              ></i>)}
-                              {isEmptyPlace(eleve._id) && (<i
-                                className="fa-solid fa-circle-minus"
-                                
-                                style={{
-                                  marginLeft: "2rem",
-                                  display: "inline-block",
-                                  visibility: "hidden"
-                                }}
-                                onClick={() => {
-                                  decrementParticipation(eleve);
-                                }}
-                              ></i>)}
+                              {!isEmptyPlace(eleve._id) && (
+                                <i
+                                  className="fa-solid fa-circle-minus"
+                                  hidden={
+                                    eleve.empty && !showEmptyStudents
+                                      ? true
+                                      : false
+                                  }
+                                  style={{
+                                    marginLeft: "2rem",
+                                    display: "inline-block",
+                                  }}
+                                  onClick={() => {
+                                    decrementParticipation(eleve); //place is occupied decrease participation
+                                  }}
+                                ></i>
+                              )}
+                              {isEmptyPlace(eleve._id) && (
+                                <i
+                                  className="fa-solid fa-circle-minus"
+                                  style={{
+                                    marginLeft: "2rem",
+                                    display: "inline-block",
+                                    visibility: "hidden",
+                                  }}
+                                  // onClick={() => {
+                                  // decrementParticipation(eleve); //don't do anything place is empty
+                                  // }}
+                                ></i>
+                              )}
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
@@ -676,7 +736,11 @@ const Classe = () => {
                                   id={eleve._id}
                                   src={eleve.photo}
                                   onClick={() => {
-                                    handleStudentClick(eleve, "participation");
+                                    if (!isEmptyPlace(eleve._id))
+                                      handleStudentClick(
+                                        eleve,
+                                        "participation"
+                                      );
                                   }}
                                   style={{
                                     opacity:
@@ -700,7 +764,9 @@ const Classe = () => {
                               </div>
 
                               <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation} </strong>
+                                {!eleve.empty && (
+                                  <strong>{eleve.participation} </strong>
+                                )}
                               </p>
                             </a>
                           </div>
@@ -727,16 +793,36 @@ const Classe = () => {
                             }}
                           >
                             <div>
-                              <i
-                                className="fa-solid fa-circle-minus"
-                                style={{
-                                  marginLeft: "2rem",
-                                  display: "inline-block",
-                                }}
-                                onClick={() => {
-                                  decrementBonus(eleve);
-                                }}
-                              ></i>
+                              {!isEmptyPlace(eleve._id) && (
+                                <i
+                                  className="fa-solid fa-circle-minus"
+                                  hidden={
+                                    eleve.empty && !showEmptyStudents
+                                      ? true
+                                      : false
+                                  }
+                                  style={{
+                                    marginLeft: "2rem",
+                                    display: "inline-block",
+                                  }}
+                                  onClick={() => {
+                                    decrementBonus(eleve); //place is occupied decrease bonus
+                                  }}
+                                ></i>
+                              )}
+                              {isEmptyPlace(eleve._id) && (
+                                <i
+                                  className="fa-solid fa-circle-minus"
+                                  style={{
+                                    marginLeft: "2rem",
+                                    display: "inline-block",
+                                    visibility: "hidden",
+                                  }}
+                                  // onClick={() => {
+                                  // decrementParticipation(eleve); //don't do anything place is empty
+                                  // }}
+                                ></i>
+                              )}
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
@@ -747,7 +833,8 @@ const Classe = () => {
                               <img
                                 src={eleve.photo}
                                 onClick={() => {
-                                  handleStudentClick(eleve, "bonus");
+                                  if (!isEmptyPlace(eleve._id))
+                                    handleStudentClick(eleve, "bonus");
                                 }}
                                 style={{
                                   opacity:
@@ -769,7 +856,9 @@ const Classe = () => {
                                 })}
                               />
                               <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.bonus}</strong>
+                                {!eleve.empty && (
+                                  <strong>{eleve.bonus} </strong>
+                                )}
                               </p>
                             </a>
                           </div>
@@ -796,16 +885,36 @@ const Classe = () => {
                             }}
                           >
                             <div>
-                              <i
-                                className="fa-solid fa-circle-minus"
-                                style={{
-                                  marginLeft: "2rem",
-                                  display: "inline-block",
-                                }}
-                                onClick={() => {
-                                  decrementAvertissement(eleve);
-                                }}
-                              ></i>
+                              {!isEmptyPlace(eleve._id) && (
+                                <i
+                                  className="fa-solid fa-circle-minus"
+                                  hidden={
+                                    eleve.empty && !showEmptyStudents
+                                      ? true
+                                      : false
+                                  }
+                                  style={{
+                                    marginLeft: "2rem",
+                                    display: "inline-block",
+                                  }}
+                                  onClick={() => {
+                                    decrementAvertissement(eleve); //place is occupied decrease avertissement
+                                  }}
+                                ></i>
+                              )}
+                              {isEmptyPlace(eleve._id) && (
+                                <i
+                                  className="fa-solid fa-circle-minus"
+                                  style={{
+                                    marginLeft: "2rem",
+                                    display: "inline-block",
+                                    visibility: "hidden",
+                                  }}
+                                  // onClick={() => {
+                                  // decrementParticipation(eleve); //don't do anything place is empty
+                                  // }}
+                                ></i>
+                              )}
                             </div>
                             <a
                               style={{ color: "black", textDecoration: "none" }}
@@ -818,7 +927,8 @@ const Classe = () => {
                               <img
                                 src={eleve.photo}
                                 onClick={() => {
-                                  handleStudentClick(eleve, "avertissement");
+                                  if (!isEmptyPlace(eleve._id))
+                                    handleStudentClick(eleve, "avertissement");
                                 }}
                                 style={{
                                   opacity:
@@ -839,7 +949,9 @@ const Classe = () => {
                                 })}
                               />
                               <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.avertissement}</strong>
+                                {!eleve.empty && (
+                                  <strong>{eleve.avertissement} </strong>
+                                )}
                               </p>
                             </a>
                           </div>
@@ -872,7 +984,9 @@ const Classe = () => {
                               onClick={() => {
                                 // setIsSwitching(true);
                                 // setSwitchStudent(eleve);
-                                handleStudentClick(eleve);
+                                /*if (!isEmptyPlace(eleve._id))*/ handleStudentClick(
+                                  eleve
+                                );
                                 // setShowModal(true)
                               }}
                             >
@@ -897,7 +1011,7 @@ const Classe = () => {
                                 })}
                               />
                               <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation}</strong>
+                                {/* no mark for switch tab */}
                               </p>
                             </a>
                           </div>
@@ -950,7 +1064,7 @@ const Classe = () => {
                                 })}
                               />
                               <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation}</strong>
+                                {/* <strong>{eleve.participation}</strong> */}
                               </p>
                               {/* {selectedStudent?._id !== eleve._id && (
                               <p style={{ textAlign: "center" }}>
