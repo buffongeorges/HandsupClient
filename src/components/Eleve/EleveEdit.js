@@ -3,7 +3,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { useNavigate, useParams } from "react-router-dom";
-import moment from "moment";
+import "./Eleve.css";
 import Webcam from "react-webcam";
 import {
   deleteEleve,
@@ -14,6 +14,7 @@ import {
 } from "../../auth/actions/userActions";
 import { TailSpin, ThreeDots } from "react-loader-spinner";
 import { colors } from "../../utils/Styles";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 // auth & redux
 import { connect } from "react-redux";
@@ -32,6 +33,7 @@ const EleveEdit = () => {
 
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
@@ -72,62 +74,62 @@ const EleveEdit = () => {
       console.log(user);
       setAdmin(user.admin);
       getElevesData(eleveId)
-      .then((response) => {
-        
-        if (response.status === 200 && response.data.status === "SUCCESS") {
-          console.log("infos eleve");
-          console.log(response);
-          const eleve = response.data.data;
-          setFirstname(eleve.firstname);
-          setLastname(eleve.lastname);
-          setPhoto(eleve.photo);
-          setCollege(eleve.college.name);
-          setEmail(eleve.email);
-          setPassword(eleve.password);
-          setClasse(eleve.classe);
-          const customFirstname = eleve.firstname.toLowerCase().replace(/\s/g, '');
-          const customLastname = eleve.lastname.toLowerCase().replace(/\s/g, '');
-          const emailHelper =
-            customFirstname.toLowerCase() + '.' +
-            customLastname.toLowerCase() +
-            "@example.com";
-          setEmailExample(emailHelper);
-          const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
-            "en-CA"
-          );
-          setBirthday(birthday);
+        .then((response) => {
+          if (response.status === 200 && response.data.status === "SUCCESS") {
+            console.log("infos eleve");
+            console.log(response);
+            const eleve = response.data.data;
+            setFirstname(eleve.firstname);
+            setLastname(eleve.lastname);
+            setPhoto(eleve.photo);
+            setCollege(eleve.college.name);
+            setEmail(eleve.email);
+            setPassword(eleve.password);
+            setClasse(eleve.classe);
+            const customFirstname = eleve.firstname
+              .toLowerCase()
+              .replace(/\s/g, "");
+            const customLastname = eleve.lastname
+              .toLowerCase()
+              .replace(/\s/g, "");
+            const emailHelper =
+              customFirstname.toLowerCase() +
+              "." +
+              customLastname.toLowerCase() +
+              "@example.com";
+            setEmailExample(emailHelper);
+            const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
+              "en-CA"
+            );
+            setBirthday(birthday);
 
-          setForm({
-            firstname: eleve.firstname,
-            lastname: eleve.lastname,
-            birthday: birthday,
-          });
-        } else {
-          navigate("/classes");
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setIsFetching(false);
-      });
+            setForm({
+              firstname: eleve.firstname,
+              lastname: eleve.lastname,
+              birthday: birthday,
+            });
+          } else {
+            navigate("/classes");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
     });
-    
   }, []);
 
   useEffect(() => {
-    if (firstname && lastname)
-    {
-      const customFirstname = firstname.toLowerCase().replace(/\s/g, '');
-      const customLastname = lastname.toLowerCase().replace(/\s/g, '');
+    if (firstname && lastname) {
+      const customFirstname = firstname.toLowerCase().replace(/\s/g, "");
+      const customLastname = lastname.toLowerCase().replace(/\s/g, "");
       const emailHelper =
-      customFirstname + '.' +
-      customLastname +
-      "@example.com";    
-      setEmailExample(emailHelper)
+        customFirstname + "." + customLastname + "@example.com";
+      setEmailExample(emailHelper);
     }
-  }, [firstname, lastname])
+  }, [firstname, lastname]);
 
   useEffect(() => {
     //methode 1 : passer par le serveur pour appeler S3
@@ -301,8 +303,8 @@ const EleveEdit = () => {
     } else if (college == "Choisir collège") {
       alert("Veuillez choisir un collège");
     } else {
-      console.log(email)
-      console.log(password)
+      console.log(email);
+      console.log(password);
       // No errors! Put any logic here for the form submission!
       setIsSubmitting(true);
       setShowModalSave(true);
@@ -325,7 +327,6 @@ const EleveEdit = () => {
 
     console.log("studentData");
     console.log(studentData);
-    
 
     // let newUserFields = {
     //   ...user,
@@ -510,16 +511,55 @@ const EleveEdit = () => {
 
             <Form.Group className="mb-3" controlId="formPassword">
               <Form.Label>Mot de passe</Form.Label>
-              <Form.Control
+              {/* <Form.Control
                 type="password"
                 value={password}
                 disabled={!admin}
                 placeholder={"Mot de passe"}
+                style={{
+                  backgroundImage: "url('/images/handsup.png')",
+                  backgroundSize: "2rem",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right",
+                }}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   // setField("firstname", e.target.value);
                 }}
-              />
+              /> */}
+              <div className="input-with-icon">
+                <input
+                  placeholder="Mot de passe"
+                  type={showPassword ? "text": 'password'}
+                  id="formPassword"
+                  class="form-control"
+                  disabled={!admin}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                ></input>
+                <div class="btn btn-default icon">
+                  <span>
+                    <i
+                      className={
+                        showPassword
+                          ? "fa-solid fa-eye"
+                          : "fa-solid fa-eye-slash"
+                      }
+                      style={{
+                        marginRight: "0rem",
+                        display: "inline-block",
+                        // visibility: "hidden",
+                      }}
+                      onClick={() => {
+                        setShowPassword(!showPassword)
+                      }}
+                    ></i>
+                  </span>
+                </div>
+              </div>
+
               <Form.Text className="text-muted">
                 {admin && (
                   <>

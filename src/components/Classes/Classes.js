@@ -42,7 +42,7 @@ let classesTest = [
 const Classes = () => {
   let navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   let professeur = store.getState().session.user;
   const [classes, setClasses] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
@@ -52,27 +52,30 @@ const Classes = () => {
     console.log(selectedClass);
     sessionStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
     let classeName = selectedClass.value;
-    const classeId = selectedClass._id
+    const classeId = selectedClass._id;
     classeName = classeName.replace(/\s/g, "");
 
     sessionService.loadUser().then((user) => {
-      console.log('mon utilisateur')
+      console.log("mon utilisateur");
       console.log(user);
-    })
+    });
 
     let updatedUserFields = {
       ...user,
-      selectedClass: selectedClass
-    }
+      selectedClass: selectedClass,
+    };
 
-    console.log("updatedUserFields")
-    console.log(updatedUserFields)
-    sessionService.saveUser(updatedUserFields).then(() => {
-      console.log("user has been saved in session successfully");
-    }).catch((err) => {
-      console.log('error while updating user selected class');
-      console.log(err)
-    })
+    console.log("updatedUserFields");
+    console.log(updatedUserFields);
+    sessionService
+      .saveUser(updatedUserFields)
+      .then(() => {
+        console.log("user has been saved in session successfully");
+      })
+      .catch((err) => {
+        console.log("error while updating user selected class");
+        console.log(err);
+      });
 
     let path = `${location.pathname}/${classeId}`;
 
@@ -88,22 +91,23 @@ const Classes = () => {
         console.log(teacherClasses);
         setClasses(teacherClasses);
         setIsFetching(false);
-      }
+    }
+
       //if not call api for teacher classes:
-      else {
-        getProfesseurClasses(user._id)
-          .then((response) => {
-            console.log("les classes:");
-            console.log(response.data.data.classes);
-            setClasses(response.data.data.classes);
-          })
-          .catch((error) => {
-            console.log(error);
-          })
-          .finally(() => {
-            setIsFetching(false);
-          });
-      }
+
+      getProfesseurClasses(user._id)
+        .then((response) => {
+          console.log(response.data)
+          console.log("les classes:");
+          console.log(response.data.data.classes);
+          setClasses(response.data.data.classes);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
     });
   }, []);
 
@@ -123,7 +127,7 @@ const Classes = () => {
   } else if (!isFetching) {
     return (
       <>
-        {classes.length > 0 && (
+        {classes && classes?.length > 0 && (
           <div
             className="container"
             style={{
@@ -156,7 +160,7 @@ const Classes = () => {
             {/* </Container> */}
           </div>
         )}
-        {classes.length == 0 && (
+        {(!classes || classes?.length == 0) && (
           <div
             style={{
               minHeight: "100vh",

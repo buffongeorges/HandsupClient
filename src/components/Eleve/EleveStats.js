@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import { useParams } from "react-router-dom";
@@ -15,11 +15,26 @@ import {
 
 // auth & redux
 import { connect } from "react-redux";
+import { sessionService } from "redux-react-session";
+
 
 const EleveStats = () => {
   let { studentId } = useParams();
   console.log("studentId");
   console.log(studentId);
+  const [user, setUser] = useState(null);
+  const [discipline, setDiscipline] = useState(null);
+
+  useEffect(() => {
+    sessionService.loadUser().then((user) => {
+      console.log('mon utilisateur')
+      console.log(user);
+      setUser(user);
+      setDiscipline(user.discipline)
+    })
+  }, []);
+
+  
   const data = [
     {
       name: "Séance 1",
@@ -65,7 +80,7 @@ const EleveStats = () => {
       }}
     >
       <h1 id="student-stats" style={{ marginBottom: "2rem" }}>
-        Statistiques de Eleve 2
+        Statistiques de Eleve 2 en {discipline?.name}
       </h1>
 
       <Row style={{ marginBottom: "2rem", marginTop: "2rem" }}>

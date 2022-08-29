@@ -23,6 +23,7 @@ import {
   editProfesseur,
   getProfesseurData,
   getS3SecureURL,
+  importStudentsFromFile,
   logoutUser,
   signupUser,
   uploadImageToS3,
@@ -60,6 +61,10 @@ const Settings = () => {
   const [classes, setClasses] = useState([]);
   const [photo, setPhoto] = useState(null);
   const [selectedPicture, setSelectedPicture] = useState(null);
+
+  const [studentsFile, setStudentsFile] = useState(null);
+  const [pictureFile, setPictureFile] = useState(null);
+
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
   const capture = React.useCallback(() => {
@@ -82,7 +87,16 @@ const Settings = () => {
   const [disciplines, setDisciplines] = useState(null);
   const [checkedDiscipline, setCheckedDiscipline] = useState(null);
   const [showDisciplineAlert, setShowDisciplineAlert] = useState(false);
-  
+
+  // const [importedStudentsSchool, setImportedStudentsSchool] = useState(null);
+  const [importedStudentsSchool, setImportedStudentsSchool] = useState('Mont des Accords'); // for importing purpose
+
+  const [showModalImportedStudentsSchool, setShowModalImportedStudentsSchool] =
+    useState(false);
+
+  const [showModalUploadStudentFile, setShowModalUploadStudentFile] =
+    useState(false);
+
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -194,7 +208,7 @@ const Settings = () => {
   };
 
   const findFormErrors = () => {
-    const { firstname, lastname } = form;
+    const { firstname, lastname, studentsFile, pictureFile } = form;
 
     var regName = /^[a-z ,.'-]+$/i;
 
@@ -224,6 +238,17 @@ const Settings = () => {
     if (!checkedDiscipline) {
       setShowDisciplineAlert(true);
       return;
+    }
+    if (studentsFile) {
+      if (!isValidFileUploadForStudentDB(studentsFile)) {
+        return;
+      }
+    }
+
+    if (pictureFile) {
+      if (!isValidFileUploadForPicture(pictureFile)) {
+        return;
+      }
     }
 
     // get our new errors
@@ -330,6 +355,14 @@ const Settings = () => {
     navigate("/dashboard");
   };
 
+  const hideModalUploadStudentFile = () => {
+    setShowModalUploadStudentFile(false);
+  };
+
+  const hideModalImportedStudentsSchool = () => {
+    setShowModalImportedStudentsSchool(false);
+  };
+
   useEffect(() => {
     //methode 1 : passer par le serveur pour appeler S3
     // const formData = new FormData();
@@ -353,7 +386,7 @@ const Settings = () => {
     // }
 
     //methode 2 : appeler directement s3 depuis le front
-    if (selectedPicture) {
+    if (selectedPicture && isValidFileUploadForPicture(pictureFile)) {
       setIsFetching(true);
       getS3SecureURL()
         .then((response) => {
@@ -384,6 +417,70 @@ const Settings = () => {
         });
     }
   }, [selectedPicture]);
+
+  const isValidFileUploadForStudentDB = (file) => {
+    console.log("le fichier");
+    console.log(file);
+    const validExtensions = [
+      "csv",
+      "vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "vnd.ms-excel",
+    ];
+    const fileExtension = file.type.split("/")[1];
+    return validExtensions.includes(fileExtension);
+  };
+
+  const isValidFileUploadForPicture = (file) => {
+    const validExtensions = ["png", "jpeg", "gif", "jpg"];
+    const fileExtension = file.type.split("/")[1];
+    return validExtensions.includes(fileExtension);
+  };
+
+  const handleUploadStudentFile = (file) => {
+    setStudentsFile(file);
+    if (isValidFileUploadForStudentDB(file)) {
+      // setShowModalUploadStudentFile(true);
+      setShowModalImportedStudentsSchool(true);
+    }
+  };
+
+  const importNewStudents = () => {
+    let formData = new FormData();
+    console.log("studentsFile");
+    console.log(studentsFile);
+    formData.append("students", studentsFile);
+    formData.append("studentsCollege", importedStudentsSchool);
+
+    console.log("début de l'import");
+    console.log("formData");
+    console.log(formData);
+
+    console.log("le college renseigne");
+    console.log(importedStudentsSchool);
+    setIsFetching(true);
+    importStudentsFromFile(formData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+        setShowModalUploadStudentFile(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
+  };
+
+  const handleImportedStudentsSchool = () => {
+    if (importedStudentsSchool) {
+      setShowModalImportedStudentsSchool(false);
+      setShowModalUploadStudentFile(true);
+    }
+    else {
+      alert("Veuillez choisir un collège");
+    }
+  };
 
   if (isFetching) {
     return (
@@ -512,9 +609,11 @@ const Settings = () => {
               dismissible
               show={showDisciplineAlert}
             >
-              <Alert.Heading style={{fontSize: '1.3rem'}}>Aucune matière choisie</Alert.Heading>
-              <p style={{marginBottom: '0rem'}}>
-                Veuillez choisir une discipline 
+              <Alert.Heading style={{ fontSize: "1.3rem" }}>
+                Aucune matière choisie
+              </Alert.Heading>
+              <p style={{ marginBottom: "0rem" }}>
+                Veuillez choisir une discipline
               </p>
             </Alert>
           </Form.Group>
@@ -525,11 +624,18 @@ const Settings = () => {
               type="file"
               accept="image/*"
               onChange={(e) => {
-                console.log(e);
+                console.log(e.target.files[0]);
                 setShowCamera(false);
                 setSelectedPicture(e.target.files[0]);
+                setPictureFile(e.target.files[0]);
               }}
+              isInvalid={
+                pictureFile ? !isValidFileUploadForPicture(pictureFile) : false
+              }
             />
+            <Form.Control.Feedback type="invalid">
+              {"Le format du fichier choisi est incorrect"}
+            </Form.Control.Feedback>
             {photo && (
               <div
                 style={{
@@ -672,13 +778,51 @@ const Settings = () => {
                 </Form.Label>
                 <Form.Control
                   type="file"
-                  accept="image/*"
+                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                   onChange={(e) => {
-                    console.log(e);
-                    setShowCamera(false);
-                    setSelectedPicture(e.target.files[0]);
+                    console.log("nouveau csv");
+                    handleUploadStudentFile(e.target.files[0]);
                   }}
+                  isInvalid={
+                    studentsFile
+                      ? !isValidFileUploadForStudentDB(studentsFile)
+                      : false
+                  }
                 />
+                <Form.Control.Feedback type="invalid">
+                  {"Le format du fichier choisi est incorrect"}
+                </Form.Control.Feedback>
+                <Modal
+                  show={showModalUploadStudentFile}
+                  onHide={hideModalUploadStudentFile}
+                >
+                  <Modal.Header closeButton>
+                    <Modal.Title>Importer élèves</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    Etes vous sûr de vouloir importer une nouvelle base de
+                    données ? Cela affectera la base déjà existante. <br />
+                    Cette opération va prendre plusieurs minutes.
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setShowModalUploadStudentFile(false);
+                      }}
+                    >
+                      Annuler
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        importNewStudents();
+                      }}
+                    >
+                      Importer
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
               </Form.Group>
             </div>
           )}
@@ -701,6 +845,63 @@ const Settings = () => {
             <ThreeDots color={colors.theme} height={49} width={100} />
           )}
         </Form>
+        <Modal
+          show={showModalImportedStudentsSchool}
+          onHide={hideModalImportedStudentsSchool}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Ecole des élèves</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group>
+              <Form.Label>Collège : </Form.Label>
+
+              <DropdownButton
+                id="dropdown-schools"
+                title={
+                  importedStudentsSchool
+                    ? importedStudentsSchool
+                    : "Choisir un collège"
+                }
+                style={{ marginBottom: "1rem" }}
+              >
+                {ecoles.map((ecole, index) => (
+                  <Dropdown.Item
+                    key={`${index}`}
+                    onClick={(e) => {
+                      console.log("choisi");
+                      console.log(e.target.innerText);
+                      setImportedStudentsSchool(e.target.innerText);
+                    }}
+                  >
+                    {ecole.name}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+              <Form.Text className="text-muted">
+                ATTENTION : Vous ne pourrez plus changer le collège par la
+                suite.
+              </Form.Text>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowModalImportedStudentsSchool(false);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              onClick={handleImportedStudentsSchool}
+            >
+              Continuer
+            </Button>
+          </Modal.Footer>
+        </Modal>
         <Modal
           show={showModal}
           onHide={handleCloseModal}

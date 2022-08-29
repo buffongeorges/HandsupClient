@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const backendUrl = remoteUrl;
+const backendUrl = localUrl;
 
 export const loginUser = (
   credentials,
@@ -107,8 +107,7 @@ export const logoutUser = (navigate) => {
     sessionService.deleteSession();
     sessionService.deleteUser();
     sessionService.invalidateSession();
-    sessionService.
-    navigate("/login");
+    sessionService.navigate("/login");
   };
 };
 
@@ -205,6 +204,29 @@ export const editProfesseur = (data) => {
     .catch((err) => console.log(err));
 };
 
+//Update students from file provided by teacher
+export const importStudentsFromFile = (formData) => {
+  console.log("formData");
+  console.log(formData);
+  return axios
+    .post(
+      `${backendUrl}/professeur/importStudents`,
+      formData,
+      {
+        // headers: {
+        //   "Content-Type": "application/json",
+        // },
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    )
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
 //Update student data
 export const editEleve = (data) => {
   return axios
@@ -221,10 +243,10 @@ export const editEleve = (data) => {
 
 //Update student data
 export const deleteEleve = (eleveId, imageName) => {
-  console.log("eleveId")
-  console.log(eleveId)
-  console.log("imageName")
-  console.log(imageName)
+  console.log("eleveId");
+  console.log(eleveId);
+  console.log("imageName");
+  console.log(imageName);
   return axios
     .delete(`${backendUrl}/eleve/delete/${eleveId}/${imageName}`, {
       headers: {
@@ -298,29 +320,31 @@ export const uploadTeacherPicture = (formData) => {
 //get secure url for image
 export const getS3SecureURL = () => {
   return axios
-  .get(`${backendUrl}/s3Url`)
-  .then((response) => {
-    return response;
-  })
-  .catch((err) => {
-    console.log(err)
-  })
+    .get(`${backendUrl}/s3Url`)
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 //upload image to S3 bucket
 export const uploadImageToS3 = (url, file) => {
-  console.log(url)
-  console.log('le fichier')
-  console.log(file)
+  console.log(url);
+  console.log("le fichier");
+  console.log(file);
   return axios
-  .put(`${url}`, file, {
-    headers: { "Content-Type": "multipart/form-data" },
-  }).then((response) => {
-    return response;
-  }).catch((err) => {
-    console.log(err);
-  })
-}
+    .put(`${url}`, file, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
 
 //get students in a specific class
 //Get teacher registered classes
@@ -344,17 +368,17 @@ export const getElevesInClasse = (classeId) => {
 //get data for a specific student
 export const getElevesData = (eleveId) => {
   return axios
-  .get(`${backendUrl}/eleves/get/${eleveId}`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-  .then((response) => {
-    console.log("response");
-    console.log(response);
-    return response;
-  })
-  .catch((err) => console.log(err));
+    .get(`${backendUrl}/eleves/get/${eleveId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
 };
 
 //edit student marks
