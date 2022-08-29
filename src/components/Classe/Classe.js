@@ -266,8 +266,10 @@ const Classe = () => {
 
     //change position of 1st student in DB
     const firstStudentData = {
-      eleveId: selectedStudent._id,
-      newPosition: tmp2,
+      eleveId: switchStudent._id,
+      newPosition: tmp,
+      firstname: switchStudent.firstname,
+      lastname: switchStudent.lastname,
       college: college,
       classe: classId,
       dateOfBirth: new Date(defaultBirthday),
@@ -283,9 +285,11 @@ const Classe = () => {
 
     //change position of 2nd student in DB
     const secondStudentData = {
-      eleveId: switchStudent._id,
-      newPosition: tmp,
+      eleveId: selectedStudent._id,
+      newPosition: tmp2,
       college: college,
+      firstname: selectedStudent.firstname,
+      lastname: selectedStudent.lastname,
       classe: classId,
       dateOfBirth: new Date(defaultBirthday),
     };
@@ -549,7 +553,7 @@ const Classe = () => {
       .then((response) => {
         const students = response.data.data.students;
         console.log("les eleves");
-        console.log(response.data);
+        console.log(response.data.data.students);
         setClasse(response.data.data.classe.name);
         setEleves(response.data.data.students);
         setCollege(response.data.data.classe.ecole.name);

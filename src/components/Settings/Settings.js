@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import Alert from "react-bootstrap/Alert";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Modal from "react-bootstrap/Modal";
@@ -78,6 +79,10 @@ const Settings = () => {
   const [participation, setParticipation] = useState(null);
   const [avertissement, setAvertissement] = useState(null);
   const [bonus, setBonus] = useState(null);
+  const [disciplines, setDisciplines] = useState(null);
+  const [checkedDiscipline, setCheckedDiscipline] = useState(null);
+  const [showDisciplineAlert, setShowDisciplineAlert] = useState(false);
+  
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -102,8 +107,10 @@ const Settings = () => {
           setNoteDepart(professeur.noteDepart);
           setEcoles(professeur.ecoles);
           setClasses(professeur?.classes);
+          setCheckedDiscipline(professeur.discipline);
           setPhoto(professeur.photo);
           setIsAdmin(professeur?.admin);
+          setDisciplines(response.data.data.disciplines);
 
           setForm({
             firstname: professeur.firstname,
@@ -213,6 +220,12 @@ const Settings = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    //check if discipline is checked
+    if (!checkedDiscipline) {
+      setShowDisciplineAlert(true);
+      return;
+    }
+
     // get our new errors
     const newErrors = findFormErrors();
     // Conditional logic:
@@ -248,6 +261,7 @@ const Settings = () => {
       newAvertissement: avertissement,
       newBonus: bonus,
       newClasses: classes,
+      newDiscipline: checkedDiscipline,
     };
 
     let sessionStorageValues = {
@@ -261,6 +275,7 @@ const Settings = () => {
       avertissement: avertissement,
       bonus: bonus,
       admin: isAdmin,
+      discipline: checkedDiscipline,
     };
 
     let newUserFields = {
@@ -467,6 +482,43 @@ const Settings = () => {
             />
           </Form.Group>
 
+          {/* choisir discipline */}
+          <Form.Group className="mb-3" controlId="formDiscipline">
+            <Form.Label style={{ fontSize: "1.3rem" }}>
+              Discipline enseignée
+            </Form.Label>
+            {Array.isArray(disciplines)
+              ? disciplines.map((discipline) => (
+                  <div key={`default-${discipline.name}`} className="mb-3">
+                    <Form.Check
+                      type="checkbox"
+                      id={`default-${discipline.name}`}
+                      label={`${discipline.name}`}
+                      checked={
+                        checkedDiscipline &&
+                        checkedDiscipline._id == discipline._id
+                      }
+                      onClick={() => {
+                        setShowDisciplineAlert(false);
+                        setCheckedDiscipline(discipline);
+                      }}
+                    />
+                  </div>
+                ))
+              : null}
+            <Alert
+              variant="danger"
+              onClose={() => setShowDisciplineAlert(false)}
+              dismissible
+              show={showDisciplineAlert}
+            >
+              <Alert.Heading style={{fontSize: '1.3rem'}}>Aucune matière choisie</Alert.Heading>
+              <p style={{marginBottom: '0rem'}}>
+                Veuillez choisir une discipline 
+              </p>
+            </Alert>
+          </Form.Group>
+
           <Form.Group controlId="formFile" className="mb-3">
             <Form.Label>Photo</Form.Label>
             <Form.Control
@@ -615,7 +667,6 @@ const Settings = () => {
           {isAdmin && (
             <div style={{ marginTop: "2rem", marginBottom: "3rem" }}>
               <Form.Group controlId="formFile" className="mb-3">
-                
                 <Form.Label style={{ fontSize: "1.5rem" }}>
                   Nouvelle base de données Elève
                 </Form.Label>
