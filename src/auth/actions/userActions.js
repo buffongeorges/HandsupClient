@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const backendUrl = remoteUrl;
+const backendUrl = localUrl;
 
 export const loginUser = (
   credentials,
@@ -242,13 +242,11 @@ export const editEleve = (data) => {
 };
 
 //Update student data
-export const deleteEleve = (eleveId, imageName) => {
-  console.log("eleveId");
-  console.log(eleveId);
-  console.log("imageName");
-  console.log(imageName);
+export const deleteEleve = (data) => {
+  console.log("student data to be deleted");
+  console.log(data);
   return axios
-    .delete(`${backendUrl}/eleve/delete/${eleveId}/${imageName}`, {
+    .post(`${backendUrl}/eleve/deleteStudent`, data,  {
       headers: {
         "Content-Type": "application/json",
       },

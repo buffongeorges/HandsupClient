@@ -227,7 +227,10 @@ const EleveEdit = () => {
         : null;
     console.log("imageName");
     console.log(imageName);
-    deleteEleve(eleveId, imageName)
+    let studentDataToDelete = {
+      eleveId, imageName
+    }
+    deleteEleve(studentDataToDelete)
       .then((response) => {
         console.log(response);
       })
