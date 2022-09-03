@@ -30,6 +30,7 @@ const EleveEdit = () => {
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [isFetching, setIsFetching] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pictureFile, setPictureFile] = useState(null);
 
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -154,7 +155,7 @@ const EleveEdit = () => {
     // }
 
     //methode 2 : appeler directement s3 depuis le front
-    if (selectedPicture) {
+    if (selectedPicture || (pictureFile &&isValidFileUploadForPicture(pictureFile))) {
       setIsFetching(true);
       getS3SecureURL()
         .then((response) => {
@@ -185,6 +186,16 @@ const EleveEdit = () => {
         });
     }
   }, [selectedPicture]);
+
+  const isValidFileUploadForPicture = (file) => {
+    console.log("la photo par webcam")
+    console.log(selectedPicture)
+    console.log("photo uploadée ")
+    console.log(pictureFile);
+    const validExtensions = ["png", "jpeg", "gif", "jpg"];
+    const fileExtension = file.type.split("/")[1];
+    return validExtensions.includes(fileExtension);
+  };
 
   const handleClick = () => {
     alert("Mise à jour réussie !");
@@ -438,8 +449,15 @@ const EleveEdit = () => {
                 console.log(e);
                 setShowCamera(false);
                 setSelectedPicture(e.target.files[0]);
+                setPictureFile(e.target.files[0]);
               }}
+              isInvalid={
+                (pictureFile) ? !isValidFileUploadForPicture(pictureFile) : false
+              }
             />
+            <Form.Control.Feedback type="invalid">
+              {"Le format du fichier choisi est incorrect"}
+            </Form.Control.Feedback>
             {photo && (
               <div
                 style={{

@@ -61,13 +61,16 @@ const Dashboard = ({ logoutUser, user }) => {
       </div>
       <StyledFormArea bg={colors.dark2}>
         <StyledTitle size={65}>
-          Bienvenue, {professeur.firstname} {professeur.lastname}
+          Bienvenue,
+        </StyledTitle>
+        <StyledTitle size={65}>
+          {professeur.firstname} {professeur.lastname}
         </StyledTitle>
         <ExtraText color={colors.light1}>{professeur.email}</ExtraText>
         <ExtraText color={colors.light1}>
           {new Date(professeur.dateOfBirth).toLocaleDateString()}
         </ExtraText>
-        <ButtonGroup>
+        {/* <ButtonGroup>
           <StyledButton
             to="/login"
             onClick={() => {
@@ -76,7 +79,7 @@ const Dashboard = ({ logoutUser, user }) => {
           >
             Se déconnecter
           </StyledButton>
-        </ButtonGroup>
+        </ButtonGroup> */}
       </StyledFormArea>
     </div>
   );

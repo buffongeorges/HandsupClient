@@ -168,10 +168,11 @@ const Settings = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedSchool) {
+    // console.log(selectedSchool.classes.length)
+    if (selectedSchool && selectedSchool.classes) {
       console.log(selectedSchool);
       const newOptions = [];
-      selectedSchool.classes.forEach((classe) => {
+      selectedSchool.classes?.forEach((classe) => {
         const option = {
           label: classe.name,
           value: classe.name,
@@ -180,6 +181,11 @@ const Settings = () => {
         newOptions.push(option);
       });
       setMultiselectOptions(newOptions);
+      setClasses([]);
+    }
+    else if (selectedSchool && !selectedSchool.classes) {
+      console.log("pas de classes!")
+      setMultiselectOptions([]);
       setClasses([]);
     }
   }, [selectedSchool]);
@@ -248,7 +254,7 @@ const Settings = () => {
       }
     }
 
-    if (pictureFile) {
+    if (pictureFile && !selectedPicture) {
       if (!isValidFileUploadForPicture(pictureFile)) {
         return;
       }
@@ -389,7 +395,7 @@ const Settings = () => {
     // }
 
     //methode 2 : appeler directement s3 depuis le front
-    if (selectedPicture && isValidFileUploadForPicture(pictureFile)) {
+    if (selectedPicture || (pictureFile &&isValidFileUploadForPicture(pictureFile))) {
       setIsFetching(true);
       getS3SecureURL()
         .then((response) => {
@@ -434,6 +440,10 @@ const Settings = () => {
   };
 
   const isValidFileUploadForPicture = (file) => {
+    console.log("la photo par webcam")
+    console.log(selectedPicture)
+    console.log("photo uploadée ")
+    console.log(pictureFile);
     const validExtensions = ["png", "jpeg", "gif", "jpg"];
     const fileExtension = file.type.split("/")[1];
     return validExtensions.includes(fileExtension);
@@ -639,7 +649,8 @@ const Settings = () => {
                 setPictureFile(e.target.files[0]);
               }}
               isInvalid={
-                pictureFile ? !isValidFileUploadForPicture(pictureFile) : false
+                (pictureFile) ? !isValidFileUploadForPicture(pictureFile) : false
+                // true
               }
             />
             <Form.Control.Feedback type="invalid">
