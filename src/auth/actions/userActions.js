@@ -393,3 +393,31 @@ export const editEleveNote = (eleveData) => {
     })
     .catch((err) => console.log(err));
 };
+
+//end class sequence. Reset marks to 0, increase seance
+export const endClassSequence = (eleveData) => {
+  return axios
+    .post(`${backendUrl}/classe/endSequence`, eleveData, {
+      headers: { "Content-Type": "application/json" },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//increase class seance index. Reset marks to 0, increase seance
+export const increaseClassSeanceIndex = (eleveData) => {
+  return axios
+    .post(`${backendUrl}/classe/increaseSeance`, eleveData, {
+      headers: { "Content-Type": "application/json" },
+    })
+    .then((response) => {
+      console.log("response");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};

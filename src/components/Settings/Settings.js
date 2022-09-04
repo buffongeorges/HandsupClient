@@ -136,7 +136,7 @@ const Settings = () => {
 
           if (professeur.college.length > 0) {
             const initialSchoolId = professeur.college[0]._id;
-            const initialClasses = professeur.ecoles.find(
+            const initialClasses = professeur?.ecoles.find(
               (ecole) => ecole._id === initialSchoolId
             ).classes;
             const newOptions = multiselectOptions;
@@ -182,9 +182,8 @@ const Settings = () => {
       });
       setMultiselectOptions(newOptions);
       setClasses([]);
-    }
-    else if (selectedSchool && !selectedSchool.classes) {
-      console.log("pas de classes!")
+    } else if (selectedSchool && !selectedSchool.classes) {
+      console.log("pas de classes!");
       setMultiselectOptions([]);
       setClasses([]);
     }
@@ -395,7 +394,10 @@ const Settings = () => {
     // }
 
     //methode 2 : appeler directement s3 depuis le front
-    if (selectedPicture || (pictureFile &&isValidFileUploadForPicture(pictureFile))) {
+    if (
+      selectedPicture ||
+      (pictureFile && isValidFileUploadForPicture(pictureFile))
+    ) {
       setIsFetching(true);
       getS3SecureURL()
         .then((response) => {
@@ -440,9 +442,9 @@ const Settings = () => {
   };
 
   const isValidFileUploadForPicture = (file) => {
-    console.log("la photo par webcam")
-    console.log(selectedPicture)
-    console.log("photo uploadée ")
+    console.log("la photo par webcam");
+    console.log(selectedPicture);
+    console.log("photo uploadée ");
     console.log(pictureFile);
     const validExtensions = ["png", "jpeg", "gif", "jpg"];
     const fileExtension = file.type.split("/")[1];
@@ -478,7 +480,10 @@ const Settings = () => {
         setShowModalUploadStudentFile(false);
         if (response.status === 200 && response.data.status === "SUCCESS") {
           //the import went well
-          setShowSuccessfulImport(true)
+          setTimeout(() => {
+            setShowSuccessfulImport(true);
+            setIsFetching(false);
+          }, 30000);
         } else {
           //something went wrong while importing
           setShowFailureImport(true);
@@ -487,9 +492,6 @@ const Settings = () => {
       .catch((err) => {
         console.log(err);
       })
-      .finally(() => {
-        setIsFetching(false);
-      });
   };
 
   const handleImportedStudentsSchool = () => {
@@ -649,7 +651,7 @@ const Settings = () => {
                 setPictureFile(e.target.files[0]);
               }}
               isInvalid={
-                (pictureFile) ? !isValidFileUploadForPicture(pictureFile) : false
+                pictureFile ? !isValidFileUploadForPicture(pictureFile) : false
                 // true
               }
             />
@@ -950,6 +952,7 @@ const Settings = () => {
               variant="primary"
               onClick={() => {
                 setShowSuccessfulImport(false);
+                window.location.reload();
               }}
             >
               OK
@@ -961,7 +964,10 @@ const Settings = () => {
           <Modal.Header>
             <Modal.Title>Echec de la mise à jour</Modal.Title>
           </Modal.Header>
-          <Modal.Body>La mise à jour ne s'est pas passée comme prévu. <br/>Veuillez vérifier votre fichier ou réessayer plus tard</Modal.Body>
+          <Modal.Body>
+            La mise à jour ne s'est pas passée comme prévu. <br />
+            Veuillez vérifier votre fichier ou réessayer plus tard
+          </Modal.Body>
           <Modal.Footer>
             <Button
               variant="danger"

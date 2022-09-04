@@ -25,7 +25,9 @@ import { useLocation } from "react-router-dom";
 import {
   addEleveToClasse,
   editEleveNote,
+  endClassSequence,
   getElevesInClasse,
+  increaseClassSeanceIndex,
 } from "../../auth/actions/userActions";
 import { sessionService } from "redux-react-session";
 
@@ -123,10 +125,14 @@ const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
   const [participationModal, setParticipationModal] = useState(false);
   const [college, setCollege] = useState(null);
+  const [discipline, setDiscipline] = useState(null);
+  const [currentSeance, setCurrentSeance] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [eleves, setEleves] = useState(null);
+  const [elevesForCsvFile, setElevesForCsvFile] = useState(null);
 
   const [counter, setCounter] = useState(null);
+  const csvLink = useRef(); // setup the ref that we'll use for the hidden CsvLink click once we've updated the data
 
   const [modalParticipationStudent, setModalParticipationStudent] =
     useState(null);
@@ -155,7 +161,16 @@ const Classe = () => {
 
   const [isSwitching, setIsSwitching] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showModalEndSequence, setShowModalEndSequence] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+
+  //teacher settings
+  const [teacherNoteDepart, setTeacherNoteDepart] = useState(null);
+  const [teacherBonusDelta, setTeacherBonusDelta] = useState(null);
+  const [teacherAvertissementDelta, setTeacherAvertissementDelta] =
+    useState(null);
+  const [teacherParticipationDelta, setTeacherParticipationDelta] =
+    useState(null);
 
   const switchStudents = (el) => {
     console.log(el);
@@ -265,6 +280,9 @@ const Classe = () => {
     // });
 
     const defaultBirthday = "02/01/2010"; //february 1st
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
 
     //change position of 1st student in DB
     const firstStudentData = {
@@ -275,6 +293,9 @@ const Classe = () => {
       college: college,
       classe: classId,
       dateOfBirth: new Date(defaultBirthday),
+      discipline: discipline,
+      markUpdateTime: new Date(localeTime),
+      nbSeances: currentSeance,
     };
     editEleveNote(firstStudentData)
       .then((response) => {
@@ -285,6 +306,8 @@ const Classe = () => {
         sessionService.loadUser().then((user) => {
           console.log("my user");
           console.log(user);
+          console.log("la discipline....");
+          console.log(user.discipline.name);
           // console.log(user.college.name);
           let userCollege;
           if (Array.isArray(user.college)) {
@@ -295,6 +318,8 @@ const Classe = () => {
           let data = {
             classId,
             college: userCollege,
+            discipline: user.discipline.name,
+            currentDate: new Date(localeTime),
           };
           getElevesInClasse(data)
             .then((response) => {
@@ -330,6 +355,9 @@ const Classe = () => {
       lastname: selectedStudent.lastname,
       classe: classId,
       dateOfBirth: new Date(defaultBirthday),
+      discipline: discipline,
+      markUpdateTime: new Date(localeTime),
+      nbSeances: currentSeance,
     };
     editEleveNote(secondStudentData)
       .then((response) => {
@@ -356,6 +384,9 @@ const Classe = () => {
     console.log(eleve);
     console.log("key");
     console.log(key);
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
     //client don't want spinner on markUpdate
     // if (key != "echange") {
     //   setIsFetching(true);
@@ -363,14 +394,22 @@ const Classe = () => {
     if (note === "participation") {
       // setIsSwitching(true)
       console.log("on augmente");
-      eleve.participation = eleve.participation + 1;
-      console.log("eleve.participation");
-      console.log(eleve.participation);
-      console.log(eleve);
+      let participationToUpdate = eleve.participation.find(
+        (matiere) => matiere.matière == discipline
+      ).notes[currentSeance - 1];
+      participationToUpdate = participationToUpdate + 1;
+      eleve.participation.find((matiere) => {
+        if (matiere.matière == discipline) {
+          return (matiere.notes[currentSeance - 1] = participationToUpdate);
+        }
+      });
 
       const eleveData = {
         eleveId: eleve._id,
-        newParticipation: eleve.participation,
+        newParticipation: participationToUpdate,
+        markUpdateTime: new Date(localeTime),
+        discipline: discipline,
+        nbSeances: currentSeance,
       };
       editEleveNote(eleveData)
         .then((response) => {
@@ -388,10 +427,21 @@ const Classe = () => {
     if (note === "bonus") {
       // setIsSwitching(true)
       console.log("on augmente");
-      eleve.bonus = eleve.bonus + 1;
+      let bonusToUpdate = eleve.bonus.find(
+        (matiere) => matiere.matière == discipline
+      ).notes[currentSeance - 1];
+      bonusToUpdate = bonusToUpdate + 1;
+      eleve.bonus.find((matiere) => {
+        if (matiere.matière == discipline) {
+          return (matiere.notes[currentSeance - 1] = bonusToUpdate);
+        }
+      });
       const eleveData = {
         eleveId: eleve._id,
-        newBonus: eleve.bonus,
+        newBonus: bonusToUpdate,
+        markUpdateTime: new Date(localeTime),
+        discipline: discipline,
+        nbSeances: currentSeance,
       };
       editEleveNote(eleveData)
         .then((response) => {
@@ -409,10 +459,21 @@ const Classe = () => {
     if (note === "avertissement") {
       // setIsSwitching(true)
       console.log("on augmente");
-      eleve.avertissement = eleve.avertissement + 1;
+      let avertissementToUpdate = eleve.avertissement.find(
+        (matiere) => matiere.matière == discipline
+      ).notes[currentSeance - 1];
+      avertissementToUpdate = avertissementToUpdate + 1;
+      eleve.avertissement.find((matiere) => {
+        if (matiere.matière == discipline) {
+          return (matiere.notes[currentSeance - 1] = avertissementToUpdate);
+        }
+      });
       const eleveData = {
         eleveId: eleve._id,
-        newAvertissement: eleve.avertissement,
+        newAvertissement: avertissementToUpdate,
+        markUpdateTime: new Date(localeTime),
+        discipline: discipline,
+        nbSeances: currentSeance,
       };
       editEleveNote(eleveData)
         .then((response) => {
@@ -453,12 +514,28 @@ const Classe = () => {
   };
 
   const decrementParticipation = (eleve) => {
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
     console.log("on diminue");
     console.log(eleve);
     //client don't want spinner on markUpdate
     // setIsFetching(true);
+    let participationToUpdate = eleve.participation.find(
+      (matiere) => matiere.matière == discipline
+    ).notes[currentSeance - 1];
+    console.log("participationToUpdate???");
+    console.log(participationToUpdate);
 
-    if (eleve.participation > 0) eleve.participation = eleve.participation - 1;
+    if (participationToUpdate > 0) {
+      participationToUpdate = participationToUpdate - 1;
+      eleve.participation.find((matiere) => {
+        if (matiere.matière == discipline) {
+          return (matiere.notes[currentSeance - 1] = participationToUpdate);
+        }
+      });
+      // eleve.participation = eleve.participation - 1;
+    }
     console.log("eleve.participation");
     console.log(eleve.participation);
     console.log(eleve);
@@ -467,7 +544,10 @@ const Classe = () => {
 
     const eleveData = {
       eleveId: eleve._id,
-      newParticipation: eleve.participation,
+      newParticipation: participationToUpdate,
+      markUpdateTime: new Date(localeTime),
+      discipline: discipline,
+      nbSeances: currentSeance,
     };
     editEleveNote(eleveData)
       .then((response) => {
@@ -483,19 +563,37 @@ const Classe = () => {
     // });
   };
   const decrementBonus = (eleve) => {
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
     console.log("on diminue");
     console.log(eleve);
     //client don't want spinner on markUpdate
     // setIsFetching(true);
 
-    if (eleve.bonus > 0) eleve.bonus = eleve.bonus - 1;
-    console.log(eleve);
+    let bonusToUpdate = eleve.bonus.find(
+      (matiere) => matiere.matière == discipline
+    ).notes[currentSeance - 1];
+    console.log("bonusToUpdate???");
+    console.log(bonusToUpdate);
+
+    if (bonusToUpdate > 0) {
+      bonusToUpdate = bonusToUpdate - 1;
+      eleve.bonus.find((matiere) => {
+        if (matiere.matière == discipline) {
+          return (matiere.notes[currentSeance - 1] = bonusToUpdate);
+        }
+      });
+      // eleve.participation = eleve.participation - 1;
+    }
     setCounter(counter + 1);
     setSelectedStudent(eleve);
 
     const eleveData = {
       eleveId: eleve._id,
-      newBonus: eleve.bonus,
+      newBonus: bonusToUpdate,
+      markUpdateTime: new Date(localeTime),
+      discipline: discipline,
     };
     editEleveNote(eleveData)
       .then((response) => {
@@ -511,19 +609,38 @@ const Classe = () => {
     // });
   };
   const decrementAvertissement = (eleve) => {
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
     console.log("on diminue");
     console.log(eleve);
     //client don't want spinner on markUpdate
     // setIsFetching(true);
 
-    if (eleve.avertissement > 0) eleve.avertissement = eleve.avertissement - 1;
-    console.log(eleve);
+    let avertissementToUpdate = eleve.avertissement.find(
+      (matiere) => matiere.matière == discipline
+    ).notes[currentSeance - 1];
+    console.log("avertissementToUpdate???");
+    console.log(avertissementToUpdate);
+
+    if (avertissementToUpdate > 0) {
+      avertissementToUpdate = avertissementToUpdate - 1;
+      eleve.avertissement.find((matiere) => {
+        if (matiere.matière == discipline) {
+          return (matiere.notes[currentSeance - 1] = avertissementToUpdate);
+        }
+      });
+      // eleve.avertissement = eleve.avertissement - 1;
+    }
     setCounter(counter + 1);
     setSelectedStudent(eleve);
 
     const eleveData = {
       eleveId: eleve._id,
-      newAvertissement: eleve.avertissement,
+      newAvertissement: avertissementToUpdate,
+      markUpdateTime: new Date(localeTime),
+      discipline: discipline,
+      nbSeances: currentSeance,
     };
 
     editEleveNote(eleveData)
@@ -552,31 +669,39 @@ const Classe = () => {
     console.log(key);
   };
 
+  const datesAreInSameDay = (date1, date2) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
   const columns = [
     {
       id: "lastname",
-      displayName: "lastname",
+      displayName: "NOM de famille",
     },
     {
       id: "firstname",
-      displayName: "Prélastname",
+      displayName: "Prénom",
     },
     {
       id: "college",
       displayName: "Collège",
     },
-    {
-      id: "participation",
-      displayName: "Participations",
-    },
-    {
-      id: "bonus",
-      displayName: "Bonus",
-    },
-    {
-      id: "avertissement",
-      displayName: "Avertissement",
-    },
+    // {
+    //   id: "participation",
+    //   displayName: "Participations",
+    // },
+    // {
+    //   id: "bonus",
+    //   displayName: "Bonus",
+    // },
+    // {
+    //   id: "avertissement",
+    //   displayName: "Avertissement",
+    // },
     {
       id: "note",
       displayName: "Note",
@@ -600,13 +725,32 @@ const Classe = () => {
   });
   useEffect(() => {
     setEleves(eleves);
+    // setCurrentSeance(currentSeance + 1)
   }, [counter]);
 
   useEffect(() => {
+    if (eleves && discipline) {
+      console.log("eleves[0]");
+      console.log(eleves[0].participation);
+      // setCurrentSeance(
+      //   eleves[0].participation.find((matiere) => matiere.matière == discipline)
+      //     .nbSeances
+      // );  //temporary comment!
+    }
+  }, [eleves]);
+
+  useEffect(() => {
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
     setIsFetching(true);
     sessionService.loadUser().then((user) => {
       console.log("my user");
       console.log(user);
+      setTeacherAvertissementDelta(user.avertissement);
+      setTeacherBonusDelta(user.bonus);
+      setTeacherParticipationDelta(user.participation);
+      setTeacherNoteDepart(user.noteDepart);
       // console.log(user.college.name);
       let userCollege;
       if (Array.isArray(user.college)) {
@@ -617,6 +761,8 @@ const Classe = () => {
       let data = {
         classId,
         college: userCollege,
+        discipline: user.discipline.name,
+        currentDate: new Date(localeTime),
       };
       getElevesInClasse(data)
         .then((response) => {
@@ -626,9 +772,55 @@ const Classe = () => {
           setClasse(response.data.data.classe.name);
           setEleves(response.data.data.students);
           setCollege(response.data.data.classe.ecole.name);
+          // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
+          setDiscipline(user.discipline.name);
           setCounter(students.length);
           setEleves(students);
           setExportList(students);
+          setCurrentSeance(response.data.data.nbSeances);
+          if (response.data.data.isNewSeance) {
+            //user is fetching class from another day so we have to increase the seance
+            let increaseSeanceData = {
+              classe: response.data.data.classe.name,
+              college: response.data.data.classe.ecole.name,
+              nbSeances: response.data.data.nbSeances,
+              discipline: user.discipline.name,
+            };
+            increaseClassSeanceIndex(increaseSeanceData)
+              .then((responseIncrease) => {
+                console.log("responseIncrease");
+                console.log(responseIncrease);
+                let data = {
+                  classId,
+                  college: { name: response.data.data.classe.ecole.name },
+                  discipline: user.discipline.name,
+                  currentDate: new Date(localeTime),
+                };
+                getElevesInClasse(data)
+                  .then((response) => {
+                    const students = response.data.data.students;
+                    console.log("les eleves");
+                    console.log(response.data.data.students);
+                    setClasse(response.data.data.classe.name);
+                    setEleves(response.data.data.students);
+                    setCollege(response.data.data.classe.ecole.name);
+                    setCounter(students.length);
+                    setEleves(students);
+                    setExportList(students);
+                    setCurrentSeance(response.data.data.nbSeances);
+                  })
+                  .catch((error) => {
+                    console.log("error while fetching students");
+                    console.log(error);
+                  })
+                  .finally(() => {
+                    setIsFetching(false);
+                  });
+              })
+              .catch((errorIncrease) => {
+                console.log(errorIncrease);
+              });
+          }
         })
         .catch((error) => {
           console.log("error while fetching students");
@@ -642,9 +834,190 @@ const Classe = () => {
     console.log(eleves);
   }, []);
 
+  const simulateEndOfSeance = () => {
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
+    sessionService.loadUser().then((user) => {
+      setIsFetching(true);
+      let increaseSeanceData = {
+        classe: classe,
+        college: college,
+        nbSeances: currentSeance,
+        discipline: user.discipline.name,
+      };
+      increaseClassSeanceIndex(increaseSeanceData)
+        .then((responseIncrease) => {
+          console.log("responseIncrease");
+          console.log(responseIncrease);
+          let data = {
+            classId,
+            college: { name: college },
+            discipline: user.discipline.name,
+            currentDate: new Date(localeTime),
+          };
+          // window.location.reload();
+          getElevesInClasse(data)
+            .then((response) => {
+              console.log("after increase....");
+              console.log(response.data.data);
+              const students = response.data.data.students;
+
+              setClasse(response.data.data.classe.name);
+              setEleves(response.data.data.students);
+              setCollege(response.data.data.classe.ecole.name);
+              setCounter(students.length);
+              setEleves(students);
+              setExportList(students);
+              setCurrentSeance(response.data.data.nbSeances);
+            })
+            .catch((error) => {
+              console.log("error while fetching students");
+              console.log(error);
+            })
+            .finally(() => {
+              setIsFetching(false);
+            });
+        })
+        .catch((errorIncrease) => {
+          console.log(errorIncrease);
+        });
+    });
+  };
+
   const isEmptyPlace = (studentIndex) => {
     const studentInArray = eleves.find((el) => el._id == studentIndex);
     return studentInArray.empty;
+  };
+
+  const handleDownloadSequence = () => {
+    setShowModalEndSequence(true);
+  };
+
+  const processEndSequence = () => {
+    setShowModalEndSequence(false);
+    setIsFetching(true);
+    console.log("fin de sequence avant l'appel api");
+    console.log(eleves);
+    console.log("teacherAvertissementDelta");
+    console.log(teacherAvertissementDelta);
+    console.log("teacherNoteDepart");
+    console.log(teacherNoteDepart);
+
+    let csvStudents = eleves.map((csvStudent) => {
+      console.log("eleve....");
+      console.log(csvStudent);
+      console.log(discipline);
+      let sumBonusStudent = csvStudent.bonus
+        .find((matiere) => matiere.matière == discipline)
+        .notes.reduce((sum, x) => sum + x);
+
+      let sumAvertissementStudent = csvStudent.avertissement
+        .find((matiere) => matiere.matière == discipline)
+        .notes.reduce((sum, x) => sum + x);
+
+      let sumParticipationStudent = csvStudent.participation
+        .find((matiere) => matiere.matière == discipline)
+        .notes.reduce((sum, x) => sum + x);
+
+      console.log("sumBonusStudent");
+      console.log(sumBonusStudent);
+      console.log("sumAvertissementStudent");
+      console.log(sumAvertissementStudent);
+      console.log("sumParticipationStudent");
+      console.log(sumParticipationStudent);
+
+      return {
+        lastname: csvStudent.lastname,
+        firstname: csvStudent.firstname,
+        empty: csvStudent.empty,
+        // participation: csvStudent.participation,
+        // bonus: csvStudent.bonus,
+        // avertissement: csvStudent.avertissement,
+        college: csvStudent.college,
+        note:
+          teacherNoteDepart +
+          teacherBonusDelta * sumBonusStudent +
+          teacherAvertissementDelta * sumAvertissementStudent +
+          teacherParticipationDelta * sumParticipationStudent,
+        placement: csvStudent.position,
+      };
+    });
+
+    console.log("csvStudents");
+    console.log(csvStudents);
+
+    csvStudents = csvStudents.filter((student) => student.empty == false);
+    console.log("csvStudents after filter")
+    console.log(csvStudents);
+
+    setElevesForCsvFile(csvStudents);
+
+    let classData = {
+      classe: classe,
+      college: college,
+      nbSeances: currentSeance,
+      discipline: discipline,
+    };
+
+    //call api :
+    endClassSequence(classData)
+      .then((response) => {
+        console.log("response");
+        console.log(response);
+        const localeTime = new Date().toLocaleString("en-US", {
+          timeZone: "America/New_York",
+        });
+
+        //now let's get the student list, with new sequence starting
+        sessionService.loadUser().then((user) => {
+          console.log("my user");
+          console.log(user);
+          console.log("la discipline....");
+          console.log(user.discipline.name);
+          // console.log(user.college.name);
+          let userCollege;
+          if (Array.isArray(user.college)) {
+            userCollege = user.college[0].name;
+          } else {
+            userCollege = user.college;
+          }
+          let data = {
+            classId,
+            college: userCollege,
+            discipline: user.discipline.name,
+            currentDate: new Date(localeTime),
+          };
+          getElevesInClasse(data)
+            .then((response) => {
+              const students = response.data.data.students;
+              console.log("les eleves");
+              console.log(response.data.data.students);
+              setClasse(response.data.data.classe.name);
+              setEleves(response.data.data.students);
+              setCollege(response.data.data.classe.ecole.name);
+              setCounter(students.length);
+              setEleves(students);
+              setExportList(students);
+              setCurrentSeance(response.data.data.nbSeances);
+              csvLink.current.click();
+            })
+            .catch((error) => {
+              console.log("error while fetching students");
+              console.log(error);
+            })
+            .finally(() => {
+              setIsFetching(false);
+            });
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+      .finally(() => {
+        setIsFetching(false);
+        // csvLink.current.click();
+      });
   };
 
   if (isFetching) {
@@ -688,6 +1061,40 @@ const Classe = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+
+        <Modal
+          show={showModalEndSequence}
+          onHide={() => {
+            setShowModalEndSequence(false);
+          }}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Fin de séquence</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Etes vous sur de vouloir mettre fin à la séquence ? <br />
+            Cela générera la note de chaque élève en fonction de vos paramètres.
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowModalEndSequence(false);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                processEndSequence();
+              }}
+            >
+              Confirmer
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
         <Modal show={participationModal}>
           <Modal.Header closeButton>
             <Modal.Title>Suppression participation</Modal.Title>
@@ -740,7 +1147,7 @@ const Classe = () => {
                 >
                   <div id="students-cells-participation">
                     <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves)
+                      {Array.isArray(eleves) && currentSeance
                         ? eleves.map((eleve, index) => {
                             return (
                               <div
@@ -763,7 +1170,14 @@ const Classe = () => {
                                     >
                                       <i style={{ marginLeft: "-1rem" }}>
                                         {!eleve.empty && (
-                                          <strong>{eleve.participation}</strong>
+                                          <strong>
+                                            {
+                                              eleve?.participation?.find(
+                                                (matiere) =>
+                                                  matiere.matière == discipline
+                                              ).notes[currentSeance - 1]
+                                            }
+                                          </strong>
                                         )}
                                       </i>
                                       <i
@@ -791,13 +1205,20 @@ const Classe = () => {
                                     >
                                       <i style={{ marginLeft: "-1rem" }}>
                                         {!eleve.empty && (
-                                          <strong>{eleve.participation}</strong>
+                                          <strong>
+                                            {
+                                              eleve?.participation?.find(
+                                                (matiere) =>
+                                                  matiere.matière == discipline
+                                              ).notes[currentSeance - 1]
+                                            }
+                                          </strong>
                                         )}
                                       </i>
                                       <i
                                         className="fa-solid fa-circle-minus"
                                         style={{
-                                          marginLeft: "2rem",
+                                          marginLeft: "1rem",
                                           display: "inline-block",
                                           visibility: "hidden",
                                         }}
@@ -879,34 +1300,75 @@ const Classe = () => {
                               >
                                 <div>
                                   {!isEmptyPlace(eleve._id) && (
-                                    <i
-                                      className="fa-solid fa-circle-minus"
-                                      hidden={
-                                        eleve.empty && !showEmptyStudents
-                                          ? true
-                                          : false
-                                      }
+                                    <div
                                       style={{
-                                        marginLeft: "2rem",
+                                        textAlign: "center",
+                                        marginLeft: "1rem",
                                         display: "inline-block",
+                                        marginTop: "0.5rem",
                                       }}
-                                      onClick={() => {
-                                        decrementBonus(eleve); //place is occupied decrease bonus
-                                      }}
-                                    ></i>
+                                    >
+                                      <i style={{ marginLeft: "-1rem" }}>
+                                        {!eleve.empty && (
+                                          <strong>
+                                            {
+                                              eleve?.bonus?.find(
+                                                (matiere) =>
+                                                  matiere.matière == discipline
+                                              ).notes[currentSeance - 1]
+                                            }
+                                          </strong>
+                                        )}
+                                      </i>
+                                      <i
+                                        className="fa-solid fa-circle-minus"
+                                        hidden={
+                                          eleve.empty && !showEmptyStudents
+                                            ? true
+                                            : false
+                                        }
+                                        style={{
+                                          marginLeft: "1rem",
+                                          // display: "inline-block",
+                                        }}
+                                        onClick={() => {
+                                          decrementBonus(eleve); //place is occupied decrease bonus
+                                        }}
+                                      ></i>
+                                    </div>
                                   )}
                                   {isEmptyPlace(eleve._id) && (
-                                    <i
-                                      className="fa-solid fa-circle-minus"
+                                    <div
                                       style={{
-                                        marginLeft: "2rem",
+                                        textAlign: "center",
+                                        marginLeft: "1rem",
                                         display: "inline-block",
-                                        visibility: "hidden",
+                                        marginTop: "0.5rem",
                                       }}
-                                      // onClick={() => {
-                                      // decrementParticipation(eleve); //don't do anything place is empty
-                                      // }}
-                                    ></i>
+                                    >
+                                      <i style={{ marginLeft: "-1rem" }}>
+                                        {!eleve.empty && (
+                                          <strong>
+                                            {
+                                              eleve?.bonus?.find(
+                                                (matiere) =>
+                                                  matiere.matière == discipline
+                                              ).notes[currentSeance - 1]
+                                            }
+                                          </strong>
+                                        )}
+                                      </i>
+                                      <i
+                                        className="fa-solid fa-circle-minus"
+                                        style={{
+                                          marginLeft: "1rem",
+                                          visibility: "hidden",
+                                        }}
+                                        // onClick={() => {
+                                        // decrementParticipation(eleve); //don't do anything place is empty
+                                        // }}
+                                      ></i>
+                                    </div>
                                   )}
                                 </div>
                                 <a
@@ -944,11 +1406,6 @@ const Classe = () => {
                                       border: "2px solid purple",
                                     })}
                                   />
-                                  <p style={{ textAlign: "center" }}>
-                                    {!eleve.empty && (
-                                      <strong>{eleve.bonus} </strong>
-                                    )}
-                                  </p>
                                 </a>
                               </div>
                             );
@@ -977,34 +1434,71 @@ const Classe = () => {
                               >
                                 <div>
                                   {!isEmptyPlace(eleve._id) && (
-                                    <i
-                                      className="fa-solid fa-circle-minus"
-                                      hidden={
-                                        eleve.empty && !showEmptyStudents
-                                          ? true
-                                          : false
-                                      }
+                                    <div
                                       style={{
-                                        marginLeft: "2rem",
+                                        textAlign: "center",
+                                        marginLeft: "1rem",
                                         display: "inline-block",
+                                        marginTop: "0.5rem",
                                       }}
-                                      onClick={() => {
-                                        decrementAvertissement(eleve); //place is occupied decrease avertissement
-                                      }}
-                                    ></i>
+                                    >
+                                      <i style={{ marginLeft: "-1rem" }}>
+                                        {!eleve.empty && (
+                                          <strong>
+                                            {
+                                              eleve?.avertissement?.find(
+                                                (matiere) =>
+                                                  matiere.matière == discipline
+                                              ).notes[currentSeance - 1]
+                                            }
+                                          </strong>
+                                        )}
+                                      </i>
+                                      <i
+                                        className="fa-solid fa-circle-minus"
+                                        hidden={
+                                          eleve.empty && !showEmptyStudents
+                                            ? true
+                                            : false
+                                        }
+                                        style={{
+                                          marginLeft: "1rem",
+                                        }}
+                                        onClick={() => {
+                                          decrementAvertissement(eleve); //place is occupied decrease avertissement
+                                        }}
+                                      ></i>
+                                    </div>
                                   )}
                                   {isEmptyPlace(eleve._id) && (
-                                    <i
-                                      className="fa-solid fa-circle-minus"
+                                    <div
                                       style={{
-                                        marginLeft: "2rem",
+                                        textAlign: "center",
+                                        marginLeft: "1rem",
                                         display: "inline-block",
-                                        visibility: "hidden",
+                                        marginTop: "0.5rem",
                                       }}
-                                      // onClick={() => {
-                                      // decrementParticipation(eleve); //don't do anything place is empty
-                                      // }}
-                                    ></i>
+                                    >
+                                      <i style={{ marginLeft: "-1rem" }}>
+                                        {!eleve.empty && (
+                                          <strong>
+                                            {
+                                              eleve?.avertissement?.find(
+                                                (matiere) =>
+                                                  matiere.matière == discipline
+                                              ).notes[currentSeance - 1]
+                                            }
+                                          </strong>
+                                        )}
+                                      </i>
+                                      <i
+                                        className="fa-solid fa-circle-minus"
+                                        style={{
+                                          marginLeft: "1rem",
+                                          visibility: "hidden",
+                                        }}
+                                      ></i>
+                                    </div>
                                   )}
                                 </div>
                                 <a
@@ -1046,11 +1540,6 @@ const Classe = () => {
                                       border: "2px solid purple",
                                     })}
                                   />
-                                  <p style={{ textAlign: "center" }}>
-                                    {!eleve.empty && (
-                                      <strong>{eleve.avertissement} </strong>
-                                    )}
-                                  </p>
                                 </a>
                               </div>
                             );
@@ -1077,17 +1566,39 @@ const Classe = () => {
                                   flex: "1 0 10%",
                                 }}
                               >
-                                <i
-                                  className="fa-solid fa-circle-minus"
+                                <div
                                   style={{
-                                    marginLeft: "2rem",
+                                    textAlign: "center",
+                                    marginLeft: "1rem",
                                     display: "inline-block",
+                                    marginTop: "0.5rem",
                                     visibility: "hidden",
                                   }}
-                                  // onClick={() => {
-                                  //   decrementParticipation(eleve); //place is occupied decrease participation
-                                  // }}
-                                ></i>
+                                >
+                                  <i style={{ marginLeft: "-1rem" }}>
+                                    {!eleve.empty && (
+                                      <strong>
+                                        {
+                                          eleve?.avertissement?.find(
+                                            (matiere) =>
+                                              matiere.matière == discipline
+                                          ).notes[currentSeance - 1]
+                                        }
+                                      </strong>
+                                    )}
+                                  </i>
+                                  <i
+                                    className="fa-solid fa-circle-minus"
+                                    style={{
+                                      marginLeft: "2rem",
+                                      display: "inline-block",
+                                      visibility: "hidden",
+                                    }}
+                                    // onClick={() => {
+                                    //   decrementParticipation(eleve); //place is occupied decrease participation
+                                    // }}
+                                  ></i>
+                                </div>
                                 <a
                                   style={{
                                     color: "black",
@@ -1125,9 +1636,6 @@ const Classe = () => {
                                       border: "2px solid purple",
                                     })}
                                   />
-                                  <p style={{ textAlign: "center" }}>
-                                    {/* no mark for switch tab */}
-                                  </p>
                                 </a>
                               </div>
                             );
@@ -1154,17 +1662,39 @@ const Classe = () => {
                                   flex: "1 0 10%",
                                 }}
                               >
-                                <i
-                                  className="fa-solid fa-circle-minus"
+                                <div
                                   style={{
-                                    marginLeft: "2rem",
+                                    textAlign: "center",
+                                    marginLeft: "1rem",
                                     display: "inline-block",
+                                    marginTop: "0.5rem",
                                     visibility: "hidden",
                                   }}
-                                  // onClick={() => {
-                                  //   decrementParticipation(eleve); //place is occupied decrease participation
-                                  // }}
-                                ></i>
+                                >
+                                  <i style={{ marginLeft: "-1rem" }}>
+                                    {!eleve.empty && (
+                                      <strong>
+                                        {
+                                          eleve?.bonus?.find(
+                                            (matiere) =>
+                                              matiere.matière == discipline
+                                          ).notes[currentSeance - 1]
+                                        }
+                                      </strong>
+                                    )}
+                                  </i>
+                                  <i
+                                    className="fa-solid fa-circle-minus"
+                                    style={{
+                                      marginLeft: "2rem",
+                                      display: "inline-block",
+                                      visibility: "hidden",
+                                    }}
+                                    // onClick={() => {
+                                    //   decrementParticipation(eleve); //place is occupied decrease participation
+                                    // }}
+                                  ></i>
+                                </div>
                                 <a
                                   style={{
                                     color: "black",
@@ -1195,9 +1725,6 @@ const Classe = () => {
                                       border: "2px solid purple",
                                     })}
                                   />
-                                  <p style={{ textAlign: "center" }}>
-                                    {/* <strong>{eleve.participation}</strong> */}
-                                  </p>
                                   {/* {selectedStudent?._id !== eleve._id && (
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
@@ -1225,31 +1752,25 @@ const Classe = () => {
           <Col xs="3" md="3" lg="3">
             <div id="students-table-list" style={{}}>
               <div style={{ marginBottom: "1rem" }}>
-                Classe: {classe}
-                {/* <div> */}
-                <CsvDownloader
-                  filename={`classe_${classe}`}
-                  extension=".csv"
-                  separator=";"
-                  wrapColumnChar="'"
-                  columns={columns}
-                  datas={datas}
-                  style={{ float: "right", width: "4rem" }}
-                >
-                  <a
-                    href="#"
-                    style={{ color: "black" }}
-                    onClick={() => downloadClassFile()}
-                  >
-                    <i className="fa-solid fa-download"></i>
-                  </a>
-                </CsvDownloader>
-                {/* </div> */}
+                <div>Classe: {classe}</div>
+                <div>
+                  Séance n°: {currentSeance}
+                  {/* {Array.isArray(eleves)
+                    ? eleves[0].participation.find(
+                        (matiere) => matiere.matière == discipline
+                      ).nbSeances
+                    : null} */}
+                </div>
+                <div>
+                  <Button onClick={() => simulateEndOfSeance()}>
+                    Simuler fin séance
+                  </Button>
+                </div>
               </div>
               {showEmptyStudentsSwitch && (
                 <div
                   id="hide-empty-students"
-                  style={{ marginBottom: "0.5rem" }}
+                  style={{ marginBottom: "0.5rem", marginTop: "-1rem" }}
                 >
                   Places vides:
                   <span style={{ marginLeft: "2rem" }}>
@@ -1267,6 +1788,31 @@ const Classe = () => {
                   </span>
                 </div>
               )}
+              <div>
+                <Button onClick={handleDownloadSequence}>Fin séquence</Button>
+              </div>
+
+              <CsvDownloader
+                filename={`classe_${classe}`}
+                extension=".csv"
+                separator=";"
+                wrapColumnChar="'"
+                columns={columns}
+                datas={elevesForCsvFile}
+                style={{ visibility: "hidden" }}
+              >
+                <div>
+                  <Button ref={csvLink}></Button>
+                </div>
+
+                {/* <a
+                    href="#"
+                    style={{ color: "black" }}
+                    onClick={() => downloadClassFile()}
+                  >
+                    <i className="fa-solid fa-download"></i>
+                  </a> */}
+              </CsvDownloader>
               <ListGroup>
                 {Array.isArray(eleves)
                   ? eleves.map((eleve, index) => {
