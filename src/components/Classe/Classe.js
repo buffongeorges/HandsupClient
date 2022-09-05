@@ -129,6 +129,7 @@ const Classe = () => {
   const [currentSeance, setCurrentSeance] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [eleves, setEleves] = useState(null);
+  const [elevesOrdreAlphabetique, setElevesOrdreAlphabetique] = useState(null);
   const [elevesForCsvFile, setElevesForCsvFile] = useState(null);
 
   const [counter, setCounter] = useState(null);
@@ -328,6 +329,10 @@ const Classe = () => {
               console.log(response.data.data.students);
               setClasse(response.data.data.classe.name);
               setEleves(response.data.data.students);
+              setElevesOrdreAlphabetique(
+                response.data.data.studentsAlphabeticalOrder
+              );
+
               setCollege(response.data.data.classe.ecole.name);
               setCounter(students.length);
               setEleves(students);
@@ -771,6 +776,9 @@ const Classe = () => {
           console.log(response.data.data.students);
           setClasse(response.data.data.classe.name);
           setEleves(response.data.data.students);
+          setElevesOrdreAlphabetique(
+            response.data.data.studentsAlphabeticalOrder
+          );
           setCollege(response.data.data.classe.ecole.name);
           // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
           setDiscipline(user.discipline.name);
@@ -803,6 +811,10 @@ const Classe = () => {
                     console.log(response.data.data.students);
                     setClasse(response.data.data.classe.name);
                     setEleves(response.data.data.students);
+                    setElevesOrdreAlphabetique(
+                      response.data.data.studentsAlphabeticalOrder
+                    );
+
                     setCollege(response.data.data.classe.ecole.name);
                     setCounter(students.length);
                     setEleves(students);
@@ -865,6 +877,10 @@ const Classe = () => {
 
               setClasse(response.data.data.classe.name);
               setEleves(response.data.data.students);
+              setElevesOrdreAlphabetique(
+                response.data.data.studentsAlphabeticalOrder
+              );
+
               setCollege(response.data.data.classe.ecole.name);
               setCounter(students.length);
               setEleves(students);
@@ -948,7 +964,7 @@ const Classe = () => {
     console.log(csvStudents);
 
     csvStudents = csvStudents.filter((student) => student.empty == false);
-    console.log("csvStudents after filter")
+    console.log("csvStudents after filter");
     console.log(csvStudents);
 
     setElevesForCsvFile(csvStudents);
@@ -995,6 +1011,11 @@ const Classe = () => {
               console.log(response.data.data.students);
               setClasse(response.data.data.classe.name);
               setEleves(response.data.data.students);
+
+              setElevesOrdreAlphabetique(
+                response.data.data.studentsAlphabeticalOrder
+              );
+
               setCollege(response.data.data.classe.ecole.name);
               setCounter(students.length);
               setEleves(students);
@@ -1814,8 +1835,8 @@ const Classe = () => {
                   </a> */}
               </CsvDownloader>
               <ListGroup>
-                {Array.isArray(eleves)
-                  ? eleves.map((eleve, index) => {
+                {Array.isArray(elevesOrdreAlphabetique)
+                  ? elevesOrdreAlphabetique.map((eleve, index) => {
                       if (!eleve.empty)
                         return (
                           <ListGroup.Item
