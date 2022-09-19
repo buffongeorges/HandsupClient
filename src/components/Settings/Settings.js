@@ -128,12 +128,12 @@ const Settings = () => {
           setPhoto(professeur.photo);
           setIsAdmin(professeur?.admin);
           setDisciplines(response.data.data.disciplines);
+          setSelectedSchool(professeur?.college[0]);
 
           setForm({
             firstname: professeur.firstname,
             lastname: professeur.lastname,
           });
-
           if (professeur.college.length > 0) {
             const initialSchoolId = professeur.college[0]._id;
             const initialClasses = professeur?.ecoles.find(
@@ -180,8 +180,17 @@ const Settings = () => {
         };
         newOptions.push(option);
       });
+      console.log("new options avant reorder");
+      console.log(newOptions);
+
+      newOptions.sort((classeA, classeB) => {
+        return classeB.label.localeCompare(classeA.label); //sort classes alphabetically
+      });
+      console.log("new options apres reorder");
+      console.log(newOptions);
+
       setMultiselectOptions(newOptions);
-      setClasses([]);
+      // setClasses([]);
     } else if (selectedSchool && !selectedSchool.classes) {
       console.log("pas de classes!");
       setMultiselectOptions([]);
@@ -491,7 +500,7 @@ const Settings = () => {
       })
       .catch((err) => {
         console.log(err);
-      })
+      });
   };
 
   const handleImportedStudentsSchool = () => {
@@ -567,6 +576,7 @@ const Settings = () => {
                   key={`${index}`}
                   onClick={(e) => {
                     setCollege(ecole);
+                    console.log("l'école choisie", ecole)
                     setSelectedSchool(ecole);
                   }}
                 >

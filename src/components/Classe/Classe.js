@@ -31,96 +31,6 @@ import {
 } from "../../auth/actions/userActions";
 import { sessionService } from "redux-react-session";
 
-let sts = [
-  {
-    _id: 1,
-    lastname: "Eleve 1",
-    firstname: "Eleve 1",
-    photo: "/images/unknown.png",
-    position: 1,
-    participation: 2,
-    bonus: 1,
-    avertissement: 0,
-    visible: true,
-  },
-  {
-    _id: 2,
-    lastname: "Eleve 2",
-    firstname: "Eleve 2",
-    photo: "/images/unknown.png",
-    position: 2,
-    participation: 3,
-    bonus: 4,
-    avertissement: 2,
-    visible: true,
-  },
-  {
-    _id: 3,
-    lastname: "Eleve 3",
-    firstname: "Eleve 3",
-    photo: "/images/unknown.png",
-    position: 3,
-    participation: 0,
-    bonus: 1,
-    avertissement: 1,
-    visible: true,
-  },
-  {
-    _id: 4,
-    lastname: "Eleve 4",
-    firstname: "Eleve 4",
-    photo: "/images/unknown.png",
-    position: 4,
-    participation: 2,
-    bonus: 2,
-    avertissement: 2,
-    visible: true,
-  },
-  {
-    _id: 5,
-    lastname: "Eleve 5",
-    firstname: "Eleve 5",
-    photo: "/images/unknown.png",
-    position: 5,
-    participation: 0,
-    bonus: 0,
-    avertissement: 0,
-    visible: true,
-  },
-  {
-    _id: 6,
-    lastname: "Eleve 6",
-    firstname: "Eleve 6",
-    photo: "/images/unknown.png",
-    position: 6,
-    participation: 1,
-    bonus: 1,
-    avertissement: 3,
-    visible: true,
-  },
-  {
-    _id: 7,
-    lastname: "Eleve 7",
-    firstname: "Eleve 7",
-    photo: "/images/unknown.png",
-    position: 7,
-    participation: 1,
-    bonus: 1,
-    avertissement: 3,
-    visible: true,
-  },
-  {
-    _id: 8,
-    lastname: "Eleve 8",
-    firstname: "Eleve 8",
-    photo: "/images/unknown.png",
-    position: 8,
-    participation: 2,
-    bonus: 0,
-    avertissement: 8,
-    visible: true,
-  },
-];
 const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
   const [participationModal, setParticipationModal] = useState(false);
@@ -131,6 +41,7 @@ const Classe = () => {
   const [eleves, setEleves] = useState(null);
   const [elevesOrdreAlphabetique, setElevesOrdreAlphabetique] = useState(null);
   const [elevesForCsvFile, setElevesForCsvFile] = useState(null);
+  const [isNewSeance, setIsNewSeance] = useState(null);
 
   const [counter, setCounter] = useState(null);
   const csvLink = useRef(); // setup the ref that we'll use for the hidden CsvLink click once we've updated the data
@@ -162,6 +73,7 @@ const Classe = () => {
 
   const [isSwitching, setIsSwitching] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showModalNewSeance, setShowModalNewSeance] = useState(false);
   const [showModalEndSequence, setShowModalEndSequence] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
 
@@ -297,6 +209,7 @@ const Classe = () => {
       discipline: discipline,
       markUpdateTime: new Date(localeTime),
       nbSeances: currentSeance,
+      isNewSeance: isNewSeance,
     };
     editEleveNote(firstStudentData)
       .then((response) => {
@@ -363,6 +276,7 @@ const Classe = () => {
       discipline: discipline,
       markUpdateTime: new Date(localeTime),
       nbSeances: currentSeance,
+      isNewSeance: isNewSeance,
     };
     editEleveNote(secondStudentData)
       .then((response) => {
@@ -384,8 +298,91 @@ const Classe = () => {
     setIsSwitching(false);
   };
 
+  const updateSeanceAndStudentsData = (
+    eleveData,
+    markType,
+    markValue
+  ) => {
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
+    sessionService.loadUser().then((user) => {
+      setIsFetching(true);
+      let increaseSeanceData = {
+        classe: classe,
+        college: college,
+        nbSeances: currentSeance,
+        discipline: user.discipline.name,
+      };
+      increaseClassSeanceIndex(increaseSeanceData)
+        .then((responseIncrease) => {
+          console.log("responseIncrease");
+          console.log(responseIncrease);
+          let data = {
+            classId,
+            college: { name: college },
+            discipline: user.discipline.name,
+            currentDate: new Date(localeTime),
+          };
+          //increase seance index
+          const updatedEleveData = {
+            ...eleveData,
+            nbSeances: currentSeance + 1,
+          };
+
+          if (markType == "participation") {
+            updatedEleveData["newParticipation"] = markValue;
+          }
+          else if (markType == "avertissement") {
+            updatedEleveData["newAvertissement"] = markValue;
+          }
+          else if (markType == "bonus") {
+            updatedEleveData["newBonus"] = markValue;
+          }
+
+          editEleveNote(updatedEleveData)
+            .then((response) => {
+              console.log("response");
+              console.log(response);
+              getElevesInClasse(data)
+                .then((response) => {
+                  console.log("after increase....");
+                  console.log(response.data.data);
+                  const students = response.data.data.students;
+
+                  setClasse(response.data.data.classe.name);
+                  setEleves(response.data.data.students);
+                  setElevesOrdreAlphabetique(
+                    response.data.data.studentsAlphabeticalOrder
+                  );
+
+                  setCollege(response.data.data.classe.ecole.name);
+                  setCounter(students.length);
+                  setEleves(students);
+                  setExportList(students);
+                  setCurrentSeance(response.data.data.nbSeances);
+                  setIsNewSeance(response.data.data.isNewSeance);
+                })
+                .catch((error) => {
+                  console.log("error while fetching students");
+                  console.log(error);
+                })
+                .finally(() => {
+                  setIsFetching(false);
+                  setShowModalNewSeance(true);
+                });
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        })
+        .catch((errorIncrease) => {
+          console.log(errorIncrease);
+        });
+    });
+  };
+
   const handleStudentClick = (eleve, note) => {
-    console.log("kkkkkkkkkkkkkkkk");
     console.log(eleve);
     console.log("key");
     console.log(key);
@@ -415,15 +412,27 @@ const Classe = () => {
         markUpdateTime: new Date(localeTime),
         discipline: discipline,
         nbSeances: currentSeance,
+        isNewSeance: isNewSeance,
       };
-      editEleveNote(eleveData)
-        .then((response) => {
-          console.log("response");
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+
+      if (isNewSeance) {
+        updateSeanceAndStudentsData(
+          eleveData,
+          eleve,
+          "participation", 1
+        );
+      } else {
+        //same seance
+        editEleveNote(eleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+
       //client don't want spinner on markUpdate
       // .finally(() => {
       //   setIsFetching(false);
@@ -447,15 +456,26 @@ const Classe = () => {
         markUpdateTime: new Date(localeTime),
         discipline: discipline,
         nbSeances: currentSeance,
+        isNewSeance: isNewSeance,
       };
-      editEleveNote(eleveData)
-        .then((response) => {
-          console.log("response");
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+
+      if (isNewSeance) {
+        updateSeanceAndStudentsData(
+          eleveData,
+          eleve,
+          "bonus", 1
+        );
+      } else {
+        //same seance
+        editEleveNote(eleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
       //client don't want spinner on markUpdate
       // .finally(() => {
       //   setIsFetching(false);
@@ -479,15 +499,25 @@ const Classe = () => {
         markUpdateTime: new Date(localeTime),
         discipline: discipline,
         nbSeances: currentSeance,
+        isNewSeance: isNewSeance,
       };
-      editEleveNote(eleveData)
-        .then((response) => {
-          console.log("response");
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      if (isNewSeance) {
+        updateSeanceAndStudentsData(
+          eleveData,
+          eleve,
+          "avertissement", 1
+        );
+      } else {
+        //same seance
+        editEleveNote(eleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
       //client don't want spinner on markUpdate
       // .finally(() => {
       //   setIsFetching(false);
@@ -553,15 +583,25 @@ const Classe = () => {
       markUpdateTime: new Date(localeTime),
       discipline: discipline,
       nbSeances: currentSeance,
+      isNewSeance: isNewSeance,
     };
-    editEleveNote(eleveData)
-      .then((response) => {
-        console.log("response");
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    if (isNewSeance) {
+      updateSeanceAndStudentsData(
+        eleveData,
+        eleve,
+        "participation", 0
+      );
+    } else {
+      //same seance
+      editEleveNote(eleveData)
+        .then((response) => {
+          console.log("response");
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
     //client don't want spinner on markUpdate
     // .finally(() => {
     //   setIsFetching(false);
@@ -599,15 +639,22 @@ const Classe = () => {
       newBonus: bonusToUpdate,
       markUpdateTime: new Date(localeTime),
       discipline: discipline,
+      isNewSeance: isNewSeance,
     };
-    editEleveNote(eleveData)
-      .then((response) => {
-        console.log("response");
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+
+    if (isNewSeance) {
+      updateSeanceAndStudentsData(eleveData, eleve, "bonus", 0);
+    } else {
+      //same seance
+      editEleveNote(eleveData)
+        .then((response) => {
+          console.log("response");
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
     //client don't want spinner on markUpdate
     // .finally(() => {
     //   setIsFetching(false);
@@ -648,14 +695,19 @@ const Classe = () => {
       nbSeances: currentSeance,
     };
 
-    editEleveNote(eleveData)
-      .then((response) => {
-        console.log("response");
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    if (isNewSeance) {
+      updateSeanceAndStudentsData(eleveData, eleve, "avertissement", 0);
+    } else {
+      //same seance
+      editEleveNote(eleveData)
+        .then((response) => {
+          console.log("response");
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
     //client don't want spinner on markUpdate
     // .finally(() => {
     //   setIsFetching(false);
@@ -769,6 +821,8 @@ const Classe = () => {
         discipline: user.discipline.name,
         currentDate: new Date(localeTime),
       };
+      console.log('dataaaa')
+      console.log(data)
       getElevesInClasse(data)
         .then((response) => {
           const students = response.data.data.students;
@@ -786,53 +840,59 @@ const Classe = () => {
           setEleves(students);
           setExportList(students);
           setCurrentSeance(response.data.data.nbSeances);
-          if (response.data.data.isNewSeance) {
-            //user is fetching class from another day so we have to increase the seance
-            let increaseSeanceData = {
-              classe: response.data.data.classe.name,
-              college: response.data.data.classe.ecole.name,
-              nbSeances: response.data.data.nbSeances,
-              discipline: user.discipline.name,
-            };
-            increaseClassSeanceIndex(increaseSeanceData)
-              .then((responseIncrease) => {
-                console.log("responseIncrease");
-                console.log(responseIncrease);
-                let data = {
-                  classId,
-                  college: { name: response.data.data.classe.ecole.name },
-                  discipline: user.discipline.name,
-                  currentDate: new Date(localeTime),
-                };
-                getElevesInClasse(data)
-                  .then((response) => {
-                    const students = response.data.data.students;
-                    console.log("les eleves");
-                    console.log(response.data.data.students);
-                    setClasse(response.data.data.classe.name);
-                    setEleves(response.data.data.students);
-                    setElevesOrdreAlphabetique(
-                      response.data.data.studentsAlphabeticalOrder
-                    );
+          setIsNewSeance(response.data.data.isNewSeance);
+          // setIsNewSeance(true); //FOR TESTING PURPOSES
 
-                    setCollege(response.data.data.classe.ecole.name);
-                    setCounter(students.length);
-                    setEleves(students);
-                    setExportList(students);
-                    setCurrentSeance(response.data.data.nbSeances);
-                  })
-                  .catch((error) => {
-                    console.log("error while fetching students");
-                    console.log(error);
-                  })
-                  .finally(() => {
-                    setIsFetching(false);
-                  });
-              })
-              .catch((errorIncrease) => {
-                console.log(errorIncrease);
-              });
-          }
+          //COMMENTED CODE : client didn't want to update student on every new day 
+          // but only if modifications were made on that new day
+
+          // if (response.data.data.isNewSeance) { 
+          //   //user is fetching class from another day so we have to increase the seance
+          //   let increaseSeanceData = {
+          //     classe: response.data.data.classe.name,
+          //     college: response.data.data.classe.ecole.name,
+          //     nbSeances: response.data.data.nbSeances,
+          //     discipline: user.discipline.name,
+          //   };
+          //   increaseClassSeanceIndex(increaseSeanceData)
+          //     .then((responseIncrease) => {
+          //       console.log("responseIncrease");
+          //       console.log(responseIncrease);
+          //       let data = {
+          //         classId,
+          //         college: { name: response.data.data.classe.ecole.name },
+          //         discipline: user.discipline.name,
+          //         currentDate: new Date(localeTime),
+          //       };
+          //       getElevesInClasse(data)
+          //         .then((response) => {
+          //           const students = response.data.data.students;
+          //           console.log("les eleves");
+          //           console.log(response.data.data.students);
+          //           setClasse(response.data.data.classe.name);
+          //           setEleves(response.data.data.students);
+          //           setElevesOrdreAlphabetique(
+          //             response.data.data.studentsAlphabeticalOrder
+          //           );
+
+          //           setCollege(response.data.data.classe.ecole.name);
+          //           setCounter(students.length);
+          //           setEleves(students);
+          //           setExportList(students);
+          //           setCurrentSeance(response.data.data.nbSeances);
+          //         })
+          //         .catch((error) => {
+          //           console.log("error while fetching students");
+          //           console.log(error);
+          //         })
+          //         .finally(() => {
+          //           setIsFetching(false);
+          //         });
+          //     })
+          //     .catch((errorIncrease) => {
+          //       console.log(errorIncrease);
+          //     });
+          // }
         })
         .catch((error) => {
           console.log("error while fetching students");
@@ -868,7 +928,6 @@ const Classe = () => {
             discipline: user.discipline.name,
             currentDate: new Date(localeTime),
           };
-          // window.location.reload();
           getElevesInClasse(data)
             .then((response) => {
               console.log("after increase....");
@@ -893,6 +952,7 @@ const Classe = () => {
             })
             .finally(() => {
               setIsFetching(false);
+              setShowModalNewSeance(true);
             });
         })
         .catch((errorIncrease) => {
@@ -1079,6 +1139,24 @@ const Classe = () => {
               }}
             >
               Confirmer
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+
+        <Modal show={showModalNewSeance} onHide={() => {setShowModalNewSeance(false)}}>
+          <Modal.Header closeButton>
+            <Modal.Title>Nouvelle séance</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Vous venez de démarrer une nouvelle séance.</Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowModalNewSeance(false);
+              }}
+            >
+              OK
             </Button>
           </Modal.Footer>
         </Modal>
