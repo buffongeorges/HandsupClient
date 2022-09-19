@@ -49,22 +49,13 @@ const Classe = () => {
   const [modalParticipationStudent, setModalParticipationStudent] =
     useState(null);
 
-  const handleModalParticipation = useCallback((newValue) => {
-    setSelectedStudent(newValue);
-    setModalParticipationStudent(newValue);
-  });
-
-  const handleParticipationModalVisibilty = useCallback((newValue) => {
-    setParticipationModal(newValue);
-  });
-
   // const {action, handlers} = useLongPress({handleModal: handleParticipationModalVisibilty}, {handleModalParticipation: handleModalParticipation});
   let { classId } = useParams();
   let navigate = useNavigate();
+  let val; //DON'T REMOVE THIS VARIABLE
   const location = useLocation();
   const [classe, setClasse] = useState(null);
   const [key, setKey] = useState("participation");
-  let val = "participation";
   const [exportList, setExportList] = useState([]);
 
   const [switchStudent, setSwitchStudent] = useState(null);
@@ -96,14 +87,6 @@ const Classe = () => {
 
   const studentInTableClick = (student) => {
     setSelectedStudent(student);
-  };
-
-  const downloadClassFile = () => {
-    // alert("Vous pourrez bientot télécharger le fichier!");
-    //  let liste = eleves.filter(el => el.empty != true)
-    //   console.log(liste)
-    //   console.log(counter == eleves.length + 2)
-    //   setExportList(liste);
   };
 
   const addNewStudent = () => {
@@ -821,8 +804,6 @@ const Classe = () => {
         discipline: user.discipline.name,
         currentDate: new Date(localeTime),
       };
-      console.log('dataaaa')
-      console.log(data)
       getElevesInClasse(data)
         .then((response) => {
           const students = response.data.data.students;
@@ -1923,7 +1904,7 @@ const Classe = () => {
                             active={eleve._id === selectedStudent?._id}
                             onClick={() => studentInTableClick(eleve)}
                           >
-                            {eleve.lastname}
+                            {eleve.firstname}
                             <i
                               className="fa-solid fa-pen-to-square"
                               style={{ marginLeft: "2rem" }}
