@@ -709,14 +709,6 @@ const Classe = () => {
     console.log(key);
   };
 
-  const datesAreInSameDay = (date1, date2) => {
-    return (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
-    );
-  };
-
   const columns = [
     {
       id: "lastname",
@@ -1841,11 +1833,11 @@ const Classe = () => {
                       ).nbSeances
                     : null} */}
                 </div>
-                <div>
+                {/* <div>
                   <Button onClick={() => simulateEndOfSeance()}>
                     Simuler fin séance
                   </Button>
-                </div>
+                </div> */}
               </div>
               {showEmptyStudentsSwitch && (
                 <div
