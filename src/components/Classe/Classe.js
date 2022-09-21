@@ -281,11 +281,7 @@ const Classe = () => {
     setIsSwitching(false);
   };
 
-  const updateSeanceAndStudentsData = (
-    eleveData,
-    markType,
-    markValue
-  ) => {
+  const updateSeanceAndStudentsData = (eleveData, markType, markValue) => {
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });
@@ -315,11 +311,9 @@ const Classe = () => {
 
           if (markType == "participation") {
             updatedEleveData["newParticipation"] = markValue;
-          }
-          else if (markType == "avertissement") {
+          } else if (markType == "avertissement") {
             updatedEleveData["newAvertissement"] = markValue;
-          }
-          else if (markType == "bonus") {
+          } else if (markType == "bonus") {
             updatedEleveData["newBonus"] = markValue;
           }
 
@@ -352,7 +346,6 @@ const Classe = () => {
                 })
                 .finally(() => {
                   setIsFetching(false);
-                  setShowModalNewSeance(true);
                 });
             })
             .catch((error) => {
@@ -399,11 +392,7 @@ const Classe = () => {
       };
 
       if (isNewSeance) {
-        updateSeanceAndStudentsData(
-          eleveData,
-          eleve,
-          "participation", 1
-        );
+        updateSeanceAndStudentsData(eleveData, eleve, "participation", 1);
       } else {
         //same seance
         editEleveNote(eleveData)
@@ -443,11 +432,7 @@ const Classe = () => {
       };
 
       if (isNewSeance) {
-        updateSeanceAndStudentsData(
-          eleveData,
-          eleve,
-          "bonus", 1
-        );
+        updateSeanceAndStudentsData(eleveData, eleve, "bonus", 1);
       } else {
         //same seance
         editEleveNote(eleveData)
@@ -485,11 +470,7 @@ const Classe = () => {
         isNewSeance: isNewSeance,
       };
       if (isNewSeance) {
-        updateSeanceAndStudentsData(
-          eleveData,
-          eleve,
-          "avertissement", 1
-        );
+        updateSeanceAndStudentsData(eleveData, eleve, "avertissement", 1);
       } else {
         //same seance
         editEleveNote(eleveData)
@@ -553,42 +534,41 @@ const Classe = () => {
         }
       });
       // eleve.participation = eleve.participation - 1;
-    }
-    console.log("eleve.participation");
-    console.log(eleve.participation);
-    console.log(eleve);
-    setCounter(counter + 1);
-    setSelectedStudent(eleve);
 
-    const eleveData = {
-      eleveId: eleve._id,
-      newParticipation: participationToUpdate,
-      markUpdateTime: new Date(localeTime),
-      discipline: discipline,
-      nbSeances: currentSeance,
-      isNewSeance: isNewSeance,
-    };
-    if (isNewSeance) {
-      updateSeanceAndStudentsData(
-        eleveData,
-        eleve,
-        "participation", 0
-      );
+      console.log("eleve.participation");
+      console.log(eleve.participation);
+      console.log(eleve);
+      setCounter(counter + 1);
+      setSelectedStudent(eleve);
+
+      const eleveData = {
+        eleveId: eleve._id,
+        newParticipation: participationToUpdate,
+        markUpdateTime: new Date(localeTime),
+        discipline: discipline,
+        nbSeances: currentSeance,
+        isNewSeance: isNewSeance,
+      };
+      if (isNewSeance) {
+        updateSeanceAndStudentsData(eleveData, eleve, "participation", 0);
+      } else {
+        //same seance
+        editEleveNote(eleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      //client don't want spinner on markUpdate
+      // .finally(() => {
+      //   setIsFetching(false);
+      // });
     } else {
-      //same seance
-      editEleveNote(eleveData)
-        .then((response) => {
-          console.log("response");
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      console.log("no API request is made. Mark is already at 0");
     }
-    //client don't want spinner on markUpdate
-    // .finally(() => {
-    //   setIsFetching(false);
-    // });
   };
   const decrementBonus = (eleve) => {
     const localeTime = new Date().toLocaleString("en-US", {
@@ -613,35 +593,37 @@ const Classe = () => {
         }
       });
       // eleve.participation = eleve.participation - 1;
-    }
-    setCounter(counter + 1);
-    setSelectedStudent(eleve);
+      setCounter(counter + 1);
+      setSelectedStudent(eleve);
 
-    const eleveData = {
-      eleveId: eleve._id,
-      newBonus: bonusToUpdate,
-      markUpdateTime: new Date(localeTime),
-      discipline: discipline,
-      isNewSeance: isNewSeance,
-    };
+      const eleveData = {
+        eleveId: eleve._id,
+        newBonus: bonusToUpdate,
+        markUpdateTime: new Date(localeTime),
+        discipline: discipline,
+        isNewSeance: isNewSeance,
+      };
 
-    if (isNewSeance) {
-      updateSeanceAndStudentsData(eleveData, eleve, "bonus", 0);
+      if (isNewSeance) {
+        updateSeanceAndStudentsData(eleveData, eleve, "bonus", 0);
+      } else {
+        //same seance
+        editEleveNote(eleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      //client don't want spinner on markUpdate
+      // .finally(() => {
+      //   setIsFetching(false);
+      // });
     } else {
-      //same seance
-      editEleveNote(eleveData)
-        .then((response) => {
-          console.log("response");
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      console.log("no API request is made. Mark is already at 0");
     }
-    //client don't want spinner on markUpdate
-    // .finally(() => {
-    //   setIsFetching(false);
-    // });
   };
   const decrementAvertissement = (eleve) => {
     const localeTime = new Date().toLocaleString("en-US", {
@@ -666,35 +648,37 @@ const Classe = () => {
         }
       });
       // eleve.avertissement = eleve.avertissement - 1;
-    }
-    setCounter(counter + 1);
-    setSelectedStudent(eleve);
+      setCounter(counter + 1);
+      setSelectedStudent(eleve);
 
-    const eleveData = {
-      eleveId: eleve._id,
-      newAvertissement: avertissementToUpdate,
-      markUpdateTime: new Date(localeTime),
-      discipline: discipline,
-      nbSeances: currentSeance,
-    };
+      const eleveData = {
+        eleveId: eleve._id,
+        newAvertissement: avertissementToUpdate,
+        markUpdateTime: new Date(localeTime),
+        discipline: discipline,
+        nbSeances: currentSeance,
+      };
 
-    if (isNewSeance) {
-      updateSeanceAndStudentsData(eleveData, eleve, "avertissement", 0);
+      if (isNewSeance) {
+        updateSeanceAndStudentsData(eleveData, eleve, "avertissement", 0);
+      } else {
+        //same seance
+        editEleveNote(eleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      //client don't want spinner on markUpdate
+      // .finally(() => {
+      //   setIsFetching(false);
+      // });
     } else {
-      //same seance
-      editEleveNote(eleveData)
-        .then((response) => {
-          console.log("response");
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      console.log("no API request is made. Mark is already at 0");
     }
-    //client don't want spinner on markUpdate
-    // .finally(() => {
-    //   setIsFetching(false);
-    // });
   };
 
   const handleKey = (key) => {
@@ -814,58 +798,63 @@ const Classe = () => {
           setExportList(students);
           setCurrentSeance(response.data.data.nbSeances);
           setIsNewSeance(response.data.data.isNewSeance);
-          // setIsNewSeance(true); //FOR TESTING PURPOSES
+          if (response.data.data.isNewSeance == true) {
+            setShowModalNewSeance(response.data.data.isNewSeance);
+          }
+          console.log("response.data.data.isNewSeance------");
+          console.log(response.data.data.isNewSeance);
 
-          //COMMENTED CODE : client didn't want to update student on every new day 
-          // but only if modifications were made on that new day
+          if (response.data.data.isNewSeance) {
+            //user is fetching class from another day so we have to increase the seance
+            let increaseSeanceData = {
+              classe: response.data.data.classe.name,
+              college: response.data.data.classe.ecole.name,
+              nbSeances: response.data.data.nbSeances,
+              discipline: user.discipline.name,
+            };
+            increaseClassSeanceIndex(increaseSeanceData)
+              .then((responseIncrease) => {
+                console.log("responseIncrease");
+                console.log(responseIncrease);
+                let data = {
+                  classId,
+                  college: { name: response.data.data.classe.ecole.name },
+                  discipline: user.discipline.name,
+                  currentDate: new Date(localeTime),
+                };
+                getElevesInClasse(data)
+                  .then((response) => {
+                    const students = response.data.data.students;
+                    console.log("les eleves");
+                    console.log(response.data.data.students);
+                    setClasse(response.data.data.classe.name);
+                    setEleves(response.data.data.students);
+                    setElevesOrdreAlphabetique(
+                      response.data.data.studentsAlphabeticalOrder
+                    );
 
-          // if (response.data.data.isNewSeance) { 
-          //   //user is fetching class from another day so we have to increase the seance
-          //   let increaseSeanceData = {
-          //     classe: response.data.data.classe.name,
-          //     college: response.data.data.classe.ecole.name,
-          //     nbSeances: response.data.data.nbSeances,
-          //     discipline: user.discipline.name,
-          //   };
-          //   increaseClassSeanceIndex(increaseSeanceData)
-          //     .then((responseIncrease) => {
-          //       console.log("responseIncrease");
-          //       console.log(responseIncrease);
-          //       let data = {
-          //         classId,
-          //         college: { name: response.data.data.classe.ecole.name },
-          //         discipline: user.discipline.name,
-          //         currentDate: new Date(localeTime),
-          //       };
-          //       getElevesInClasse(data)
-          //         .then((response) => {
-          //           const students = response.data.data.students;
-          //           console.log("les eleves");
-          //           console.log(response.data.data.students);
-          //           setClasse(response.data.data.classe.name);
-          //           setEleves(response.data.data.students);
-          //           setElevesOrdreAlphabetique(
-          //             response.data.data.studentsAlphabeticalOrder
-          //           );
-
-          //           setCollege(response.data.data.classe.ecole.name);
-          //           setCounter(students.length);
-          //           setEleves(students);
-          //           setExportList(students);
-          //           setCurrentSeance(response.data.data.nbSeances);
-          //         })
-          //         .catch((error) => {
-          //           console.log("error while fetching students");
-          //           console.log(error);
-          //         })
-          //         .finally(() => {
-          //           setIsFetching(false);
-          //         });
-          //     })
-          //     .catch((errorIncrease) => {
-          //       console.log(errorIncrease);
-          //     });
-          // }
+                    setCollege(response.data.data.classe.ecole.name);
+                    setCounter(students.length);
+                    setEleves(students);
+                    setExportList(students);
+                    setCurrentSeance(response.data.data.nbSeances);
+                    setIsNewSeance(response.data.data.isNewSeance);
+                    if (response.data.data.isNewSeance == true) {
+                      setShowModalNewSeance(response.data.data.isNewSeance);
+                    }
+                  })
+                  .catch((error) => {
+                    console.log("error while fetching students");
+                    console.log(error);
+                  })
+                  .finally(() => {
+                    setIsFetching(false);
+                  });
+              })
+              .catch((errorIncrease) => {
+                console.log(errorIncrease);
+              });
+          }
         })
         .catch((error) => {
           console.log("error while fetching students");
@@ -1116,8 +1105,12 @@ const Classe = () => {
           </Modal.Footer>
         </Modal>
 
-
-        <Modal show={showModalNewSeance} onHide={() => {setShowModalNewSeance(false)}}>
+        <Modal
+          show={showModalNewSeance}
+          onHide={() => {
+            setShowModalNewSeance(false);
+          }}
+        >
           <Modal.Header closeButton>
             <Modal.Title>Nouvelle séance</Modal.Title>
           </Modal.Header>
