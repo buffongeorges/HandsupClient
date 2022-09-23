@@ -31,15 +31,10 @@ import { connect } from "react-redux";
 import { forgottenPassword } from "./../../auth/actions/userActions.js";
 import { useNavigate, useParams } from "react-router-dom";
 
-//the remote endpoint and local
-const remoteUrl = "https://young-dusk-42243.herokuapp.com";
-const localUrl = "http://localhost:3002";
-const currentUrl = remoteUrl;
-
 //the frontend url 
 const frontendLocalUrl = "http://localhost:3000";
 const frontendRemoteUrl = "https://handsup-client-354369.netlify.app/"
-const frontendUrl = frontendLocalUrl;
+const frontendUrl = frontendRemoteUrl;
 
 const ForgottenPassword = ({ forgottenPassword }) => {
   const history = useNavigate();
