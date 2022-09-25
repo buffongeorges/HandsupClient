@@ -103,6 +103,7 @@ const Settings = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
+    sessionStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
     sessionService.loadUser().then((user) => {
       console.log("user");
@@ -323,7 +324,7 @@ const Settings = () => {
     let newUserFields = {
       ...user,
       ...sessionStorageValues,
-      //What if both the object has same key, it simply merge the last objects value and have only one key value.
+      //Point cours : What if both the object has same key, it simply merge the last objects value and have only one key value.
     };
 
     sessionService.saveUser(newUserFields).then(() => {
@@ -369,7 +370,7 @@ const Settings = () => {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    navigate("/dashboard");
+    navigate("/classes");
   };
 
   const hideModalUploadStudentFile = () => {

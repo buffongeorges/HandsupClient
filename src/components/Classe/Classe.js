@@ -756,6 +756,7 @@ const Classe = () => {
   }, [eleves]);
 
   useEffect(() => {
+    sessionStorage.setItem("fromLogin", JSON.stringify(false));
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });

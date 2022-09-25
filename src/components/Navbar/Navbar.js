@@ -10,9 +10,9 @@ export const Navbar = () => {
   const [clicked, setClicked] = useState(false);
   // const [connected, setConnected] = useState(false);
   const authent = localStorage.getItem("connected");
-  const authenticated = (store.getState().session.authenticated) ? true : false;
-  console.log('connecté?')
-  console.log(store.getState().session.authenticated)
+  const authenticated = store.getState().session.authenticated ? true : false;
+  console.log("connecté?");
+  console.log(store.getState().session.authenticated);
 
   let navigate = useNavigate();
 
@@ -37,11 +37,11 @@ export const Navbar = () => {
       {/* <h1 className="navbar-logo"> */}
       <img
         src={"/images/handsup-removebg-preview.png"}
-        style={{ maxWidth: "100%", maxHeight: "70%" }}
+        style={{ maxWidth: "100%", maxHeight: "60%", marginLeft: '1rem' }}
       />
       <img
-        src={"/images/thumbnail_hand-finger-up.png"}
-        style={{ maxWidth: "100%", maxHeight: "70%" }}
+        src={"/images/icone_handsup.png"}
+        style={{ maxWidth: "100%", maxHeight: "60%", marginLeft: "1rem" }}
       />
 
       {/* </h1> */}
@@ -50,7 +50,10 @@ export const Navbar = () => {
           <i className={clicked ? "fas fa-times" : "fas fa-bars"}></i>
         )}
       </div>
-      <ul className={clicked ? "nav-menu active" : "nav-menu"}>
+      <ul
+        className={clicked ? "nav-menu active" : "nav-menu"}
+        style={{ marginTop: "1rem" }}
+      >
         {authenticated &&
           MenuItems.map((item, index) => {
             return (
@@ -62,13 +65,9 @@ export const Navbar = () => {
             );
           })}
       </ul>
-      <div style={{ marginLeft: "1rem" }}>
+      <div style={{ marginLeft: "1rem", marginRight: '1rem', whiteSpace: "nowrap" }}>
         {!authenticated && (
-          <Button
-            
-            id="login-button"
-            onClick={goToLogin}
-          >
+          <Button id="login-button" onClick={goToLogin}>
             Log In
           </Button>
         )}

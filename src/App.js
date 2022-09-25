@@ -70,7 +70,7 @@ function App({ checked }) {
       <Router>
         {checked && (
           <div className="App">
-            {navbarVisibility && <Navbar></Navbar>}
+            {navbarVisibility && <Navbar/>}
             <Routes>
               {/* <Route
                 path="/"
@@ -82,10 +82,10 @@ function App({ checked }) {
               />
               <Route element={<AuthRoutes />}>
                 {/* all private routes go in here */}
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/home" element={<Dashboard />} />
+                <Route path="/" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
+                <Route path="/home" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
                 <Route path="/dashboard" element={<Dashboard />}></Route>
-                <Route path="/classes" element={<Classes />} />
+                <Route path="/classes" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
                 <Route path="/classes/:classId" element={<Classe />} />
                 <Route
                   path="/eleves/:eleveId"

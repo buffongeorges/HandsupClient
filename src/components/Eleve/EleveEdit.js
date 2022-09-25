@@ -69,6 +69,7 @@ const EleveEdit = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
+    sessionStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
     sessionService.loadUser().then((user) => {
       console.log("mon utilisateur");

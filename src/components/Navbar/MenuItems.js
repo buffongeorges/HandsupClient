@@ -1,10 +1,5 @@
 export const MenuItems = [
     {
-        title: 'Home',
-        url : '/home',
-        cName: 'nav-links',
-    },
-    {
         title: 'Classes',
         url : '/classes',
         cName: 'nav-links',
@@ -12,11 +7,6 @@ export const MenuItems = [
     {
         title: 'Settings',
         url : '/settings',
-        cName: 'nav-links',
-    },
-    {
-        title: 'Contact Us',
-        url : '/contact',
         cName: 'nav-links',
     },
     {

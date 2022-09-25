@@ -47,7 +47,8 @@ export const loginUser = (
             .saveSession(token)
             .then(() => {
               sessionService.saveUser(userData).then(() => {
-                navigate("/dashboard");
+                sessionStorage.setItem("fromLogin", JSON.stringify(true));
+                navigate("/classes");
               });
             })
             .catch((err) => console.log(err));
@@ -209,16 +210,12 @@ export const importStudentsFromFile = (formData) => {
   console.log("formData");
   console.log(formData);
   return axios
-    .post(
-      `${backendUrl}/professeur/importStudents`,
-      formData,
-      {
-        // headers: {
-        //   "Content-Type": "application/json",
-        // },
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    )
+    .post(`${backendUrl}/professeur/importStudents`, formData, {
+      // headers: {
+      //   "Content-Type": "application/json",
+      // },
+      headers: { "Content-Type": "multipart/form-data" },
+    })
     .then((response) => {
       console.log("response");
       console.log(response);
@@ -246,7 +243,7 @@ export const deleteEleve = (data) => {
   console.log("student data to be deleted");
   console.log(data);
   return axios
-    .post(`${backendUrl}/eleve/deleteStudent`, data,  {
+    .post(`${backendUrl}/eleve/deleteStudent`, data, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -350,7 +347,7 @@ export const getElevesInClasse = (data) => {
   console.log("data");
   console.log(data);
   return axios
-    .post(`${backendUrl}/classe/getClassStudents`, data,  {
+    .post(`${backendUrl}/classe/getClassStudents`, data, {
       headers: {
         "Content-Type": "application/json",
       },

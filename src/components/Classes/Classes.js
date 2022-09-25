@@ -39,13 +39,16 @@ let classesTest = [
   "3EME 6",
 ];
 
-const Classes = () => {
+const Classes = ({ handleNavbar }) => {
   let navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
   let professeur = store.getState().session.user;
   const [classes, setClasses] = useState([]);
-  const [isFetching, setIsFetching] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const fromLogin = sessionStorage.fromLogin;
+  console.log("fromLogin", fromLogin)
+  console.log(fromLogin == 'true')
 
   const goToClass = (selectedClass) => {
     console.log("selectedClass");
@@ -83,18 +86,22 @@ const Classes = () => {
   };
 
   useEffect(() => {
+    console.log("to be defined/////");
+    console.log(store.getState().session.user);
+    
     sessionService.loadUser().then((user) => {
+      if (typeof handleNavbar === "function" && fromLogin == 'true') {
+        handleNavbar(false);
+      }
       let teacherClasses = user.classes;
       setUser(user);
       if (teacherClasses) {
         console.log("teacherClasses");
         console.log(teacherClasses);
         setClasses(teacherClasses);
-        setIsFetching(false);
     }
 
       //if not call api for teacher classes:
-
       getProfesseurClasses(user._id)
         .then((response) => {
           console.log(response.data)
@@ -106,25 +113,41 @@ const Classes = () => {
           console.log(error);
         })
         .finally(() => {
-          setIsFetching(false);
+          if (fromLogin == 'true') {
+            setTimeout(() => {
+              setIsLoading(false);
+              if (typeof handleNavbar === "function") {
+                handleNavbar(true);
+              }
+            }, 2500);
+          }
         });
     });
   }, []);
 
-  if (isFetching) {
+  if (isLoading && fromLogin == 'true') {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-around",
-        }}
-      >
-        <TailSpin width="20rem" height="20rem" color={colors.theme} />
-      </div>
+      <>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+          }}
+        >
+          <img
+            src={"/images/handsup.png"}
+            style={{ maxWidth: "100%", maxHeight: "20%" }}
+          />
+          <img
+            src={"/images/thumbnail_hand-finger-up.png"}
+            style={{ maxWidth: "100%", maxHeight: "20%" }}
+          />
+        </div>
+      </>
     );
-  } else if (!isFetching) {
+  } else if (!isLoading || fromLogin == 'false') {
     return (
       <>
         {classes && classes?.length > 0 && (

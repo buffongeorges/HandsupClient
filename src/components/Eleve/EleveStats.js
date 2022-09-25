@@ -42,6 +42,7 @@ const EleveStats = () => {
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
+    sessionStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
     sessionService.loadUser().then((user) => {
       console.log("mon utilisateur");
