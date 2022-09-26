@@ -82,10 +82,10 @@ function App({ checked }) {
               />
               <Route element={<AuthRoutes />}>
                 {/* all private routes go in here */}
+                {/* <Route path="/" element={<Classes handleNavbar={handleNavbarVisibilty}/>} /> */}
                 <Route path="/" element={<Navigate to="/classes"/>} />
 
-
-                <Route path="/home" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
+                <Route path="/home" element={<Navigate to="/classes"/>} />
                 <Route path="/dashboard" element={<Dashboard />}></Route>
                 <Route path="/classes" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
                 <Route path="/classes/:classId" element={<Classe />} />

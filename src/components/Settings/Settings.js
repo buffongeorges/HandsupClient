@@ -39,6 +39,7 @@ const Settings = () => {
   const { currentUser, setCurrentUser } = useAuth();
   const [selected, setSelected] = useState([]);
   const [multiselectOptions, setMultiselectOptions] = useState([]);
+  const [endOfTrimestre, setEndOfTrimestre] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
   const [isFetching, setIsFetching] = useState(null);
@@ -115,6 +116,8 @@ const Settings = () => {
         .then((response) => {
           console.log("les infos prof");
           console.log(response.data);
+          console.log("les ecoles")
+          console.log(response.data.data.ecoles)
           const professeur = response.data.data;
           setFirstname(professeur.firstname);
           setLastname(professeur.lastname);
@@ -131,9 +134,20 @@ const Settings = () => {
           setDisciplines(response.data.data.disciplines);
           setSelectedSchool(professeur?.college[0]);
 
+          const endQuarter = professeur?.ecoles?.find(ecole => ecole._id == professeur?.college[0]._id);
+          console.log("endQuarter dans useEffect")
+          console.log(endQuarter)
+          // console.log(endQuarter.endOfTrimestre);
+          const endQuarterDateFormat = new Date(endQuarter.endOfTrimestre).toLocaleDateString(
+            "en-CA"
+          );
+          console.log("endQuarterDateFormat", endQuarterDateFormat);
+          setEndOfTrimestre(endQuarterDateFormat);
+
           setForm({
             firstname: professeur.firstname,
             lastname: professeur.lastname,
+            endOfTrimestre: endQuarterDateFormat,
           });
           if (professeur.college.length > 0) {
             const initialSchoolId = professeur.college[0]._id;
@@ -181,14 +195,14 @@ const Settings = () => {
         };
         newOptions.push(option);
       });
-      console.log("new options avant reorder");
-      console.log(newOptions);
+      // console.log("new options avant reorder");
+      // console.log(newOptions);
 
       newOptions.sort((classeA, classeB) => {
         return classeB.label.localeCompare(classeA.label); //sort classes alphabetically
       });
-      console.log("new options apres reorder");
-      console.log(newOptions);
+      // console.log("new options apres reorder");
+      // console.log(newOptions);
 
       setMultiselectOptions(newOptions);
       // setClasses([]);
@@ -196,6 +210,15 @@ const Settings = () => {
       console.log("pas de classes!");
       setMultiselectOptions([]);
       setClasses([]);
+    }
+    if (selectedSchool && selectedSchool.endOfTrimestre) {
+      console.log(selectedSchool);
+      const endQuarter = selectedSchool.endOfTrimestre;
+      const endQuarterDateFormat = new Date(endQuarter).toLocaleDateString(
+        "en-CA"
+      );
+      console.log("endQuarterDateFormat", endQuarterDateFormat);
+      setEndOfTrimestre(endQuarterDateFormat);
     }
   }, [selectedSchool]);
 
@@ -220,12 +243,43 @@ const Settings = () => {
     }
   };
 
+  function isValidDate(d) {
+    console.log(d);
+    return d instanceof Date && !isNaN(d);
+  }
+
+  function dateIsOlder(date) {
+    const now = new Date();
+    console.log("plus grand que maintenant?");
+    console.log("date")
+    console.log(date)
+    console.log("now")
+    console.log(now)
+    console.log(date > now);
+    return date > now;
+    // return true; //FOR TESTING PURPOSES
+  }
+
   const findFormErrors = () => {
-    const { firstname, lastname, studentsFile, pictureFile } = form;
+    const { firstname, lastname, endOfTrimestre, studentsFile, pictureFile } =
+      form;
 
     var regName = /^[a-z ,.'-]+$/i;
 
     const newErrors = {};
+    console.log("a t on une date deja?")
+    console.log(endOfTrimestre);
+
+    //end of quarter empty
+    if (!isValidDate(new Date(endOfTrimestre))) {
+      newErrors.endOfTrimestre =
+        "Veuillez choisir une date de fin de trimestre";
+    }
+    if (!dateIsOlder(new Date(endOfTrimestre))) {
+      newErrors.endOfTrimestre =
+        "Veuillez choisir une date de fin de trimestre supérieure à aujourd'hui";
+    }
+
     // name errors
     if (!lastname || lastname === "")
       newErrors.lastname = "Veuillez saisir un nom";
@@ -242,7 +296,18 @@ const Settings = () => {
     // food errors
     if (!college || college === "") newErrors.food = "select a college!";
 
+    console.log("newErrors");
+    console.log(newErrors);
+
     return newErrors;
+  };
+
+  const handleDateChange = (date) => {
+    console.log("nouvelle date de fin de trimestre: ", date);
+    const newClassEndOfTrimestre = date;
+    setEndOfTrimestre(
+      new Date(newClassEndOfTrimestre).toLocaleDateString("en-CA")
+    );
   };
 
   const handleSubmit = (e) => {
@@ -288,11 +353,13 @@ const Settings = () => {
     console.log("les classes sont");
     console.log(classes);
 
+    let updatedCollegeDetails = {...college, endOfTrimestre: endOfTrimestre};
+
     let credentials = {
       professeurId: userId,
       newFirstname: firstname,
       newLastname: lastname,
-      newCollege: college,
+      newCollege: updatedCollegeDetails,
       newPhoto: photo,
       newNoteDepart: noteDepart,
       newParticipation: participation,
@@ -300,12 +367,13 @@ const Settings = () => {
       newBonus: bonus,
       newClasses: classes,
       newDiscipline: checkedDiscipline,
+      newEndOfTrimestre: endOfTrimestre,
     };
 
     let sessionStorageValues = {
       firstname: firstname,
       lastname: lastname,
-      college: college,
+      college: updatedCollegeDetails,
       classes: classes,
       photo: photo,
       noteDepart: noteDepart,
@@ -314,6 +382,7 @@ const Settings = () => {
       bonus: bonus,
       admin: isAdmin,
       discipline: checkedDiscipline,
+      endOfTrimestre: endOfTrimestre,
     };
 
     let newUserFields = {
@@ -524,128 +593,300 @@ const Settings = () => {
   } else if (!isFetching) {
     return (
       <div style={{ margin: "2rem" }}>
-        <h2> Utilisateur</h2>
         <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3" controlId="formFirstname">
-            <Form.Label>Nom</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Entrer votre nom"
-              value={lastname}
-              onChange={(e) => {
-                setLastname(e.target.value);
-                setField("lastname", e.target.value);
-              }}
-              isInvalid={!!errors.lastname}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.lastname}
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formLastname">
-            <Form.Label>Prénom</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Entrer votre prénom"
-              value={firstname}
-              onChange={(e) => {
-                setFirstname(e.target.value);
-                setField("firstname", e.target.value);
-              }}
-              isInvalid={!!errors.firstname}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.firstname}
-            </Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="formCollege">
-            <Form.Label>Collège</Form.Label>
-            <DropdownButton
-              id="dropdown-schools"
-              title={college ? college.name : "Choisir un collège"}
-              style={{ marginBottom: "1rem" }}
-            >
-              {ecoles.map((ecole, index) => (
-                <Dropdown.Item
-                  key={`${index}`}
-                  onClick={(e) => {
-                    setCollege(ecole);
-                    console.log("l'école choisie", ecole)
-                    setSelectedSchool(ecole);
+          <Row>
+            <Col xs="5" md="5" lg="5">
+              <h2> Utilisateur</h2>
+              <Form.Group className="mb-3" controlId="formFirstname">
+                <Form.Label>Nom</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Entrer votre nom"
+                  value={lastname}
+                  onChange={(e) => {
+                    setLastname(e.target.value);
+                    setField("lastname", e.target.value);
                   }}
+                  isInvalid={!!errors.lastname}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.lastname}
+                </Form.Control.Feedback>
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="formLastname">
+                <Form.Label>Prénom</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Entrer votre prénom"
+                  value={firstname}
+                  onChange={(e) => {
+                    setFirstname(e.target.value);
+                    setField("firstname", e.target.value);
+                  }}
+                  isInvalid={!!errors.firstname}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.firstname}
+                </Form.Control.Feedback>
+              </Form.Group>
+              <Form.Group className="mb-3" controlId="formCollege">
+                <Form.Label>Collège</Form.Label>
+                <DropdownButton
+                  id="dropdown-schools"
+                  title={college ? college.name : "Choisir un collège"}
+                  style={{ marginBottom: "1rem" }}
                 >
-                  {ecole.name}
-                </Dropdown.Item>
-              ))}
-            </DropdownButton>
-          </Form.Group>
-
-          <Form.Group
-            className="mb-3"
-            controlId="formCollege"
-            style={{ marginBottom: "2rem" }}
-          >
-            <Form.Label>Classes</Form.Label>
-            <MultiSelect
-              options={multiselectOptions}
-              {...(classes && { value: classes })}
-              //setSelectedSchool.classes
-              onChange={(selectedItems) => {
-                selectedItems.sort((classeA, classeB) => {
-                  const numA =
-                    classeA.value[0] + classeA.value[classeA.value.length - 1];
-                  const numB =
-                    classeB.value[0] + classeB.value[classeB.value.length - 1];
-                  return numB - numA;
-                });
-                setClasses(selectedItems);
-              }}
-              labelledBy="Select"
-            />
-          </Form.Group>
-
-          {/* choisir discipline */}
-          <Form.Group className="mb-3" controlId="formDiscipline">
-            <Form.Label style={{ fontSize: "1.3rem" }}>
-              Discipline enseignée
-            </Form.Label>
-            {Array.isArray(disciplines)
-              ? disciplines.map((discipline) => (
-                  <div key={`default-${discipline.name}`} className="mb-3">
-                    <Form.Check
-                      type="checkbox"
-                      id={`default-${discipline.name}`}
-                      label={`${discipline.name}`}
-                      checked={
-                        checkedDiscipline &&
-                        checkedDiscipline._id == discipline._id
-                      }
-                      onClick={() => {
-                        setShowDisciplineAlert(false);
-                        setCheckedDiscipline(discipline);
+                  {ecoles.map((ecole, index) => (
+                    <Dropdown.Item
+                      key={`${index}`}
+                      onClick={(e) => {
+                        setCollege(ecole);
+                        console.log("l'école choisie", ecole);
+                        setSelectedSchool(ecole);
                       }}
-                    />
-                  </div>
-                ))
-              : null}
-            <Alert
-              variant="danger"
-              onClose={() => setShowDisciplineAlert(false)}
-              dismissible
-              show={showDisciplineAlert}
-            >
-              <Alert.Heading style={{ fontSize: "1.3rem" }}>
-                Aucune matière choisie
-              </Alert.Heading>
-              <p style={{ marginBottom: "0rem" }}>
-                Veuillez choisir une discipline
-              </p>
-            </Alert>
-          </Form.Group>
+                    >
+                      {ecole.name}
+                    </Dropdown.Item>
+                  ))}
+                </DropdownButton>
+              </Form.Group>
+              <Form.Group
+                className="mb-3"
+                controlId="formCollege"
+                style={{ marginBottom: "2rem" }}
+              >
+                <Form.Label>Classes</Form.Label>
+                <MultiSelect
+                  options={multiselectOptions}
+                  {...(classes && { value: classes })}
+                  //setSelectedSchool.classes
+                  onChange={(selectedItems) => {
+                    selectedItems.sort((classeA, classeB) => {
+                      const numA =
+                        classeA.value[0] +
+                        classeA.value[classeA.value.length - 1];
+                      const numB =
+                        classeB.value[0] +
+                        classeB.value[classeB.value.length - 1];
+                      return numB - numA;
+                    });
+                    setClasses(selectedItems);
+                  }}
+                  labelledBy="Select"
+                />
+              </Form.Group>
+              {/* choisir discipline */}
+              <Form.Group className="mb-3" controlId="formDiscipline">
+                <Form.Label style={{ fontSize: "1.3rem" }}>
+                  Discipline enseignée
+                </Form.Label>
+                {Array.isArray(disciplines)
+                  ? disciplines.map((discipline) => (
+                      <div key={`default-${discipline.name}`} className="mb-3">
+                        <Form.Check
+                          type="checkbox"
+                          id={`default-${discipline.name}`}
+                          label={`${discipline.name}`}
+                          checked={
+                            checkedDiscipline &&
+                            checkedDiscipline._id == discipline._id
+                          }
+                          onClick={() => {
+                            setShowDisciplineAlert(false);
+                            setCheckedDiscipline(discipline);
+                          }}
+                        />
+                      </div>
+                    ))
+                  : null}
+                <Alert
+                  variant="danger"
+                  onClose={() => setShowDisciplineAlert(false)}
+                  dismissible
+                  show={showDisciplineAlert}
+                >
+                  <Alert.Heading style={{ fontSize: "1.3rem" }}>
+                    Aucune matière choisie
+                  </Alert.Heading>
+                  <p style={{ marginBottom: "0rem" }}>
+                    Veuillez choisir une discipline
+                  </p>
+                </Alert>
+              </Form.Group>
+            </Col>
+            <Col style={{ marginLeft: "4rem" }}>
+              <h2> Notation</h2>
+              <div style={{ marginTop: "2rem" }}>
+                <strong>
+                  <p
+                    style={{
+                      display: "inline-block",
+                      marginRight: "2rem",
+                      width: "10rem",
+                    }}
+                  >
+                    Note de départ
+                  </p>
+                </strong>
+                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+                  <Counter
+                    min={9}
+                    max={20}
+                    value={noteDepart}
+                    delta={0.25}
+                    handleCounterValue={handleNoteDepart}
+                  ></Counter>
+                </div>
+              </div>
+              <div>
+                <strong>
+                  <p
+                    style={{
+                      display: "inline-block",
+                      marginRight: "2rem",
+                      width: "10rem",
+                    }}
+                  >
+                    Participation
+                  </p>
+                </strong>
+                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+                  <Counter
+                    min={0}
+                    max={20}
+                    value={participation}
+                    delta={0.25}
+                    handleCounterValue={handleParticipation}
+                  ></Counter>
+                </div>
+              </div>
+              <div>
+                <strong>
+                  <p
+                    style={{
+                      display: "inline-block",
+                      marginRight: "2rem",
+                      width: "10rem",
+                    }}
+                  >
+                    Avertissement (-)
+                  </p>
+                </strong>
+                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+                  <Counter
+                    min={-20}
+                    max={0}
+                    value={avertissement}
+                    delta={0.25}
+                    handleCounterValue={handleAvertissement}
+                  ></Counter>
+                </div>
+              </div>
+              <div>
+                <strong>
+                  <p
+                    style={{
+                      display: "inline-block",
+                      marginRight: "2rem",
+                      width: "10rem",
+                    }}
+                  >
+                    Bonus (+)
+                  </p>
+                </strong>
+                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
+                  <Counter
+                    min={0}
+                    max={20}
+                    value={bonus}
+                    delta={0.25}
+                    handleCounterValue={handleBonus}
+                  ></Counter>
+                </div>
+              </div>
 
-          <Form.Group controlId="formFile" className="mb-3">
+              <Form.Group
+                className="mb-3"
+                controlId="formendOfTrimestre"
+                style={{ marginTop: "2rem" }}
+              >
+                <Form.Label style={{ fontSize: "1.5rem" }}>
+                  Fin du trimestre
+                </Form.Label>
+                <Form.Control
+                  type="date"
+                  value={endOfTrimestre}
+                  onChange={(e) => {
+                    handleDateChange(e.target.value);
+                    setField("endOfTrimestre", e.target.value);
+                  }}
+                  isInvalid={!!errors.endOfTrimestre}
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.endOfTrimestre}
+                </Form.Control.Feedback>
+              </Form.Group>
+
+              {isAdmin && (
+                <div style={{ marginTop: "2rem", marginBottom: "3rem" }}>
+                  <Form.Group controlId="formFile" className="mb-3">
+                    <Form.Label style={{ fontSize: "1.5rem" }}>
+                      Nouvelle base de données Elève
+                    </Form.Label>
+                    <Form.Control
+                      type="file"
+                      accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                      onChange={(e) => {
+                        console.log("nouveau csv");
+                        handleUploadStudentFile(e.target.files[0]);
+                      }}
+                      isInvalid={
+                        studentsFile
+                          ? !isValidFileUploadForStudentDB(studentsFile)
+                          : false
+                      }
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {"Le format du fichier choisi est incorrect"}
+                    </Form.Control.Feedback>
+                    <Modal
+                      show={showModalUploadStudentFile}
+                      onHide={hideModalUploadStudentFile}
+                    >
+                      <Modal.Header closeButton>
+                        <Modal.Title>Importer élèves</Modal.Title>
+                      </Modal.Header>
+                      <Modal.Body>
+                        Etes vous sûr de vouloir importer une nouvelle base de
+                        données ? Cela affectera la base déjà existante. <br />
+                        Cette opération va prendre plusieurs minutes.
+                      </Modal.Body>
+                      <Modal.Footer>
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setShowModalUploadStudentFile(false);
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            importNewStudents();
+                          }}
+                        >
+                          Importer
+                        </Button>
+                      </Modal.Footer>
+                    </Modal>
+                  </Form.Group>
+                </div>
+              )}
+            </Col>
+
+            {/* client don't want picture for the teacher */}
+            {/* <Form.Group controlId="formFile" className="mb-3">
             <Form.Label>Photo</Form.Label>
             <Form.Control
               type="file"
@@ -681,7 +922,6 @@ const Settings = () => {
                 />
               </div>
             )}
-            {/* <img src={`${backendUrl}/images/af2ed533f2d98d08819dd1b108a723ea`}></img> */}
             {showCamera && (
               <div style={{ marginTop: "2rem" }}>
                 <Webcam
@@ -705,157 +945,9 @@ const Settings = () => {
                 Prendre photo
               </Button>
             )}
-          </Form.Group>
+          </Form.Group> */}
 
-          <h2 style={{ marginTop: "2rem" }}> Notation</h2>
-          <div style={{ marginTop: "2rem" }}>
-            <strong>
-              <p
-                style={{
-                  display: "inline-block",
-                  marginRight: "2rem",
-                  width: "10rem",
-                }}
-              >
-                Note de départ
-              </p>
-            </strong>
-            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-              <Counter
-                min={9}
-                max={20}
-                value={noteDepart}
-                delta={0.25}
-                handleCounterValue={handleNoteDepart}
-              ></Counter>
-            </div>
-          </div>
-
-          <div>
-            <strong>
-              <p
-                style={{
-                  display: "inline-block",
-                  marginRight: "2rem",
-                  width: "10rem",
-                }}
-              >
-                Participation
-              </p>
-            </strong>
-            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-              <Counter
-                min={0}
-                max={20}
-                value={participation}
-                delta={0.25}
-                handleCounterValue={handleParticipation}
-              ></Counter>
-            </div>
-          </div>
-          <div>
-            <strong>
-              <p
-                style={{
-                  display: "inline-block",
-                  marginRight: "2rem",
-                  width: "10rem",
-                }}
-              >
-                Avertissement (-)
-              </p>
-            </strong>
-            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-              <Counter
-                min={-20}
-                max={0}
-                value={avertissement}
-                delta={0.25}
-                handleCounterValue={handleAvertissement}
-              ></Counter>
-            </div>
-          </div>
-          <div>
-            <strong>
-              <p
-                style={{
-                  display: "inline-block",
-                  marginRight: "2rem",
-                  width: "10rem",
-                }}
-              >
-                Bonus (+)
-              </p>
-            </strong>
-            <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-              <Counter
-                min={0}
-                max={20}
-                value={bonus}
-                delta={0.25}
-                handleCounterValue={handleBonus}
-              ></Counter>
-            </div>
-          </div>
-
-          {isAdmin && (
-            <div style={{ marginTop: "2rem", marginBottom: "3rem" }}>
-              <Form.Group controlId="formFile" className="mb-3">
-                <Form.Label style={{ fontSize: "1.5rem" }}>
-                  Nouvelle base de données Elève
-                </Form.Label>
-                <Form.Control
-                  type="file"
-                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                  onChange={(e) => {
-                    console.log("nouveau csv");
-                    handleUploadStudentFile(e.target.files[0]);
-                  }}
-                  isInvalid={
-                    studentsFile
-                      ? !isValidFileUploadForStudentDB(studentsFile)
-                      : false
-                  }
-                />
-                <Form.Control.Feedback type="invalid">
-                  {"Le format du fichier choisi est incorrect"}
-                </Form.Control.Feedback>
-                <Modal
-                  show={showModalUploadStudentFile}
-                  onHide={hideModalUploadStudentFile}
-                >
-                  <Modal.Header closeButton>
-                    <Modal.Title>Importer élèves</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    Etes vous sûr de vouloir importer une nouvelle base de
-                    données ? Cela affectera la base déjà existante. <br />
-                    Cette opération va prendre plusieurs minutes.
-                  </Modal.Body>
-                  <Modal.Footer>
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        setShowModalUploadStudentFile(false);
-                      }}
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={() => {
-                        importNewStudents();
-                      }}
-                    >
-                      Importer
-                    </Button>
-                  </Modal.Footer>
-                </Modal>
-              </Form.Group>
-            </div>
-          )}
-
-          {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
+            {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
         <Form.Group
           controlId="formFile"
           className="mb-3"
@@ -864,13 +956,20 @@ const Settings = () => {
           <Form.Label>Mettre à jour la base</Form.Label>
           <Form.Control type="file" onChange={handleFileChange} />
         </Form.Group> */}
+          </Row>
           {!isSubmitting && (
-            <Button variant="primary" type="submit">
+            <Button
+              variant="primary"
+              type="submit"
+              style={{ margin: "0 auto", display: "block" }}
+            >
               Sauvegarder
             </Button>
           )}
           {isSubmitting && (
-            <ThreeDots color={colors.theme} height={49} width={100} />
+            <div style={{ margin: "0 auto", width: "10%" }}>
+              <ThreeDots color={colors.theme} height={49} width={100} />
+            </div>
           )}
         </Form>
         <Modal
