@@ -2,7 +2,7 @@ import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
 import Classes from "./components/Classes/Classes";
 import Login from "./components/Login/Login";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Uploader from "./components/Uploader/Uploader";
 import Home from "./components/Home/Home";
 import Signup from "./components/Signup/Signup";
@@ -82,8 +82,10 @@ function App({ checked }) {
               />
               <Route element={<AuthRoutes />}>
                 {/* all private routes go in here */}
-                <Route path="/" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
-                <Route path="/home" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
+                {/* <Route path="/" element={<Classes handleNavbar={handleNavbarVisibilty}/>} /> */}
+                <Route path="/" element={<Navigate to="/classes"/>} />
+
+                <Route path="/home" element={<Navigate to="/classes"/>} />
                 <Route path="/dashboard" element={<Dashboard />}></Route>
                 <Route path="/classes" element={<Classes handleNavbar={handleNavbarVisibilty}/>} />
                 <Route path="/classes/:classId" element={<Classe />} />
