@@ -141,13 +141,13 @@ const Settings = () => {
           const endQuarterDateFormat = new Date(endQuarter.endOfTrimestre).toLocaleDateString(
             "en-CA"
           );
-          // console.log("endQuarterDateFormat", endQuarterDateFormat);
+          console.log("endQuarterDateFormat", endQuarterDateFormat);
           setEndOfTrimestre(endQuarterDateFormat);
 
           setForm({
             firstname: professeur.firstname,
             lastname: professeur.lastname,
-            endOfTrimestre: endOfTrimestre,
+            endOfTrimestre: endQuarterDateFormat,
           });
           if (professeur.college.length > 0) {
             const initialSchoolId = professeur.college[0]._id;
@@ -212,12 +212,8 @@ const Settings = () => {
       setClasses([]);
     }
     if (selectedSchool && selectedSchool.endOfTrimestre) {
-      console.log("au début???")
-      console.log("quelle classe est choisie?")
       console.log(selectedSchool);
       const endQuarter = selectedSchool.endOfTrimestre;
-      console.log("endQuarter");
-      console.log(endQuarter);
       const endQuarterDateFormat = new Date(endQuarter).toLocaleDateString(
         "en-CA"
       );
@@ -260,6 +256,10 @@ const Settings = () => {
   function dateIsOlder(date) {
     const now = new Date();
     console.log("plus grand que maintenant?");
+    console.log("date")
+    console.log(date)
+    console.log("now")
+    console.log(now)
     console.log(date > now);
     return date > now;
     // return true; //FOR TESTING PURPOSES
@@ -272,6 +272,8 @@ const Settings = () => {
     var regName = /^[a-z ,.'-]+$/i;
 
     const newErrors = {};
+    console.log("a t on une date deja?")
+    console.log(endOfTrimestre);
 
     //end of quarter empty
     if (!isValidDate(new Date(endOfTrimestre))) {
@@ -356,12 +358,7 @@ const Settings = () => {
     console.log("les classes sont");
     console.log(classes);
 
-    console.log("endOfTrimestre");
-    console.log(endOfTrimestre);
-
     let updatedCollegeDetails = {...college, endOfTrimestre: endOfTrimestre};
-    console.log("updatedCollegeDetails")
-    console.log(updatedCollegeDetails)
 
     let credentials = {
       professeurId: userId,
