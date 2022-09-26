@@ -280,7 +280,7 @@ const EleveEdit = () => {
 
     const newErrors = {};
 
-    //birtdhday empty
+    //birthday empty
     if (!isValidDate(new Date(birthday)))
       newErrors.birthday = "Veuillez choisir une date de naissance";
     // name errors
