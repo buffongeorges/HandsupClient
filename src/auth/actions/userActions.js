@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 const remoteUrl = "https://hands-up-preprod.herokuapp.com";
 const localUrl = "http://localhost:3002";
-const backendUrl = localUrl;
+const backendUrl = remoteUrl;
 
 export const loginUser = (
   credentials,
