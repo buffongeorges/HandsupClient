@@ -138,11 +138,11 @@ const Classes = ({ handleNavbar }) => {
         >
           <img
             src={"/images/handsup.png"}
-            style={{ maxWidth: "100%", maxHeight: "20%" }}
+            style={{ maxWidth: "100%", maxHeight: "13%" }}
           />
           <img
-            src={"/images/thumbnail_hand-finger-up.png"}
-            style={{ maxWidth: "100%", maxHeight: "20%" }}
+            src={"/images/icone_handsup.png"}
+            style={{ maxWidth: "100%", maxHeight: "13%", marginLeft: '1rem' }}
           />
         </div>
       </>

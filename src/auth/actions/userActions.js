@@ -3,7 +3,8 @@ import { sessionService } from "redux-react-session";
 import { useNavigate } from "react-router-dom";
 
 //the remote endpoint and local
-const remoteUrl = "https://young-dusk-42243.herokuapp.com";
+const remoteUrl = "https://young-dusk-42243.herokuapp.com"; //prod
+// const remoteUrl = "https://hands-up-preprod.herokuapp.com"; //preprod
 const localUrl = "http://localhost:3002";
 const backendUrl = remoteUrl;
 

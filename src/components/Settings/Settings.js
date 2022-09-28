@@ -222,11 +222,6 @@ const Settings = () => {
     }
   }, [selectedSchool]);
 
-  const handleClick = () => {
-    alert("Mise à jour réussie !");
-    navigate("/classes");
-  };
-
   const handleFileChange = (e) => {
     // Check if user has entered the file
     if (e.target.files.length) {

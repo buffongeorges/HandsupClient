@@ -147,33 +147,28 @@ const Classe = () => {
     console.log(eleves);
     setIsFetching(true);
     setShowModal(false);
-    let elevesCopy = eleves;
 
     console.log("selectedStudent");
     console.log(selectedStudent);
     console.log("switchStudent");
     console.log(switchStudent);
     // change position of 2 students :
-    const tmp = selectedStudent.position;
-    const tmp2 = switchStudent.position;
+    // const tmp = selectedStudent.position; //je modifie!
+    // const tmp2 = switchStudent.position; //je modifie!
+    const tmp = selectedStudent.positions.find(matiere => matiere.matière == discipline).position;
+    const tmp2 = switchStudent.positions.find(matiere => matiere.matière == discipline).position;
     console.log("tmp1");
     console.log(tmp);
     console.log("tmp2");
     console.log(tmp2);
-    let itemIndex = elevesCopy.findIndex((student) => student.position == tmp);
-    let item = elevesCopy[itemIndex];
-    item.position = tmp2;
 
-    let itemIndex2 = elevesCopy.findIndex(
-      (student) => student.position == tmp2
-    );
-    let item2 = elevesCopy[itemIndex2];
-    item2.position = tmp;
+    // console.log("--------- ON COMPARE --------")
+    // console.log("itemIndex", itemIndex)
+    // console.log("itemIndexTest", itemIndexTest)
+    // console.log("itemIndex2", itemIndex2)
+    // console.log("itemIndex2Test", itemIndex2Test)
+    // console.log("-----------------")
 
-    // //reorder whole list :
-    // elevesCopy.sort(function (a, b) {
-    //   return a.position - b.position;
-    // });
 
     const defaultBirthday = "02/01/2010"; //february 1st
     const localeTime = new Date().toLocaleString("en-US", {
@@ -265,11 +260,6 @@ const Classe = () => {
       .then((response) => {
         console.log("response");
         console.log(response);
-        console.log(item);
-        console.log(item2);
-        console.log(elevesCopy);
-        // setEleves(elevesCopy);
-        // setCounter(counter + 1);
       })
       .catch((error) => {
         console.log(error);
@@ -1819,6 +1809,7 @@ const Classe = () => {
             <div id="students-table-list" style={{}}>
               <div style={{ marginBottom: "1rem" }}>
                 <div>Classe: {classe}</div>
+                <div>Discipline: {discipline}</div>
                 <div>
                   Séance n°: {currentSeance}
                   {/* {Array.isArray(eleves)
