@@ -50,6 +50,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "startDev": "netlify dev",
+    "serve": "netlify serve",
+    "buildProd": "netlify deploy --prod",
+    "buildPreprod": "netlify deploy --alias preprod",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

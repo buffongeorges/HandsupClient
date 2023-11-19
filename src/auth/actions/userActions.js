@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 //the remote endpoint and local
 // const remoteUrl = "https://young-dusk-42243.herokuapp.com";
 const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api";
+const remoteUrlTest = "https://handsup-server.netlify.app/.netlify/functions/api";
 // https://handsup-server.netlify.app/.netlify/functions/api/user
 
 const localUrl = "http://localhost:8888/.netlify/functions/api";
