@@ -3,13 +3,11 @@ import { sessionService } from "redux-react-session";
 import { useNavigate } from "react-router-dom";
 
 //the remote endpoint and local
-// const remoteUrl = "https://young-dusk-42243.herokuapp.com";
-const remoteUrl = "https://preprod--handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
-// const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api"; // prod
-// https://handsup-server.netlify.app/.netlify/functions/api/user
+const preprodApiUrl = "https://preprod--handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
+// const productionApiUrl = "https://handsup-server.netlify.app/.netlify/functions/api"; // prod
 
 const localUrl = "http://localhost:8888/.netlify/functions/api";
-const backendUrl = remoteUrl;
+const backendUrl = process.env.REACT_APP_API_URL;
 
 export const loginUser = (
   credentials,
@@ -21,6 +19,8 @@ export const loginUser = (
 
   return () => {
     console.log("dans loginUser");
+    console.log("process.env");
+    console.log(process.env);
     axios
       .post(`${backendUrl}/professeur/signin`, credentials, {
         headers: {
