@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 //the remote endpoint and local
 // const remoteUrl = "https://young-dusk-42243.herokuapp.com";
-const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
+const remoteUrl = "https://preprod--handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
 // const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api"; // prod
 // https://handsup-server.netlify.app/.netlify/functions/api/user
 
