@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api";
 // https://handsup-server.netlify.app/.netlify/functions/api/user
 
-const localUrl = "http://localhost:3002";
+const localUrl = "http://localhost:8888/.netlify/functions/api";
 const backendUrl = remoteUrl;
 
 export const loginUser = (
@@ -28,6 +28,8 @@ export const loginUser = (
       })
       .then((response) => {
         const { data } = response;
+        console.log("qqn???")
+        console.log(response)
 
         if (data.status === "FAILED") {
           const { message } = data;
@@ -41,8 +43,10 @@ export const loginUser = (
           } else if (message.toLowerCase().includes("email")) {
             setFieldError("email", message);
           }
-        } else if (data.status === "SUCCESS") {
+        } else if (data.status === 200) {
           const userData = data.data[0];
+          console.log('OKayy')
+          console.log(data)
 
           const token = userData._id;
 
