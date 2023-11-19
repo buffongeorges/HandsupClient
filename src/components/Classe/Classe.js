@@ -90,6 +90,7 @@ const Classe = () => {
   };
 
   const addNewStudent = () => {
+    //adding new student consist in changing the empty flag from true => false, no real adding just an update
     let newList = [...eleves];
     console.log("eleves");
     console.log(eleves);
@@ -97,13 +98,13 @@ const Classe = () => {
     console.log("firstEmptyStudentIndex");
     console.log(firstEmptyStudentIndex);
     let updatedStudent = newList[firstEmptyStudentIndex];
-    updatedStudent.empty = false;
-    updatedStudent.bonus = 0;
-    updatedStudent.avertissement = 0;
-    updatedStudent.participation = 0;
-    updatedStudent.classe = classId;
-    updatedStudent.college = college;
-    updatedStudent._id = new ObjectID();
+    // updatedStudent.empty = false;
+    // updatedStudent.bonus = 0;
+    // updatedStudent.avertissement = 0;
+    // updatedStudent.participation = 0;
+    // updatedStudent.classe = classId;
+    // updatedStudent.college = college;
+    // updatedStudent._id = new ObjectID();
     const defaultBirthday = "02/01/2010"; //february 1st
     updatedStudent.dateOfBirth = new Date(defaultBirthday);
 
@@ -112,10 +113,40 @@ const Classe = () => {
     console.log(newList);
     setIsFetching(true);
 
+    const localeTime = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    });
+    let data = {
+      classId,
+      college: updatedStudent.college,
+      discipline: discipline,
+      currentDate: new Date(localeTime),
+    };
+
     addEleveToClasse(updatedStudent)
       .then((response) => {
         console.log("reponse de l'ajout");
         console.log(response);
+        getElevesInClasse(data)
+          .then((response) => {
+            const students = response.data.data.students;
+            console.log("les eleves");
+            console.log(response.data.data.students);
+            setClasse(response.data.data.classe.name);
+            setEleves(response.data.data.students);
+            setElevesOrdreAlphabetique(
+              response.data.data.studentsAlphabeticalOrder
+            );
+
+            setCollege(response.data.data.classe.ecole.name);
+            setCounter(students.length);
+            setEleves(students);
+            setExportList(students);
+          })
+          .catch((error) => {
+            console.log("error while fetching students");
+            console.log(error);
+          });
       })
       .catch((error) => {
         console.log(error);

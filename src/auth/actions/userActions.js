@@ -3,7 +3,10 @@ import { sessionService } from "redux-react-session";
 import { useNavigate } from "react-router-dom";
 
 //the remote endpoint and local
-const remoteUrl = "https://young-dusk-42243.herokuapp.com";
+// const remoteUrl = "https://young-dusk-42243.herokuapp.com";
+const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api";
+// https://handsup-server.netlify.app/.netlify/functions/api/user
+
 const localUrl = "http://localhost:3002";
 const backendUrl = remoteUrl;
 
