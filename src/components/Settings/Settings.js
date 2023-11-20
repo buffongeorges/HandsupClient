@@ -116,8 +116,8 @@ const Settings = () => {
         .then((response) => {
           console.log("les infos prof");
           console.log(response.data);
-          console.log("les ecoles")
-          console.log(response.data.data.ecoles)
+          console.log("les ecoles");
+          console.log(response.data.data.ecoles);
           const professeur = response.data.data;
           setFirstname(professeur.firstname);
           setLastname(professeur.lastname);
@@ -134,13 +134,15 @@ const Settings = () => {
           setDisciplines(response.data.data.disciplines);
           setSelectedSchool(professeur?.college[0]);
 
-          const endQuarter = professeur?.ecoles?.find(ecole => ecole._id == professeur?.college[0]._id);
-          console.log("endQuarter dans useEffect")
-          console.log(endQuarter)
-          // console.log(endQuarter.endOfTrimestre);
-          const endQuarterDateFormat = new Date(endQuarter.endOfTrimestre).toLocaleDateString(
-            "en-CA"
+          const endQuarter = professeur?.ecoles?.find(
+            (ecole) => ecole._id == professeur?.college[0]._id
           );
+          console.log("endQuarter dans useEffect");
+          console.log(endQuarter);
+          // console.log(endQuarter.endOfTrimestre);
+          const endQuarterDateFormat = new Date(
+            endQuarter.endOfTrimestre
+          ).toLocaleDateString("en-CA");
           console.log("endQuarterDateFormat", endQuarterDateFormat);
           setEndOfTrimestre(endQuarterDateFormat);
 
@@ -155,7 +157,7 @@ const Settings = () => {
               (ecole) => ecole._id === initialSchoolId
             ).classes;
             const newOptions = multiselectOptions;
-            initialClasses.forEach((classe) => {
+            initialClasses?.forEach((classe) => {
               const option = {
                 label: classe.name,
                 value: classe.name,
@@ -251,10 +253,10 @@ const Settings = () => {
   function dateIsOlder(date) {
     const now = new Date();
     console.log("plus grand que maintenant?");
-    console.log("date")
-    console.log(date)
-    console.log("now")
-    console.log(now)
+    console.log("date");
+    console.log(date);
+    console.log("now");
+    console.log(now);
     console.log(date > now);
     return date > now;
     // return true; //FOR TESTING PURPOSES
@@ -267,7 +269,7 @@ const Settings = () => {
     var regName = /^[a-z ,.'-]+$/i;
 
     const newErrors = {};
-    console.log("a t on une date deja?")
+    console.log("a t on une date deja?");
     console.log(endOfTrimestre);
 
     //end of quarter empty
@@ -353,7 +355,7 @@ const Settings = () => {
     console.log("les classes sont");
     console.log(classes);
 
-    let updatedCollegeDetails = {...college, endOfTrimestre: endOfTrimestre};
+    let updatedCollegeDetails = { ...college, endOfTrimestre: endOfTrimestre };
 
     let credentials = {
       professeurId: userId,
@@ -598,7 +600,7 @@ const Settings = () => {
             <Col xs="5" md="5" lg="5">
               <h2> Utilisateur</h2>
               <Form.Group className="mb-3" controlId="formFirstname">
-                <Form.Label>Nom</Form.Label>
+                <Form.Label className="fw-bold">Nom</Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="Entrer votre nom"
@@ -614,7 +616,7 @@ const Settings = () => {
                 </Form.Control.Feedback>
               </Form.Group>
               <Form.Group className="mb-3" controlId="formLastname">
-                <Form.Label>Prénom</Form.Label>
+                <Form.Label className="fw-bold">Prénom</Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="Entrer votre prénom"
@@ -630,7 +632,7 @@ const Settings = () => {
                 </Form.Control.Feedback>
               </Form.Group>
               <Form.Group className="mb-3" controlId="formCollege">
-                <Form.Label>Collège</Form.Label>
+                <Form.Label className="fw-bold">Collège</Form.Label>
                 <DropdownButton
                   id="dropdown-schools"
                   title={college ? college.name : "Choisir un collège"}
@@ -655,7 +657,7 @@ const Settings = () => {
                 controlId="formCollege"
                 style={{ marginBottom: "2rem" }}
               >
-                <Form.Label>Classes</Form.Label>
+                <Form.Label className="fw-bold">Vos classes</Form.Label>
                 <MultiSelect
                   options={multiselectOptions}
                   {...(classes && { value: classes })}
@@ -846,6 +848,9 @@ const Settings = () => {
                           : false
                       }
                     />
+                    <Form.Text className="text-muted">
+                      ATTENTION : Le fichier doit être au format CSV !
+                    </Form.Text>
                     <Form.Control.Feedback type="invalid">
                       {"Le format du fichier choisi est incorrect"}
                     </Form.Control.Feedback>
@@ -857,8 +862,8 @@ const Settings = () => {
                         <Modal.Title>Importer élèves</Modal.Title>
                       </Modal.Header>
                       <Modal.Body>
-                        Etes vous sûr de vouloir importer une nouvelle base de
-                        données ? Cela affectera la base déjà existante. <br />
+                        Etes vous sûr de vouloir <b>importer une nouvelle base de
+                        données ? Cela affectera la base déjà existante. </b><br />
                         Cette opération va prendre plusieurs minutes.
                       </Modal.Body>
                       <Modal.Footer>

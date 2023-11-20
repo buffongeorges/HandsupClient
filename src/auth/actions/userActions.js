@@ -19,8 +19,6 @@ export const loginUser = (
 
   return () => {
     console.log("dans loginUser");
-    console.log("process.env");
-    console.log(process.env);
     axios
       .post(`${backendUrl}/professeur/signin`, credentials, {
         headers: {
