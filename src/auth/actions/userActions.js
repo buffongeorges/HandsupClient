@@ -274,6 +274,20 @@ export const getProfesseurData = (profId) => {
     .catch((err) => console.log(err));
 };
 
+//Get teacher data to create new evaluation
+export const getProfesseurDataForEvaluation = (profId) => {
+  return axios
+    .get(`${backendUrl}/evaluation/create/${profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
 //Get teacher registered classes
 export const getProfesseurClasses = (profId) => {
   console.log("profId");
