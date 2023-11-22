@@ -76,6 +76,9 @@ const Classe = () => {
   const [teacherParticipationDelta, setTeacherParticipationDelta] =
     useState(null);
 
+  // temporaire pour competences
+  const [competenceSelectedStudentId, setCompetenceSelectedStudentId] = useState([undefined, 'Non acquis']);
+
   const switchStudents = (el) => {
     console.log(el);
     alert("Sélectionnez le 2ème élève");
@@ -87,7 +90,46 @@ const Classe = () => {
 
   const studentInTableClick = (student) => {
     setSelectedStudent(student);
+    getCompetenceLevelBasedOnClicks(student._id);
   };
+
+  const getCompetenceLevelBasedOnClicks = (studentId) => {
+    console.log('studentId', studentId);
+    console.log('competenceSelectedStudentId');
+    const array = ['Non acquis', 'EC d\'acquisition', 'Presque acquis', 'Acquis'];
+    console.log(competenceSelectedStudentId);
+    const isNewStudent = (studentId === competenceSelectedStudentId[0]) ? false : true;
+    const lastCompetenceIndex = array.indexOf(competenceSelectedStudentId[1]);
+    // const rand = Math.floor(Math.random() * 4);
+    // return array[rand];
+
+    if (isNewStudent) {
+      console.log("réponse")
+      console.log(array[0])
+      const newArray = [studentId, array[0]];
+      console.log('newArray');
+      console.log(newArray);
+      setCompetenceSelectedStudentId(newArray);
+      return array[0];
+    }
+    else {
+      // Utilisez le nombre de clics pour déterminer le texte à afficher dans le span
+      const newArray = [studentId, array[lastCompetenceIndex + 1]];
+      console.log('newArray');
+      console.log(newArray);
+      setCompetenceSelectedStudentId(newArray);
+      switch (lastCompetenceIndex) {
+        case 0:
+          return array[1];
+        case 1:
+          return array[2];
+        case 2:
+          return array[3];
+        default:
+          return array[0]; // Ajoutez des cas supplémentaires si nécessaire
+      }
+    }
+  }
 
   const addNewStudent = () => {
     //adding new student consist in changing the empty flag from true => false, no real adding just an update
@@ -186,8 +228,12 @@ const Classe = () => {
     // change position of 2 students :
     // const tmp = selectedStudent.position; //je modifie!
     // const tmp2 = switchStudent.position; //je modifie!
-    const tmp = selectedStudent.positions.find(matiere => matiere.matière == discipline).position;
-    const tmp2 = switchStudent.positions.find(matiere => matiere.matière == discipline).position;
+    const tmp = selectedStudent.positions.find(
+      (matiere) => matiere.matière == discipline
+    ).position;
+    const tmp2 = switchStudent.positions.find(
+      (matiere) => matiere.matière == discipline
+    ).position;
     console.log("tmp1");
     console.log(tmp);
     console.log("tmp2");
@@ -199,7 +245,6 @@ const Classe = () => {
     // console.log("itemIndex2", itemIndex2)
     // console.log("itemIndex2Test", itemIndex2Test)
     // console.log("-----------------")
-
 
     const defaultBirthday = "02/01/2010"; //february 1st
     const localeTime = new Date().toLocaleString("en-US", {
@@ -1833,6 +1878,108 @@ const Classe = () => {
                     </div>
                   </div>
                 </Tab>
+                <Tab
+                  eventKey="competences"
+                  title="Compétences"
+                  style={{ flex: 1, textAlign: "center" }}
+                >
+                  <div id="students-cells-competences">
+                    <div style={{ display: "flex", flexWrap: "wrap" }}>
+                      {Array.isArray(eleves)
+                        ? eleves.map((eleve) => {
+                            return (
+                              <div
+                                key={eleve._id}
+                                style={{
+                                  marginBottom: "-0.5rem",
+                                  marginRight: "0.5rem",
+                                  flex: "1 0 10%",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    textAlign: "center",
+                                    marginLeft: "1rem",
+                                    display: "inline-block",
+                                    marginTop: "0.5rem",
+                                    visibility: "hidden",
+                                  }}
+                                >
+                                  <i style={{ marginLeft: "-1rem" }}>
+                                    {!eleve.empty && (
+                                      <strong>
+                                        {
+                                          eleve?.bonus?.find(
+                                            (matiere) =>
+                                              matiere.matière == discipline
+                                          ).notes[currentSeance - 1]
+                                        }
+                                      </strong>
+                                    )}
+                                  </i>
+                                  <i
+                                    className="fa-solid fa-circle-minus"
+                                    style={{
+                                      marginLeft: "2rem",
+                                      display: "inline-block",
+                                      visibility: "hidden",
+                                    }}
+                                    // onClick={() => {
+                                    //   decrementParticipation(eleve); //place is occupied decrease participation
+                                    // }}
+                                  ></i>
+                                </div>
+                                <a
+                                  style={{
+                                    color: "black",
+                                    textDecoration: "none",
+                                  }}
+                                  // onClick={() => {
+                                  //   goToStudentStats(eleve);
+                                  // }}
+                                >
+                                  <img
+                                    src={eleve.photo}
+                                    style={{
+                                      opacity:
+                                        eleve.empty == true &&
+                                        !showEmptyStudents
+                                          ? 0
+                                          : 1,
+                                      objectFit: "cover",
+                                      width: "60px",
+                                      height: "60px",
+                                      borderRadius: "50%",
+                                      flex: "1 0 10%",
+                                      marginLeft: "auto",
+                                      marginRight: "auto",
+                                      display: "block",
+                                    }}
+                                    {...(selectedStudent?._id == eleve._id && {
+                                      border: "2px solid purple",
+                                    })}
+                                  />
+                                  {/* {selectedStudent?._id !== eleve._id && (
+                              <p style={{ textAlign: "center" }}>
+                                <strong>{eleve.participation}</strong>
+                              </p>
+                            )}
+                            {selectedStudent?._id === eleve._id && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                }}
+                              ></div>
+                            )} */}
+                                </a>
+                              </div>
+                            );
+                          })
+                        : null}
+                    </div>
+                  </div>
+                </Tab>
               </Tabs>
             </div>
           </Col>
@@ -1911,15 +2058,27 @@ const Classe = () => {
                             action
                             active={eleve._id === selectedStudent?._id}
                             onClick={() => studentInTableClick(eleve)}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
                           >
                             {eleve.firstname}
-                            <i
-                              className="fa-solid fa-pen-to-square"
-                              style={{ marginLeft: "2rem" }}
-                              onClick={() => {
-                                goToStudentEdit(eleve);
-                              }}
-                            ></i>
+                            {key !== "competences" && (
+                              <i
+                                className="fa-solid fa-pen-to-square"
+                                style={{ marginLeft: "2rem" }}
+                                onClick={() => {
+                                  goToStudentEdit(eleve);
+                                }}
+                              ></i>
+                            )}
+                            {key === "competences" &&
+                              eleve._id === selectedStudent?._id && (
+                                // Utilisation de la fonction getTextBasedOnClicks pour obtenir le texte dynamique
+                                <span className="fw-bold">{competenceSelectedStudentId[1]}</span>
+                              )}
                           </ListGroup.Item>
                         );
                     })

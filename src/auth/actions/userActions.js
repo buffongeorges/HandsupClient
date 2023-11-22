@@ -2,15 +2,7 @@ import axios from "axios";
 import { sessionService } from "redux-react-session";
 import { useNavigate } from "react-router-dom";
 
-//the remote endpoint and local
-// const remoteUrl = "https://young-dusk-42243.herokuapp.com";
-const remoteUrl = "https://handsup-server.netlify.app/.netlify/functions/api"; // prod
-// const remoteUrl = "https://preprod--handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
-const remoteUrlTest = "https://handsup-server.netlify.app/.netlify/functions/api";
-// https://handsup-server.netlify.app/.netlify/functions/api/user
-
-const localUrl = "http://localhost:8888/.netlify/functions/api";
-const backendUrl = remoteUrl;
+const backendUrl = process.env.REACT_APP_API_URL;
 
 export const loginUser = (
   credentials,
@@ -267,6 +259,20 @@ export const deleteEleve = (data) => {
 export const getProfesseurData = (profId) => {
   return axios
     .get(`${backendUrl}/professeur/get/${profId}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
+//Get teacher data to create new evaluation
+export const getProfesseurDataForEvaluation = (profId) => {
+  return axios
+    .get(`${backendUrl}/evaluation/create/${profId}`, {
       headers: {
         "Content-Type": "application/json",
       },

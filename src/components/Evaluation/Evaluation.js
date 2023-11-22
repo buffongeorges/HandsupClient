@@ -10,6 +10,7 @@ import CounterInput from "react-counter-input";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import { MultiSelect } from "react-multi-select-component";
+import { FaPlusCircle } from "react-icons/fa";
 
 import Counter from "../../utils/Counter/Counter";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ import { connect } from "react-redux";
 import {
   editProfesseur,
   getProfesseurData,
+  getProfesseurDataForEvaluation,
   getS3SecureURL,
   importStudentsFromFile,
   logoutUser,
@@ -35,9 +37,7 @@ import { sessionService } from "redux-react-session";
 
 const allowedExtensions = ["csv", "xls"];
 
-const Settings = () => {
-  const { currentUser, setCurrentUser } = useAuth();
-  const [selected, setSelected] = useState([]);
+const Evaluation = () => {
   const [multiselectOptions, setMultiselectOptions] = useState([]);
   const [endOfTrimestre, setEndOfTrimestre] = useState(null);
 
@@ -56,11 +56,15 @@ const Settings = () => {
 
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
+  const [evaluationName, setEvaluationName] = useState(null);
+  const [evaluations, setEvaluations] = useState(null);
+  const [counter, setCounter] = useState(0);
+
   const [showCamera, setShowCamera] = useState(false);
   const [college, setCollege] = useState("Choisir collège");
   const [ecoles, setEcoles] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [competences, setCompetences] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const [photo, setPhoto] = useState(null);
   const [selectedPicture, setSelectedPicture] = useState(null);
 
@@ -87,6 +91,7 @@ const Settings = () => {
   const [avertissement, setAvertissement] = useState(null);
   const [bonus, setBonus] = useState(null);
   const [disciplines, setDisciplines] = useState(null);
+  const [discipline, setDiscipline] = useState(null);
   const [checkedDiscipline, setCheckedDiscipline] = useState(null);
   const [showDisciplineAlert, setShowDisciplineAlert] = useState(false);
   const [showSuccessfulImport, setShowSuccessfulImport] = useState(false);
@@ -113,7 +118,7 @@ const Settings = () => {
       console.log(user._id);
       setUserId(user._id);
       setUser(user);
-      getProfesseurData(user._id)
+      getProfesseurDataForEvaluation(user._id)
         .then((response) => {
           console.log("les infos prof");
           console.log(response.data);
@@ -122,146 +127,75 @@ const Settings = () => {
           const professeur = response.data.data;
           setFirstname(professeur.firstname);
           setLastname(professeur.lastname);
-          setCollege(professeur?.college[0]);
-          setAvertissement(professeur.avertissement);
-          setBonus(professeur.bonus);
-          setParticipation(professeur.participation);
-          setNoteDepart(professeur.noteDepart);
-          setEcoles(professeur.ecoles);
+          setCollege(professeur?.college[0].name);
           setClasses(professeur?.classes);
-          setCheckedDiscipline(professeur.discipline);
           setPhoto(professeur.photo);
-          setIsAdmin(professeur?.admin);
-          setDisciplines(response.data.data.disciplines);
+          setDiscipline(response.data.data.discipline.name);
           setSelectedSchool(professeur?.college[0]);
 
-          const endQuarter = professeur?.ecoles?.find(
-            (ecole) => ecole._id == professeur?.college[0]._id
-          );
-          console.log("endQuarter dans useEffect");
-          console.log(endQuarter);
-          // console.log(endQuarter.endOfTrimestre);
-          const endQuarterDateFormat = new Date(
-            endQuarter.endOfTrimestre
-          ).toLocaleDateString("en-CA");
-          console.log("endQuarterDateFormat", endQuarterDateFormat);
-          setEndOfTrimestre(endQuarterDateFormat);
-
           setForm({
-            firstname: professeur.firstname,
-            lastname: professeur.lastname,
-            endOfTrimestre: endQuarterDateFormat,
+            evaluationName: evaluationName,
           });
           if (professeur.college.length > 0) {
-            const initialSchoolId = professeur.college[0]._id;
-            const initialClasses = professeur?.ecoles.find(
-              (ecole) => ecole._id === initialSchoolId
-            ).classes;
-            const newOptions = multiselectOptions;
-            initialClasses?.forEach((classe) => {
-              const option = {
-                label: classe.name,
-                value: classe.name,
-                _id: classe._id,
-              };
-              newOptions.push(option);
-            });
-            setMultiselectOptions(newOptions);
+            console.log("yooohooooo");
+            // const initialSchoolId = professeur.college[0]._id;
+            // const initialClasses = professeur?.ecoles.find(
+            //   (ecole) => ecole._id === initialSchoolId
+            // ).classes;
+            // const newOptions = multiselectOptions;
+            // initialClasses.forEach((classe) => {
+            //   const option = {
+            //     label: classe.name,
+            //     value: classe.name,
+            //     _id: classe._id,
+            //   };
+            //   newOptions.push(option);
+            // });
+            // console.log("les options")
+            // console.log(newOptions);
+            setMultiselectOptions(professeur?.classes);
           }
         })
         .finally(() => {
           setIsFetching(false);
         });
     });
-    // console.log(store.getState());
-    // console.log(currentUser);
-    // console.log("prof de la session:");
-    // console.log(sessionStorage.professeurId);
-    // console.log("id");
-    // console.log(JSON.parse(sessionStorage.professeurId));
-    // setUserId(JSON.parse(sessionStorage.professeurId));
-    // setProfesseur(JSON.parse(sessionStorage.professeur));
-    console.log("userId");
-    console.log(userId);
   }, []);
 
-  useEffect(() => {
-    // console.log(selectedSchool.classes.length)
-    if (selectedSchool && selectedSchool.classes) {
-      console.log(selectedSchool);
-      const newOptions = [];
-      selectedSchool.classes?.forEach((classe) => {
-        const option = {
-          label: classe.name,
-          value: classe.name,
-          _id: classe._id,
-        };
-        newOptions.push(option);
-      });
-      // console.log("new options avant reorder");
-      // console.log(newOptions);
+  //   useEffect(() => {
+  //     // console.log(selectedSchool.classes.length)
+  //     if (selectedSchool && selectedSchool.classes) {
+  //       console.log(selectedSchool);
+  //       const newOptions = [];
+  //       selectedSchool.classes?.forEach((classe) => {
+  //         const option = {
+  //           label: classe.name,
+  //           value: classe.name,
+  //           _id: classe._id,
+  //         };
+  //         newOptions.push(option);
+  //       });
 
-      newOptions.sort((classeA, classeB) => {
-        return classeB.label.localeCompare(classeA.label); //sort classes alphabetically
-      });
-      // console.log("new options apres reorder");
-      // console.log(newOptions);
+  //       newOptions.sort((classeA, classeB) => {
+  //         return classeB.label.localeCompare(classeA.label); //sort classes alphabetically
+  //       });
 
-      setMultiselectOptions(newOptions);
-      // setClasses([]);
-    } else if (selectedSchool && !selectedSchool.classes) {
-      console.log("pas de classes!");
-      setMultiselectOptions([]);
-      setClasses([]);
-    }
-    if (selectedSchool && selectedSchool.endOfTrimestre) {
-      console.log(selectedSchool);
-      const endQuarter = selectedSchool.endOfTrimestre;
-      const endQuarterDateFormat = new Date(endQuarter).toLocaleDateString(
-        "en-CA"
-      );
-      console.log("endQuarterDateFormat", endQuarterDateFormat);
-      setEndOfTrimestre(endQuarterDateFormat);
-    }
-  }, [selectedSchool]);
+  //       setMultiselectOptions(newOptions);
+  //       // setClasses([]);
+  //     } else if (selectedSchool && !selectedSchool.classes) {
+  //       console.log("pas de classes!");
+  //       setMultiselectOptions([]);
+  //       setClasses([]);
+  //     }
+  //   }, [selectedSchool]);
 
-  const handleFileChange = (e) => {
-    // Check if user has entered the file
-    if (e.target.files.length) {
-      const inputFile = e.target.files[0];
-      console.log(e.target.files.length);
-
-      // Check the file extensions, if it not
-      // included in the allowed extensions
-      // we show the error
-      const fileExtension = inputFile?.type.split("/")[1];
-      if (!allowedExtensions.includes(fileExtension)) {
-        return;
-      }
-
-      // If input type is correct set the state
-      setFile(inputFile);
-    } else {
-      setFile(null);
-    }
+  const addNewQuestion = () => {
+    let newQuestion = { id: counter, name: null, lives: 5 };
+    let questionsData = [...questions];
+    questionsData.push(newQuestion);
+    setQuestions(questionsData);
+    setCounter(counter + 1);
   };
-
-  function isValidDate(d) {
-    console.log(d);
-    return d instanceof Date && !isNaN(d);
-  }
-
-  function dateIsOlder(date) {
-    const now = new Date();
-    console.log("plus grand que maintenant?");
-    console.log("date");
-    console.log(date);
-    console.log("now");
-    console.log(now);
-    console.log(date > now);
-    return date > now;
-    // return true; //FOR TESTING PURPOSES
-  }
 
   const findFormErrors = () => {
     const { firstname, lastname, endOfTrimestre, studentsFile, pictureFile } =
@@ -272,16 +206,6 @@ const Settings = () => {
     const newErrors = {};
     console.log("a t on une date deja?");
     console.log(endOfTrimestre);
-
-    //end of quarter empty
-    if (!isValidDate(new Date(endOfTrimestre))) {
-      newErrors.endOfTrimestre =
-        "Veuillez choisir une date de fin de trimestre";
-    }
-    if (!dateIsOlder(new Date(endOfTrimestre))) {
-      newErrors.endOfTrimestre =
-        "Veuillez choisir une date de fin de trimestre supérieure à aujourd'hui";
-    }
 
     // name errors
     if (!lastname || lastname === "")
@@ -305,50 +229,38 @@ const Settings = () => {
     return newErrors;
   };
 
-  const handleDateChange = (date) => {
-    console.log("nouvelle date de fin de trimestre: ", date);
-    const newClassEndOfTrimestre = date;
-    setEndOfTrimestre(
-      new Date(newClassEndOfTrimestre).toLocaleDateString("en-CA")
-    );
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    navigate("/pending");
+
+    //TODO......
     //check if discipline is checked
-    if (!checkedDiscipline) {
-      setShowDisciplineAlert(true);
-      return;
-    }
-    if (studentsFile) {
-      if (!isValidFileUploadForStudentDB(studentsFile)) {
-        return;
-      }
-    }
+    // if (!checkedDiscipline) {
+    //   setShowDisciplineAlert(true);
+    //   return;
+    // }
+    // if (studentsFile) {
+    //   if (!isValidFileUploadForStudentDB(studentsFile)) {
+    //     return;
+    //   }
+    // }
 
-    if (pictureFile && !selectedPicture) {
-      if (!isValidFileUploadForPicture(pictureFile)) {
-        return;
-      }
-    }
-
-    // get our new errors
-    const newErrors = findFormErrors();
-    // Conditional logic:
-    if (Object.keys(newErrors).length > 0) {
-      // We got errors!
-      setErrors(newErrors);
-      console.log("errors");
-      console.log(errors);
-    } else if (college == "Choisir collège") {
-      alert("Veuillez choisir un collège");
-    } else {
-      // No errors! Put any logic here for the form submission!
-      setIsSubmitting(true);
-      console.log("avertissement");
-      console.log(avertissement);
-      saveProfesseur();
-    }
+    // // get our new errors
+    // const newErrors = findFormErrors();
+    // // Conditional logic:
+    // if (Object.keys(newErrors).length > 0) {
+    //   // We got errors!
+    //   setErrors(newErrors);
+    //   console.log("errors");
+    //   console.log(errors);
+    // } else {
+    //   // No errors! Put any logic here for the form submission!
+    //   setIsSubmitting(true);
+    //   console.log("avertissement");
+    //   console.log(avertissement);
+    //   saveProfesseur();
+    // }
   };
 
   const saveProfesseur = () => {
@@ -580,6 +492,15 @@ const Settings = () => {
     }
   };
 
+  const competences = [
+    {
+      name: "Ecouter, Comparer, Analyser",
+    },
+    {
+      name: "Se repérer dans l'espace",
+    },
+  ];
+
   if (isFetching) {
     return (
       <div
@@ -598,67 +519,55 @@ const Settings = () => {
       <div style={{ margin: "2rem" }}>
         <Form onSubmit={handleSubmit}>
           <Row>
-            <Col xs="5" md="5" lg="5">
-              <h2> Utilisateur</h2>
-              <Form.Group className="mb-3" controlId="formFirstname">
-                <Form.Label className="fw-bold">Nom</Form.Label>
+            <Col>
+              <h2> Nouvelle évaluation</h2>
+              <Form.Group
+                className="mb-3"
+                controlId="formFirstname"
+                style={{ marginTop: "2rem" }}
+              >
+                <Form.Label>Nom</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Entrer votre nom"
-                  value={lastname}
+                  placeholder="Entrer le nom de l'évaluation"
+                  value={evaluationName}
                   onChange={(e) => {
-                    setLastname(e.target.value);
+                    setEvaluationName(e.target.value);
                     setField("lastname", e.target.value);
                   }}
-                  isInvalid={!!errors.lastname}
+                  isInvalid={!!errors.evaluationName}
                 />
                 <Form.Control.Feedback type="invalid">
                   {errors.lastname}
                 </Form.Control.Feedback>
               </Form.Group>
-              <Form.Group className="mb-3" controlId="formLastname">
-                <Form.Label className="fw-bold">Prénom</Form.Label>
+              <Form.Group className="mb-3" controlId="formMatiere">
+                <Form.Label>Matière concernée</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Entrer votre prénom"
-                  value={firstname}
-                  onChange={(e) => {
-                    setFirstname(e.target.value);
-                    setField("firstname", e.target.value);
-                  }}
-                  isInvalid={!!errors.firstname}
+                  placeholder="Entrer la matière que vous enseignez"
+                  value={discipline}
+                  disabled={true}
                 />
                 <Form.Control.Feedback type="invalid">
                   {errors.firstname}
                 </Form.Control.Feedback>
               </Form.Group>
-              <Form.Group className="mb-3" controlId="formCollege">
-                <Form.Label className="fw-bold">Collège</Form.Label>
-                <DropdownButton
-                  id="dropdown-schools"
-                  title={college ? college.name : "Choisir un collège"}
-                  style={{ marginBottom: "1rem" }}
-                >
-                  {ecoles.map((ecole, index) => (
-                    <Dropdown.Item
-                      key={`${index}`}
-                      onClick={(e) => {
-                        setCollege(ecole);
-                        console.log("l'école choisie", ecole);
-                        setSelectedSchool(ecole);
-                      }}
-                    >
-                      {ecole.name}
-                    </Dropdown.Item>
-                  ))}
-                </DropdownButton>
+              <Form.Group className="mb-3" controlId="formCollège">
+                <Form.Label>Collège</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Entrer le collège dans lequel vous enseignez"
+                  value={college}
+                  disabled={true}
+                />
               </Form.Group>
               <Form.Group
                 className="mb-3"
                 controlId="formCollege"
                 style={{ marginBottom: "2rem" }}
               >
-                <Form.Label className="fw-bold">Vos classes</Form.Label>
+                <Form.Label>Classes concernées</Form.Label>
                 <MultiSelect
                   options={multiselectOptions}
                   {...(classes && { value: classes })}
@@ -678,22 +587,19 @@ const Settings = () => {
                   labelledBy="Select"
                 />
               </Form.Group>
-              {/* choisir discipline */}
               <Form.Group className="mb-3" controlId="formDiscipline">
-                <Form.Label style={{ fontSize: "1.3rem" }}>
-                  Discipline enseignée
-                </Form.Label>
-                {Array.isArray(disciplines)
-                  ? disciplines.map((discipline) => (
-                      <div key={`default-${discipline.name}`} className="mb-3">
+                <Form.Label>Compétence(s) evaluée(s)</Form.Label>
+                {Array.isArray(competences)
+                  ? competences.map((competence) => (
+                      <div key={`default-${competence.name}`} className="mb-3">
                         <Form.Check
                           type="checkbox"
-                          id={`default-${discipline.name}`}
-                          label={`${discipline.name}`}
-                          checked={
-                            checkedDiscipline &&
-                            checkedDiscipline._id == discipline._id
-                          }
+                          id={`default-${competence.name}`}
+                          label={`${competence.name}`}
+                          //   checked={
+                          //     checkedDiscipline &&
+                          //     checkedDiscipline._id == discipline._id
+                          //   }
                           onClick={() => {
                             setShowDisciplineAlert(false);
                             setCheckedDiscipline(discipline);
@@ -702,7 +608,7 @@ const Settings = () => {
                       </div>
                     ))
                   : null}
-                <Alert
+                {/* <Alert
                   variant="danger"
                   onClose={() => setShowDisciplineAlert(false)}
                   dismissible
@@ -714,49 +620,85 @@ const Settings = () => {
                   <p style={{ marginBottom: "0rem" }}>
                     Veuillez choisir une discipline
                   </p>
-                </Alert>
+                </Alert> */}
               </Form.Group>
-
-              {/* Choisir compétences parmi la liste */}
-              <Form.Group
-                className="mb-3"
-                controlId="formCollege"
-                style={{ marginBottom: "2rem" }}
-              >
-                <Form.Label style={{ fontSize: "1.3rem" }}>
-                  Compétences favorites
+              <Form.Group className="mb-3" controlId="formQuestions">
+                <Form.Label style={{ fontSize: "1.5rem", marginTop: "1.5rem" }}>
+                  Les questions
                 </Form.Label>
-                <MultiSelect
-                  options={[
-                    {
-                      value: "beta-test",
-                      label: "Ecouter, Comparer, Analyser",
-                      key: 0,
-                    },
-                    {
-                      value: "beta-test-1",
-                      label: "Se repérer dans l'espace",
-                      key: 1,
-                    },
-                  ]}
-                  {...(competences && { value: competences })}
-                  onChange={(selectedCompetences) => {
-                    // selectedCompetences.sort((classeA, classeB) => {
-                    //   const numA =
-                    //     classeA.value[0] +
-                    //     classeA.value[classeA.value.length - 1];
-                    //   const numB =
-                    //     classeB.value[0] +
-                    //     classeB.value[classeB.value.length - 1];
-                    //   return numB - numA;
-                    // });
-                    setCompetences(selectedCompetences);
+                <div>
+                  {questions.map((question, index) => {
+                    return (
+                      <div>
+                        <Form.Group
+                          className="mb-3"
+                          controlId="text"
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <div>
+                            <strong>Question n° {index + 1} : </strong>
+                          </div>
+                          <Form.Control
+                            as="textarea"
+                            required
+                            type="text"
+                            placeholder={`Composez votre question n° ${
+                              index + 1
+                            }`}
+                          />
+                        </Form.Group>
+
+                        <Form.Group
+                          className="mb-3"
+                          controlId="text"
+                          style={{ marginTop: "1rem" }}
+                        >
+                          <div>
+                            <strong>Réponse(s) possible(s) : </strong>
+                          </div>
+                          <Form.Control
+                            as="textarea"
+                            required
+                            type="text"
+                            placeholder={`Entrez la/les Réponse(s) possible(s) dans la question n° ${
+                              index + 1
+                            }`}
+                          />
+                          <div>
+                            <strong>
+                              <p>Point(s) :</p>
+                            </strong>
+                            <div
+                              style={{
+                                display: "inline-block",
+                                marginBottom: "1rem",
+                              }}
+                            >
+                              <Counter
+                                min={-20}
+                                max={20}
+                                value={0}
+                                delta={0.25}
+                              ></Counter>
+                            </div>
+                          </div>
+                        </Form.Group>
+                      </div>
+                    );
+                  })}
+                </div>
+                <Button
+                  type="button"
+                  variant={"outline-primary"}
+                  onClick={() => {
+                    addNewQuestion();
                   }}
-                  labelledBy="Select"
-                />
+                >
+                  <FaPlusCircle size={"1.5rem"} />
+                </Button>
               </Form.Group>
             </Col>
-            <Col style={{ marginLeft: "4rem" }}>
+            {/* <Col style={{ marginLeft: "4rem" }}>
               <h2> Notation</h2>
               <div style={{ marginTop: "2rem" }}>
                 <strong>
@@ -888,9 +830,6 @@ const Settings = () => {
                           : false
                       }
                     />
-                    <Form.Text className="text-muted">
-                      ATTENTION : Le fichier doit être au format CSV !
-                    </Form.Text>
                     <Form.Control.Feedback type="invalid">
                       {"Le format du fichier choisi est incorrect"}
                     </Form.Control.Feedback>
@@ -902,12 +841,8 @@ const Settings = () => {
                         <Modal.Title>Importer élèves</Modal.Title>
                       </Modal.Header>
                       <Modal.Body>
-                        Etes vous sûr de vouloir{" "}
-                        <b>
-                          importer une nouvelle base de données ? Cela affectera
-                          la base déjà existante.{" "}
-                        </b>
-                        <br />
+                        Etes vous sûr de vouloir importer une nouvelle base de
+                        données ? Cela affectera la base déjà existante. <br />
                         Cette opération va prendre plusieurs minutes.
                       </Modal.Body>
                       <Modal.Footer>
@@ -932,7 +867,7 @@ const Settings = () => {
                   </Form.Group>
                 </div>
               )}
-            </Col>
+            </Col> */}
 
             {/* client don't want picture for the teacher */}
             {/* <Form.Group controlId="formFile" className="mb-3">
@@ -1012,7 +947,7 @@ const Settings = () => {
               type="submit"
               style={{ margin: "0 auto", display: "block" }}
             >
-              Sauvegarder
+              Créer
             </Button>
           )}
           {isSubmitting && (
@@ -1031,29 +966,12 @@ const Settings = () => {
           <Modal.Body>
             <Form.Group>
               <Form.Label>Collège : </Form.Label>
-
-              <DropdownButton
-                id="dropdown-schools"
-                title={
-                  importedStudentsSchool
-                    ? importedStudentsSchool
-                    : "Choisir un collège"
-                }
-                style={{ marginBottom: "1rem" }}
-              >
-                {ecoles.map((ecole, index) => (
-                  <Dropdown.Item
-                    key={`${index}`}
-                    onClick={(e) => {
-                      console.log("choisi");
-                      console.log(e.target.innerText);
-                      setImportedStudentsSchool(e.target.innerText);
-                    }}
-                  >
-                    {ecole.name}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
+              <Form.Control
+                type="text"
+                placeholder="Entrer votre college"
+                value={college}
+                disabled={true}
+              />
               <Form.Text className="text-muted">
                 ATTENTION : Vous ne pourrez plus changer le collège par la
                 suite.
@@ -1142,4 +1060,4 @@ const mapStateToProps = ({ session }) => ({
   checked: session.checked,
 });
 
-export default connect(mapStateToProps)(Settings);
+export default connect(mapStateToProps)(Evaluation);

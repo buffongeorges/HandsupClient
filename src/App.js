@@ -25,6 +25,9 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import { sessionService } from "redux-react-session";
 import store from "./auth/store";
 import { AuthContext } from "./auth/context/AuthContext";
+import Evaluations from "./components/Evaluations/Evaluations.js";
+import Evaluation from "./components/Evaluation/Evaluation.js";
+import Pending from "./components/Pending/Pending.js";
 
 function App({ checked }) {
   const [currentUser, setCurrentUser] = useState();
@@ -94,6 +97,9 @@ function App({ checked }) {
                   element={<EleveEdit />}
                 />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/evaluations" element={<Evaluations />} />
+                <Route path="/evaluation-create" element={<Evaluation />} />
+                <Route path="/pending" element={<Pending />} />
 
                 <Route
                   path="/eleves/:studentId/stats"
