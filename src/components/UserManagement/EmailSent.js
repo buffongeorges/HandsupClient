@@ -40,7 +40,7 @@ import {
             <ExtraText color={colors.light1}>
               {/* An email with a password reset link has been sent to your email: */}
               Un courriel contenant un lien de réinitialisation du mot de passe a été envoyé à votre adresse courriel :
-              <b style={{ color: colors.primary }}>{userEmail}</b>
+              <b style={{ color: colors.primary }}> {userEmail}</b>
             </ExtraText>
             <ExtraText color={colors.light1}>
               {/* Check your email and click on the link to proceed! */}

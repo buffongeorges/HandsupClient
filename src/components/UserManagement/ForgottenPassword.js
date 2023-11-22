@@ -32,11 +32,11 @@ import { forgottenPassword } from "./../../auth/actions/userActions.js";
 import { useNavigate, useParams } from "react-router-dom";
 
 //the frontend url 
-const frontendLocalUrl = "http://localhost:3000";
-const frontendRemoteUrl = "https://handsup-client-354369.netlify.app/"
-const frontendUrl = frontendRemoteUrl;
+const frontendUrl = window.location.origin;
 
 const ForgottenPassword = ({ forgottenPassword }) => {
+  console.log('the base url:');
+  console.log(window.location.origin);
   const history = useNavigate();
   const { userEmail } = useParams();
   return (
