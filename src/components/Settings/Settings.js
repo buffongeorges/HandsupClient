@@ -32,6 +32,7 @@ import {
 import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 import { sessionService } from "redux-react-session";
+import AnimatedCountup from "../../utils/AnimatedCountup/AnimatedCountup";
 
 const allowedExtensions = ["csv", "xls"];
 
@@ -598,7 +599,7 @@ const Settings = () => {
       <div style={{ margin: "2rem" }}>
         <Form onSubmit={handleSubmit}>
           <Row>
-            <Col xs="5" md="5" lg="5">
+            <Col xs="5" md="5" lg="5" style={{ marginLeft: "1rem" }}>
               <h2> Utilisateur</h2>
               <Form.Group className="mb-3" controlId="formFirstname">
                 <Form.Label className="fw-bold">Nom</Form.Label>
@@ -756,7 +757,7 @@ const Settings = () => {
                 />
               </Form.Group>
             </Col>
-            <Col style={{ marginLeft: "4rem" }}>
+            <Col style={{ marginLeft: "1rem" }}>
               <h2> Notation</h2>
               <div style={{ marginTop: "2rem" }}>
                 <strong>
@@ -867,6 +868,43 @@ const Settings = () => {
                 <Form.Control.Feedback type="invalid">
                   {errors.endOfTrimestre}
                 </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group
+                className="mb-3"
+                controlId="formStats"
+                style={{ marginTop: "2rem" }}
+              >
+                <Form.Label style={{ fontSize: "1.5rem" }}>
+                  Statistiques clés
+                </Form.Label>
+                <div style={{ minHeight: "13rem", display: "grid" }}>
+                  <Row style={{ justifyContent: "space-between" }}>
+                    <Col className="mb-3">
+                      <AnimatedCountup
+                        countUp="13"
+                        className="h-100"
+                        label="Nb compétences abordées"
+                      />{" "}
+                    </Col>
+                    <Col className="mb-3">
+                      <AnimatedCountup
+                        countUp="20"
+                        className="h-100"
+                        label="Participation moy./séance"
+                      />
+                    </Col>
+                  </Row>
+                </div>
+                <Button
+                  variant="link"
+                  style={{ fontSize: "1.2rem" }}
+                  onClick={() => {
+                    navigate("/statistics"); //go back to previous page
+                  }}
+                >
+                  Voir + de stats
+                </Button>
               </Form.Group>
 
               {isAdmin && (

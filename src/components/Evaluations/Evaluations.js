@@ -11,7 +11,6 @@ import store from "../../auth/store.js";
 import { colors } from "../../utils/Styles.js";
 import { getProfesseurClasses } from "../../auth/actions/userActions.js";
 import { sessionService } from "redux-react-session";
-import AnimatedCountup from "../../utils/AnimatedCountup/AnimatedCountup.js";
 
 const Evaluations = ({ handleNavbar }) => {
   let navigate = useNavigate();
@@ -170,7 +169,6 @@ const Evaluations = ({ handleNavbar }) => {
             </div>
           </div>
         )}
-        <AnimatedCountup />
       </>
     );
   }

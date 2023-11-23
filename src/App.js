@@ -28,6 +28,7 @@ import { AuthContext } from "./auth/context/AuthContext";
 import Evaluations from "./components/Evaluations/Evaluations.js";
 import Evaluation from "./components/Evaluation/Evaluation.js";
 import Pending from "./components/Pending/Pending.js";
+import Statistics from "./components/Statistics/Statistics.js";
 
 function App({ checked }) {
   const [currentUser, setCurrentUser] = useState();
@@ -99,6 +100,7 @@ function App({ checked }) {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/evaluations" element={<Evaluations />} />
                 <Route path="/evaluation-create" element={<Evaluation />} />
+                <Route path="/statistics" element={<Statistics />} />
                 <Route path="/pending" element={<Pending />} />
 
                 <Route
