@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import "./AnimatedCountup.css";
-
+import classnames from 'classnames';
 export default function AnimatedCountup({
   countUp,
   icon,
@@ -63,7 +63,7 @@ export default function AnimatedCountup({
     };
   }, [counter, countUp]);
 
-  const animatedCounterClassname = `animated-counter-container ${className}`;
+  const animatedCounterClassname = classnames(`animated-counter-container`, className);
 
   return (
     <>
