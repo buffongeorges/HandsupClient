@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import classNames from "classnames";
 import Button from "react-bootstrap/Button";
 import "./AnimatedCountup.css";
 
@@ -64,10 +63,7 @@ export default function AnimatedCountup({
     };
   }, [counter, countUp]);
 
-  const animatedCounterClassname = classNames(
-    "animated-counter-container",
-    className
-  );
+  const animatedCounterClassname = `animated-counter-container ${className}`;
 
   return (
     <>
@@ -90,4 +86,5 @@ AnimatedCountup.defaultProps = {
   label: "Count up label",
   icon: "fas fa-hand",
   unit: undefined,
+  className: '',
 };

@@ -6,7 +6,6 @@ import Alert from "react-bootstrap/Alert";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Modal from "react-bootstrap/Modal";
-import CounterInput from "react-counter-input";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import { MultiSelect } from "react-multi-select-component";
