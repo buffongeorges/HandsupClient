@@ -5,6 +5,10 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Card from "react-bootstrap/Card";
+import Accordion from "react-bootstrap/Accordion";
+import Nav from "react-bootstrap/Nav";
+import ListGroup from "react-bootstrap/ListGroup";
 import { MultiSelect } from "react-multi-select-component";
 import { FaPlusCircle } from "react-icons/fa";
 
@@ -30,6 +34,7 @@ import {
 import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 import { sessionService } from "redux-react-session";
+import Switch from "../../utils/Switch/Switch";
 
 const allowedExtensions = ["csv", "xls"];
 
@@ -40,6 +45,11 @@ const Evaluation = () => {
   const [showModal, setShowModal] = useState(false);
   const [isFetching, setIsFetching] = useState(null);
   const [selectedSchool, setSelectedSchool] = useState(null);
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
+  const [key, setKey] = useState(null);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [isQCM, setIsQCM] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -64,7 +74,7 @@ const Evaluation = () => {
   const [photo, setPhoto] = useState(null);
   const [selectedPicture, setSelectedPicture] = useState(null);
 
-  const [studentsFile, setStudentsFile] = useState(null);
+  const [teacherUploadedFile, setTeacherUploadedFile] = useState(null);
   const [pictureFile, setPictureFile] = useState(null);
 
   const [file, setFile] = useState("");
@@ -85,6 +95,7 @@ const Evaluation = () => {
   const [noteDepart, setNoteDepart] = useState(null);
   const [participation, setParticipation] = useState(null);
   const [avertissement, setAvertissement] = useState(null);
+  const [attachedFiles, setAttachedFiles] = useState([]);
   const [bonus, setBonus] = useState(null);
   const [disciplines, setDisciplines] = useState(null);
   const [discipline, setDiscipline] = useState(null);
@@ -104,6 +115,24 @@ const Evaluation = () => {
     useState(false);
 
   let navigate = useNavigate();
+
+  let questionsExample = [
+    {
+      index: 0,
+      title: "Titre question 1",
+      possibleAnswers: "Reponse1, Reponse2, Réponse 3",
+      files: [
+        {
+          index: 0,
+          title: "Image1.jpg",
+        },
+        {
+          index: 1,
+          title: "Image2.png",
+        },
+      ],
+    },
+  ];
 
   useEffect(() => {
     sessionStorage.setItem("fromLogin", JSON.stringify(false));
@@ -133,7 +162,6 @@ const Evaluation = () => {
             evaluationName: evaluationName,
           });
           if (professeur.college.length > 0) {
-            console.log("yooohooooo");
             // const initialSchoolId = professeur.college[0]._id;
             // const initialClasses = professeur?.ecoles.find(
             //   (ecole) => ecole._id === initialSchoolId
@@ -186,16 +214,57 @@ const Evaluation = () => {
   //   }, [selectedSchool]);
 
   const addNewQuestion = () => {
-    let newQuestion = { id: counter, name: null, lives: 5 };
+    if (questions?.length <= 0) {
+      setSelectedQuestionIndex(1); // first question added
+    }
+    let newQuestion = {
+      id: counter,
+      name: "",
+      possibleAnswers: [
+        {
+          id: 0,
+          answer: "",
+        },
+        {
+          id: 1,
+          answer: "",
+        },
+      ],
+      points: 0,
+    };
+    console.log('questions')
+    console.log(questions)
     let questionsData = [...questions];
     questionsData.push(newQuestion);
     setQuestions(questionsData);
     setCounter(counter + 1);
   };
 
+  const addNewAnswerToQCM = (questionIndex) => {
+    let questionsData = [...questions];
+    let possibleAnswers = questionsData[questionIndex]?.possibleAnswers;
+    console.log("ici??");
+    console.log(possibleAnswers.length);
+    possibleAnswers.push({
+      id: possibleAnswers.length,
+      answer: "",
+    });
+    console.log("possibleAnswers");
+    console.log(possibleAnswers);
+    console.log("questionsData");
+    console.log(questionsData);
+    setQuestions(questionsData);
+    setCounter(counter + 1);
+  };
+
   const findFormErrors = () => {
-    const { firstname, lastname, endOfTrimestre, studentsFile, pictureFile } =
-      form;
+    const {
+      firstname,
+      lastname,
+      endOfTrimestre,
+      teacherUploadedFile,
+      pictureFile,
+    } = form;
 
     var regName = /^[a-z ,.'-]+$/i;
 
@@ -236,8 +305,8 @@ const Evaluation = () => {
     //   setShowDisciplineAlert(true);
     //   return;
     // }
-    // if (studentsFile) {
-    //   if (!isValidFileUploadForStudentDB(studentsFile)) {
+    // if (teacherUploadedFile) {
+    //   if (!isValidFileUploadForEvaluation(teacherUploadedFile)) {
     //     return;
     //   }
     // }
@@ -414,7 +483,7 @@ const Evaluation = () => {
     }
   }, [selectedPicture]);
 
-  const isValidFileUploadForStudentDB = (file) => {
+  const isValidFileUploadForEvaluation = (file) => {
     console.log("le fichier");
     console.log(file);
     const validExtensions = [
@@ -422,7 +491,7 @@ const Evaluation = () => {
       "vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "vnd.ms-excel",
     ];
-    const fileExtension = file.type.split("/")[1];
+    const fileExtension = file?.type.split("/")[1];
     return validExtensions.includes(fileExtension);
   };
 
@@ -432,23 +501,51 @@ const Evaluation = () => {
     console.log("photo uploadée ");
     console.log(pictureFile);
     const validExtensions = ["png", "jpeg", "gif", "jpg"];
-    const fileExtension = file.type.split("/")[1];
+    const fileExtension = file?.type.split("/")[1];
     return validExtensions.includes(fileExtension);
   };
 
-  const handleUploadStudentFile = (file) => {
-    setStudentsFile(file);
-    if (isValidFileUploadForStudentDB(file)) {
-      // setShowModalUploadStudentFile(true);
-      setShowModalImportedStudentsSchool(true);
+  const handleUploadQuestionFile = (file, index) => {
+    let newAttachedFiles = [];
+    const uploadedFile = {
+      index,
+      type: file.type,
+      title: file.name,
+    };
+    console.log("uploadedFile");
+    console.log(uploadedFile);
+    const indexOfFileInQuestion = attachedFiles.findIndex(
+      (item) => item.index == index
+    );
+    if (indexOfFileInQuestion <= -1) {
+      // does not exist yet
+      newAttachedFiles = [...attachedFiles, uploadedFile];
+    } else {
+      // already exists
+      newAttachedFiles = [...attachedFiles];
+      newAttachedFiles[indexOfFileInQuestion].title = file.name;
+    }
+
+    console.log("newAttachedFiles");
+    console.log(newAttachedFiles);
+    setAttachedFiles(newAttachedFiles);
+    const fileUrl = URL.createObjectURL(file);
+    console.log("fileUrl");
+    console.log(fileUrl);
+    const fileData = { ...uploadedFile, fileUrl };
+    console.log("fileData");
+    console.log(fileData);
+    setSelectedFile(fileData);
+    if (isValidFileUploadForEvaluation(file)) {
+      // display preview of file in the area
     }
   };
 
   const importNewStudents = () => {
     let formData = new FormData();
-    console.log("studentsFile");
-    console.log(studentsFile);
-    formData.append("students", studentsFile);
+    console.log("teacherUploadedFile");
+    console.log(teacherUploadedFile);
+    formData.append("students", teacherUploadedFile);
     formData.append("studentsCollege", importedStudentsSchool);
 
     console.log("début de l'import");
@@ -491,9 +588,11 @@ const Evaluation = () => {
   const competences = [
     {
       name: "Ecouter, Comparer, Analyser",
+      id: "uzrcuy6_uçuoij",
     },
     {
       name: "Se repérer dans l'espace",
+      id: "uzrcuy6_uçuaze",
     },
   ];
 
@@ -514,14 +613,10 @@ const Evaluation = () => {
     return (
       <div style={{ margin: "2rem" }}>
         <Form onSubmit={handleSubmit}>
+          <h1>Nouvelle évaluation</h1>
           <Row>
             <Col>
-              <h2> Nouvelle évaluation</h2>
-              <Form.Group
-                className="mb-3"
-                controlId="formFirstname"
-                style={{ marginTop: "2rem" }}
-              >
+              <Form.Group className="mb-3 mt-4" controlId="formFirstname">
                 <Form.Label>Nom</Form.Label>
                 <Form.Control
                   type="text"
@@ -583,11 +678,25 @@ const Evaluation = () => {
                   labelledBy="Select"
                 />
               </Form.Group>
-              <Form.Group className="mb-3" controlId="formDiscipline">
-                <Form.Label>Compétence(s) evaluée(s)</Form.Label>
+              <Form.Group
+                className="mb-3"
+                controlId="formCollege"
+                style={{ marginBottom: "2rem" }}
+              >
+                <Form.Label>Durée</Form.Label>
+                <div>
+                  <Counter value="01:00" type="time" delta="00:15" />
+                </div>
+              </Form.Group>
+            </Col>
+            <Col className="mb-3 mt-4">
+              <Form.Group controlId="formDiscipline">
+                <Form.Label style={{ fontSize: "1.4rem" }}>
+                  Compétence(s) évaluée(s)
+                </Form.Label>
                 {Array.isArray(competences)
                   ? competences.map((competence) => (
-                      <div key={`default-${competence.name}`} className="mb-3">
+                      <div key={`default-${competence.name}`}>
                         <Form.Check
                           type="checkbox"
                           id={`default-${competence.name}`}
@@ -618,71 +727,53 @@ const Evaluation = () => {
                   </p>
                 </Alert> */}
               </Form.Group>
-              <Form.Group className="mb-3" controlId="formQuestions">
-                <Form.Label style={{ fontSize: "1.5rem", marginTop: "1.5rem" }}>
-                  Les questions
+              <Form.Group controlId="formDiscipline">
+                <Form.Label className="mt-4" style={{ fontSize: "1.4rem" }}>
+                  Options
                 </Form.Label>
-                <div>
-                  {questions.map((question, index) => {
-                    return (
-                      <div>
-                        <Form.Group
-                          className="mb-3"
-                          controlId="text"
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <div>
-                            <strong>Question n° {index + 1} : </strong>
-                          </div>
-                          <Form.Control
-                            as="textarea"
-                            required
-                            type="text"
-                            placeholder={`Composez votre question n° ${
-                              index + 1
-                            }`}
-                          />
-                        </Form.Group>
-
-                        <Form.Group
-                          className="mb-3"
-                          controlId="text"
-                          style={{ marginTop: "1rem" }}
-                        >
-                          <div>
-                            <strong>Réponse(s) possible(s) : </strong>
-                          </div>
-                          <Form.Control
-                            as="textarea"
-                            required
-                            type="text"
-                            placeholder={`Entrez la/les Réponse(s) possible(s) dans la question n° ${
-                              index + 1
-                            }`}
-                          />
-                          <div>
-                            <strong>
-                              <p>Point(s) :</p>
-                            </strong>
-                            <div
-                              style={{
-                                display: "inline-block",
-                                marginBottom: "1rem",
-                              }}
-                            >
-                              <Counter
-                                min={-20}
-                                max={20}
-                                value={0}
-                                delta={0.25}
-                              ></Counter>
-                            </div>
-                          </div>
-                        </Form.Group>
-                      </div>
-                    );
-                  })}
-                </div>
+                <Row>
+                  <Col className="mb-4">
+                    <span>Correction automatique&nbsp;</span>
+                  </Col>
+                  <Col className="d-inline-flex">
+                    <Switch />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col className="mb-4">
+                    <span>Revue anonyme des copies&nbsp;</span>
+                  </Col>
+                  <Col className="d-inline-flex">
+                    <Switch />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col className="mb-4 d-inline-flex align-items-center">
+                    <span>Autoriser marge d'erreur&nbsp;</span>
+                  </Col>
+                  <Col>
+                    <Switch />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col className="mb-4  d-inline-flex align-items-center">
+                    <span>
+                      Les élèves peuvent revenir sur une question&nbsp;
+                    </span>
+                  </Col>
+                  <Col>
+                    <Switch />
+                  </Col>
+                </Row>
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row>
+            <Form.Group className="mb-3" controlId="formQuestions">
+              <Form.Label style={{ fontSize: "1.5rem", marginTop: "1.5rem" }}>
+                Les questions
+              </Form.Label>
+              <div>
                 <Button
                   type="button"
                   variant={"outline-primary"}
@@ -692,250 +783,294 @@ const Evaluation = () => {
                 >
                   <FaPlusCircle size={"1.5rem"} />
                 </Button>
-              </Form.Group>
-            </Col>
-            {/* <Col style={{ marginLeft: "4rem" }}>
-              <h2> Notation</h2>
-              <div style={{ marginTop: "2rem" }}>
-                <strong>
-                  <p
-                    style={{
-                      display: "inline-block",
-                      marginRight: "2rem",
-                      width: "10rem",
-                    }}
-                  >
-                    Note de départ
-                  </p>
-                </strong>
-                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-                  <Counter
-                    min={9}
-                    max={20}
-                    value={noteDepart}
-                    delta={0.25}
-                    handleCounterValue={handleNoteDepart}
-                  ></Counter>
-                </div>
-              </div>
-              <div>
-                <strong>
-                  <p
-                    style={{
-                      display: "inline-block",
-                      marginRight: "2rem",
-                      width: "10rem",
-                    }}
-                  >
-                    Participation
-                  </p>
-                </strong>
-                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-                  <Counter
-                    min={0}
-                    max={20}
-                    value={participation}
-                    delta={0.25}
-                    handleCounterValue={handleParticipation}
-                  ></Counter>
-                </div>
-              </div>
-              <div>
-                <strong>
-                  <p
-                    style={{
-                      display: "inline-block",
-                      marginRight: "2rem",
-                      width: "10rem",
-                    }}
-                  >
-                    Avertissement (-)
-                  </p>
-                </strong>
-                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-                  <Counter
-                    min={-20}
-                    max={0}
-                    value={avertissement}
-                    delta={0.25}
-                    handleCounterValue={handleAvertissement}
-                  ></Counter>
-                </div>
-              </div>
-              <div>
-                <strong>
-                  <p
-                    style={{
-                      display: "inline-block",
-                      marginRight: "2rem",
-                      width: "10rem",
-                    }}
-                  >
-                    Bonus (+)
-                  </p>
-                </strong>
-                <div style={{ display: "inline-block", marginBottom: "1rem" }}>
-                  <Counter
-                    min={0}
-                    max={20}
-                    value={bonus}
-                    delta={0.25}
-                    handleCounterValue={handleBonus}
-                  ></Counter>
-                </div>
               </div>
 
-              <Form.Group
-                className="mb-3"
-                controlId="formendOfTrimestre"
-                style={{ marginTop: "2rem" }}
-              >
-                <Form.Label style={{ fontSize: "1.5rem" }}>
-                  Fin du trimestre
-                </Form.Label>
-                <Form.Control
-                  type="date"
-                  value={endOfTrimestre}
-                  onChange={(e) => {
-                    handleDateChange(e.target.value);
-                    setField("endOfTrimestre", e.target.value);
-                  }}
-                  isInvalid={!!errors.endOfTrimestre}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.endOfTrimestre}
-                </Form.Control.Feedback>
-              </Form.Group>
-
-              {isAdmin && (
-                <div style={{ marginTop: "2rem", marginBottom: "3rem" }}>
-                  <Form.Group controlId="formFile" className="mb-3">
-                    <Form.Label style={{ fontSize: "1.5rem" }}>
-                      Nouvelle base de données Elève
-                    </Form.Label>
-                    <Form.Control
-                      type="file"
-                      accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                      onChange={(e) => {
-                        console.log("nouveau csv");
-                        handleUploadStudentFile(e.target.files[0]);
-                      }}
-                      isInvalid={
-                        studentsFile
-                          ? !isValidFileUploadForStudentDB(studentsFile)
-                          : false
-                      }
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {"Le format du fichier choisi est incorrect"}
-                    </Form.Control.Feedback>
-                    <Modal
-                      show={showModalUploadStudentFile}
-                      onHide={hideModalUploadStudentFile}
+              {Array.isArray(questions) && questions?.length > 0 && (
+                <div>
+                  <div>
+                    <Form.Group
+                      className="mb-3"
+                      controlId="text"
+                      style={{ marginTop: "1rem" }}
                     >
-                      <Modal.Header closeButton>
-                        <Modal.Title>Importer élèves</Modal.Title>
-                      </Modal.Header>
-                      <Modal.Body>
-                        Etes vous sûr de vouloir importer une nouvelle base de
-                        données ? Cela affectera la base déjà existante. <br />
-                        Cette opération va prendre plusieurs minutes.
-                      </Modal.Body>
-                      <Modal.Footer>
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            setShowModalUploadStudentFile(false);
-                          }}
-                        >
-                          Annuler
-                        </Button>
-                        <Button
-                          variant="primary"
-                          onClick={() => {
-                            importNewStudents();
-                          }}
-                        >
-                          Importer
-                        </Button>
-                      </Modal.Footer>
-                    </Modal>
-                  </Form.Group>
+                      <Card>
+                        <>
+                          <Card.Header>
+                            <Nav
+                              variant="pills"
+                              defaultActiveKey="question-card-1"
+                              onSelect={(selectedKey) => {
+                                console.log(selectedKey);
+                                setKey(selectedKey);
+                                const indexValue = parseInt(
+                                  selectedKey[selectedKey.length - 1]
+                                );
+                                console.log("indexValue", indexValue);
+                                setSelectedQuestionIndex(indexValue);
+                              }}
+                            >
+                              {questions.map((question, index) => (
+                                <Nav.Item>
+                                  <Nav.Link
+                                    id={`question-card-${index + 1}`}
+                                    eventKey={`question-card-${index + 1}`}
+                                  >
+                                    Q° {index + 1}
+                                  </Nav.Link>
+                                </Nav.Item>
+                              ))}
+                            </Nav>
+                          </Card.Header>
+                          <ListGroup className="list-group-flush">
+                            <ListGroup.Item>
+                              <Card.Body>
+                                <Card.Title>
+                                  Question n°{selectedQuestionIndex}
+                                </Card.Title>
+                                <Card.Text>
+                                  <Form.Group
+                                    className="mb-2 mt-2"
+                                    controlId="text"
+                                  >
+                                    <Form.Control
+                                      as="textarea"
+                                      required
+                                      type="text"
+                                      placeholder={`Composez votre question n° ${selectedQuestionIndex}`}
+                                    />
+                                  </Form.Group>
+                                  <div
+                                    lg="3"
+                                    className="mt-3 d-flex align-items-center"
+                                  >
+                                    <span>QCM&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    <span>
+                                      <Switch
+                                        onSwitchClick={(e) => {
+                                          console.log(e);
+                                          setIsQCM(e.current);
+                                        }}
+                                      />
+                                    </span>
+                                  </div>
+                                </Card.Text>
+                              </Card.Body>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                              <Card.Body>
+                                <Card.Title className="mb-4">
+                                  Réponse(s) possible(s)
+                                </Card.Title>
+                                <Card.Text>
+                                  {!isQCM && (
+                                    <Form.Group
+                                      className="mb-2 mt-2"
+                                      controlId="text"
+                                    >
+                                      <Form.Control
+                                        as="textarea"
+                                        required
+                                        type="text"
+                                        placeholder={`Entrez la/les réponse(s) possible(s) dans la question n° ${
+                                          selectedQuestionIndex
+                                        }`}
+                                      />
+                                      <Form.Text
+                                        id="possible-answers-helper"
+                                        muted
+                                      >
+                                        ATTENTION :{" "}
+                                        <b>
+                                          Indiquez les réponses possibles
+                                          séparées par des virgules
+                                        </b>
+                                        <br />
+                                        Ex: flute,flûte,flûte à bec <br />
+                                        Le personnage principal est Joker,Joker
+                                        est le personnage principal,Joker
+                                      </Form.Text>
+                                    </Form.Group>
+                                  )}
+                                  {isQCM && (
+                                    <>
+                                      {Array.isArray(questions) &&
+                                      Array.isArray(
+                                        questions[0]?.possibleAnswers
+                                      ) ? (
+                                        questions[0]?.possibleAnswers.map(
+                                          (answer, answerIndex) => (
+                                            <Form.Check
+                                              type="checkbox"
+                                              id={`qcm-checkbox-${answerIndex}`}
+                                              label={
+                                                <Form.Control
+                                                  type="text"
+                                                  placeholder={
+                                                    answer.name
+                                                      ? answer.name
+                                                      : `Proposition ${
+                                                          answerIndex + 1
+                                                        }`
+                                                  }
+                                                  className="mb-3"
+                                                  style={{
+                                                    marginTop: "-0.5rem",
+                                                  }}
+                                                />
+                                              }
+                                            />
+                                          )
+                                        )
+                                      ) : (
+                                        <span>???Allo</span>
+                                      )}
+
+                                      {/* <Form.Check
+                                        type="checkbox"
+                                        id={`disabled-default-checkbox`}
+                                        label={
+                                          <Form.Control
+                                            type="text"
+                                            placeholder="Proposition 2"
+                                            className="mb-3"
+                                            style={{ marginTop: "-0.5rem" }}
+                                          />
+                                        }
+                                      /> */}
+                                      <Button
+                                        variant="primary"
+                                        onClick={() => addNewAnswerToQCM(0)}
+                                      >
+                                        Ajouter proposition
+                                      </Button>
+                                    </>
+                                  )}
+                                </Card.Text>
+                              </Card.Body>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                              <Card.Body>
+                                <Card.Title>Pièce jointe</Card.Title>
+                                <Card.Text>
+                                  <Form.Group controlId="formAttachedFile">
+                                    <Form.Control
+                                      type="file"
+                                      accept="image/jpeg, image/png, image/jpg, video/mp4, audio/mp3"
+                                      onChange={(e) => {
+                                        console.log("nouveau csv");
+                                        handleUploadQuestionFile(
+                                          e.target.files[0],
+                                          0
+                                        );
+                                      }}
+                                      isInvalid={
+                                        questions[selectedQuestionIndex]
+                                          ?.files &&
+                                        questions[selectedQuestionIndex]
+                                          ?.files[0] &&
+                                        !isValidFileUploadForEvaluation(
+                                          teacherUploadedFile
+                                        )
+                                      }
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                      {
+                                        "Le format du fichier choisi est incorrect"
+                                      }
+                                    </Form.Control.Feedback>
+                                  </Form.Group>
+                                </Card.Text>
+                                {attachedFiles && (
+                                  <div
+                                    style={{
+                                      marginTop: "2rem",
+                                      width: "400rem",
+                                    }}
+                                  >
+                                    {selectedFile?.type.includes("image") && (
+                                      <img
+                                        alt="preview image"
+                                        src={selectedFile?.fileUrl}
+                                      />
+                                    )}
+                                    {selectedFile?.type.includes("video") && (
+                                      <video
+                                        style={{
+                                          width: "50rem",
+                                          height: "30rem",
+                                        }}
+                                        controls
+                                      >
+                                        <source
+                                          src={selectedFile?.fileUrl}
+                                          type="video/mp4"
+                                        />
+                                        Votre navigateur ne prend pas en charge
+                                        la balise vidéo.
+                                      </video>
+                                    )}
+                                    {selectedFile?.type.includes("audio") && (
+                                      <audio controls>
+                                        <source
+                                          src={selectedFile?.fileUrl}
+                                          type="audio/mp3"
+                                        />
+                                        Votre navigateur ne prend pas en charge
+                                        la balise vidéo.
+                                      </audio>
+                                    )}
+                                  </div>
+                                )}
+                              </Card.Body>
+                            </ListGroup.Item>
+                            <ListGroup.Item>
+                              <Card.Body>
+                                <Card.Title>
+                                  Points question {selectedQuestionIndex + 1}
+                                </Card.Title>
+                                <Card.Text>
+                                  <div
+                                    className="mt-3"
+                                    style={{
+                                      display: "inline-block",
+                                      marginBottom: "1rem",
+                                    }}
+                                  >
+                                    <Counter
+                                      min={0}
+                                      max={100}
+                                      value={questions[selectedQuestionIndex-1]?.points}
+                                      delta={0.25}
+                                      handleCounterValue={(e) => {
+                                        console.log(e);
+                                        setTotalPoints(
+                                          totalPoints + e.difference
+                                        );
+                                        let newArray = [...questions];
+                                        const indexValue = newArray.findIndex((item) => item.id === selectedQuestionIndex);
+                                        newArray[indexValue].points = newArray[indexValue].points + e.difference; 
+                                        console.log('newArray')
+                                        console.log(newArray)
+                                        setQuestions(newArray);
+                                      }}
+                                    ></Counter>
+                                  </div>
+                                </Card.Text>
+                              </Card.Body>
+                            </ListGroup.Item>
+                          </ListGroup>
+                        </>
+                      </Card>
+                      <div className="mt-2">
+                        <p className="lead" style={{ fontWeight: "bold" }}>
+                          Total : {totalPoints} point(s)
+                        </p>
+                      </div>
+                    </Form.Group>
+                  </div>
                 </div>
               )}
-            </Col> */}
-
-            {/* client don't want picture for the teacher */}
-            {/* <Form.Group controlId="formFile" className="mb-3">
-            <Form.Label>Photo</Form.Label>
-            <Form.Control
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                console.log(e.target.files[0]);
-                setShowCamera(false);
-                setSelectedPicture(e.target.files[0]);
-                setPictureFile(e.target.files[0]);
-              }}
-              isInvalid={
-                pictureFile ? !isValidFileUploadForPicture(pictureFile) : false
-                // true
-              }
-            />
-            <Form.Control.Feedback type="invalid">
-              {"Le format du fichier choisi est incorrect"}
-            </Form.Control.Feedback>
-            {photo && (
-              <div
-                style={{
-                  marginTop: "2rem",
-                  width: "400rem",
-                }}
-              >
-                <img
-                  src={photo}
-                  style={{
-                    objectFit: "contain",
-                    height: "15rem",
-                    maxWidth: "100%",
-                  }}
-                />
-              </div>
-            )}
-            {showCamera && (
-              <div style={{ marginTop: "2rem" }}>
-                <Webcam
-                  audio={false}
-                  ref={webcamRef}
-                  width="350rem"
-                  screenshotFormat="image/jpeg"
-                />
-                <br />
-                <Button onClick={capture}>Capturer</Button>
-              </div>
-            )}
-            {!showCamera && (
-              <Button
-                style={{ marginTop: "2rem" }}
-                onClick={() => {
-                  setPhoto(null);
-                  setShowCamera(true);
-                }}
-              >
-                Prendre photo
-              </Button>
-            )}
-          </Form.Group> */}
-
-            {/* <h2 style={{ marginTop: "2rem" }}>Base élève</h2>
-        <Form.Group
-          controlId="formFile"
-          className="mb-3"
-          style={{ marginTop: "2rem" }}
-        >
-          <Form.Label>Mettre à jour la base</Form.Label>
-          <Form.Control type="file" onChange={handleFileChange} />
-        </Form.Group> */}
+            </Form.Group>
           </Row>
           {!isSubmitting && (
             <Button
@@ -952,7 +1087,7 @@ const Evaluation = () => {
             </div>
           )}
         </Form>
-        <Modal
+        {/* <Modal
           show={showModalImportedStudentsSchool}
           onHide={hideModalImportedStudentsSchool}
         >
@@ -1026,27 +1161,29 @@ const Evaluation = () => {
               OK
             </Button>
           </Modal.Footer>
-        </Modal>
+        </Modal> */}
 
-        <Modal show={showFailureImport}>
-          <Modal.Header>
-            <Modal.Title>Echec de la mise à jour</Modal.Title>
+        {/* <Modal 
+        show={showModalCreateTest}
+        onHide={() => setShowModalCreateTest(false)}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Récap évaluations</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            La mise à jour ne s'est pas passée comme prévu. <br />
+            Est-ce que tout est correct ?. <br />
             Veuillez vérifier votre fichier ou réessayer plus tard
           </Modal.Body>
           <Modal.Footer>
             <Button
-              variant="danger"
               onClick={() => {
-                setShowFailureImport(false);
+                showModalCreateTest(false);
               }}
             >
               OK
             </Button>
           </Modal.Footer>
-        </Modal>
+        </Modal>  */}
       </div>
     );
   }

@@ -194,7 +194,7 @@ const EleveEdit = () => {
     console.log("photo uploadée ")
     console.log(pictureFile);
     const validExtensions = ["png", "jpeg", "gif", "jpg"];
-    const fileExtension = file.type.split("/")[1];
+    const fileExtension = file?.type.split("/")[1];
     return validExtensions.includes(fileExtension);
   };
 

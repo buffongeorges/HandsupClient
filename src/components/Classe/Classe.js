@@ -30,6 +30,9 @@ import {
   increaseClassSeanceIndex,
 } from "../../auth/actions/userActions";
 import { sessionService } from "redux-react-session";
+import Switch from "../../utils/Switch/Switch.js";
+import DropdownButton from "react-bootstrap/esm/DropdownButton.js";
+import Dropdown from "react-bootstrap/Dropdown";
 
 const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
@@ -66,7 +69,12 @@ const Classe = () => {
   const [showModal, setShowModal] = useState(false);
   const [showModalNewSeance, setShowModalNewSeance] = useState(false);
   const [showModalEndSequence, setShowModalEndSequence] = useState(false);
+  const [showModalStartCompetenceTest, setShowModalStartCompetenceTest] =
+    useState(false);
+  const [showModalEndCompetenceTest, setShowModalEndCompetenceTest] =
+    useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [isCompetenceInProgress, setIsCompetenceInProgress] = useState(false);
 
   //teacher settings
   const [teacherNoteDepart, setTeacherNoteDepart] = useState(null);
@@ -77,7 +85,21 @@ const Classe = () => {
     useState(null);
 
   // temporaire pour competences
-  const [competenceSelectedStudentId, setCompetenceSelectedStudentId] = useState([undefined, 'Non acquis']);
+  const [competenceSelectedStudentId, setCompetenceSelectedStudentId] =
+    useState([undefined, "Non acquis"]);
+
+  const [selectedCompetence, setSelectedCompetence] = useState(null);
+
+  const competences = [
+    {
+      name: "Ecouter, Comparer, Analyser",
+      id: "uzrcuy6_uçuoij",
+    },
+    {
+      name: "Se repérer dans l'espace",
+      id: "uzrcuy6_uçuaze",
+    },
+  ];
 
   const switchStudents = (el) => {
     console.log(el);
@@ -94,28 +116,33 @@ const Classe = () => {
   };
 
   const getCompetenceLevelBasedOnClicks = (studentId) => {
-    console.log('studentId', studentId);
-    console.log('competenceSelectedStudentId');
-    const array = ['Non acquis', 'EC d\'acquisition', 'Presque acquis', 'Acquis'];
+    console.log("studentId", studentId);
+    console.log("competenceSelectedStudentId");
+    const array = [
+      "Non acquis",
+      "EC d'acquisition",
+      "Presque acquis",
+      "Acquis",
+    ];
     console.log(competenceSelectedStudentId);
-    const isNewStudent = (studentId === competenceSelectedStudentId[0]) ? false : true;
+    const isNewStudent =
+      studentId === competenceSelectedStudentId[0] ? false : true;
     const lastCompetenceIndex = array.indexOf(competenceSelectedStudentId[1]);
     // const rand = Math.floor(Math.random() * 4);
     // return array[rand];
 
     if (isNewStudent) {
-      console.log("réponse")
-      console.log(array[0])
+      console.log("réponse");
+      console.log(array[0]);
       const newArray = [studentId, array[0]];
-      console.log('newArray');
+      console.log("newArray");
       console.log(newArray);
       setCompetenceSelectedStudentId(newArray);
       return array[0];
-    }
-    else {
+    } else {
       // Utilisez le nombre de clics pour déterminer le texte à afficher dans le span
       const newArray = [studentId, array[lastCompetenceIndex + 1]];
-      console.log('newArray');
+      console.log("newArray");
       console.log(newArray);
       setCompetenceSelectedStudentId(newArray);
       switch (lastCompetenceIndex) {
@@ -129,7 +156,7 @@ const Classe = () => {
           return array[0]; // Ajoutez des cas supplémentaires si nécessaire
       }
     }
-  }
+  };
 
   const addNewStudent = () => {
     //adding new student consist in changing the empty flag from true => false, no real adding just an update
@@ -1195,6 +1222,89 @@ const Classe = () => {
         </Modal>
 
         <Modal
+          show={showModalEndCompetenceTest}
+          onHide={() => {
+            setShowModalEndCompetenceTest(false);
+          }}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Fin Evaluation compétence</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Avez-vous fini d'évaluer <b>{selectedCompetence?.name} </b>?</Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowModalEndCompetenceTest(false);
+                setIsCompetenceInProgress(true);
+              }}
+            >
+              Non
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowModalEndCompetenceTest(false);
+                setIsCompetenceInProgress(false);
+                setSelectedCompetence(null);
+              }}
+            >
+              Oui
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal
+          show={showModalStartCompetenceTest}
+          onHide={() => {
+            setShowModalStartCompetenceTest(false);
+          }}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Quelle compétence évaluer ?</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Veuillez choisir une compétence parmi votre liste :
+            <DropdownButton
+              className="m-2"
+              variant="outline-primary"
+              id="dropdown-competences"
+              title={
+                selectedCompetence
+                  ? selectedCompetence.name
+                  : "Choisir compétence"
+              }
+              style={{ marginBottom: "1rem" }}
+            >
+              {competences.map((competence, index) => (
+                <Dropdown.Item
+                  key={`${index}`}
+                  onClick={(e) => {
+                    setCollege(competence);
+                    console.log("la compétence choisie", competence);
+                    setSelectedCompetence(competence);
+                  }}
+                >
+                  {competence.name}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              disabled={!selectedCompetence}
+              onClick={() => {
+                setShowModalStartCompetenceTest(false);
+                setIsCompetenceInProgress(true);
+              }}
+            >
+              Commencer
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal
           show={showModalEndSequence}
           onHide={() => {
             setShowModalEndSequence(false);
@@ -1981,6 +2091,36 @@ const Classe = () => {
                   </div>
                 </Tab>
               </Tabs>
+              <div className="mt-5 d-flex justify-content-center">
+                {!isCompetenceInProgress && key === "competences" && (
+                  <Button
+                    onClick={() => {
+                      setShowModalStartCompetenceTest(true);
+                    }}
+                  >
+                    Evaluer <br />
+                    Compétence
+                  </Button>
+                )}
+                {isCompetenceInProgress &&
+                  key === "competences" &&
+                  isCompetenceInProgress && (
+                    <div >
+                      <div className="d-flex justify-content-center" style={{fontSize: '1.5rem'}}>
+                        Vous évaluez &nbsp;<b>"{selectedCompetence.name}"</b>
+                      </div>
+                      <div className="d-flex justify-content-center">
+                        <Button className='m-3' variant="secondary"
+                        onClick={() => {
+                          setShowModalEndCompetenceTest(true);
+                        }}>
+                          Terminer <br />
+                          Evaluation
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+              </div>
             </div>
           </Col>
           <Col xs="3" md="3" lg="3">
@@ -2003,25 +2143,37 @@ const Classe = () => {
                 </div> */}
               </div>
               {showEmptyStudentsSwitch && (
-                <div
-                  id="hide-empty-students"
-                  style={{ marginBottom: "0.5rem", marginTop: "-1rem" }}
-                >
-                  Places vides:
-                  <span style={{ marginLeft: "2rem" }}>
-                    <BootstrapSwitchButton
+                <Row>
+                  <Col>
+                    <span>Places vides:</span>
+                  </Col>
+                  <Col style={{ margin: "-0.5rem 0 0.5rem -1rem" }}>
+                    <div id="hide-empty-students">
+                      <span>
+                        {/* <BootstrapSwitchButton
                       onlabel="Oui"
                       offlabel="Non"
                       checked={true}
-                      size="xs"
+                      size="sm"
                       onChange={() => {
                         setShowEmptyStudents(!showEmptyStudents);
                         console.log("showEmptyStudents");
                         console.log(showEmptyStudents);
                       }}
-                    />
-                  </span>
-                </div>
+                    /> */}
+                        <Switch
+                          id="class-switch"
+                          checked={true}
+                          onSwitchClick={() => {
+                            setShowEmptyStudents(!showEmptyStudents);
+                            console.log("showEmptyStudents");
+                            console.log(showEmptyStudents);
+                          }}
+                        />
+                      </span>
+                    </div>
+                  </Col>
+                </Row>
               )}
               <div>
                 <Button onClick={handleDownloadSequence}>Fin séquence</Button>
@@ -2077,7 +2229,9 @@ const Classe = () => {
                             {key === "competences" &&
                               eleve._id === selectedStudent?._id && (
                                 // Utilisation de la fonction getTextBasedOnClicks pour obtenir le texte dynamique
-                                <span className="fw-bold">{competenceSelectedStudentId[1]}</span>
+                                <span className="fw-bold">
+                                  {competenceSelectedStudentId[1]}
+                                </span>
                               )}
                           </ListGroup.Item>
                         );

@@ -11,6 +11,7 @@ import store from "../../auth/store.js";
 import { colors } from "../../utils/Styles.js";
 import { getProfesseurClasses } from "../../auth/actions/userActions.js";
 import { sessionService } from "redux-react-session";
+import Switch from "../../utils/Switch/Switch.js";
 
 const Evaluations = ({ handleNavbar }) => {
   let navigate = useNavigate();
@@ -19,6 +20,7 @@ const Evaluations = ({ handleNavbar }) => {
   let professeur = store.getState().session.user;
   const [evaluations, setEvaluations] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
+  const [enabled, setEnabled] = useState(false);
   const fromLogin = sessionStorage.fromLogin;
   console.log("fromLogin", fromLogin);
   console.log(fromLogin == "true");
