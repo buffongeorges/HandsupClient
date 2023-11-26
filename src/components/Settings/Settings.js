@@ -8,6 +8,8 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Popover from "react-bootstrap/Popover";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import { MultiSelect } from "react-multi-select-component";
 
 import Counter from "../../utils/Counter/Counter";
@@ -879,20 +881,49 @@ const Settings = () => {
                 </Form.Label>
                 <div style={{ minHeight: "13rem", display: "grid" }}>
                   <Row style={{ justifyContent: "space-between" }}>
-                    <Col className="mb-3">
-                      <AnimatedCountup
-                        countUp="13"
-                        className="h-100"
-                        label="Nb compétences abordées"
-                      />{" "}
-                    </Col>
-                    <Col className="mb-3">
-                      <AnimatedCountup
-                        countUp="20"
-                        className="h-100"
-                        label="Participation moy./séance"
-                      />
-                    </Col>
+                    <OverlayTrigger
+                      trigger={["click", "hover", "focus"]}
+                      overlay={
+                        <Popover id="popover-competences">
+                          <Popover.Header as="h3">Compétences</Popover.Header>
+                          <Popover.Body>
+                            Vous avez déjà abordé{" "}
+                            <strong>13 compétences</strong> dont 7 avec la
+                            6EME6.
+                          </Popover.Body>
+                        </Popover>
+                      }
+                    >
+                      <Col className="mb-3">
+                        <AnimatedCountup
+                          countUp="13"
+                          className="h-100"
+                          label="Nb compétences abordées"
+                        />{" "}
+                      </Col>
+                    </OverlayTrigger>
+
+                    <OverlayTrigger
+                      trigger={["click", "hover", "focus"]}
+                      overlay={
+                        <Popover id="popover-participation">
+                          <Popover.Header as="h3">Participation</Popover.Header>
+                          <Popover.Body>
+                            En moyenne vous accordez 
+                            <strong> 20 pts de participation par séance. </strong>
+                            La classe qui participe le + est la 5EME3.
+                          </Popover.Body>
+                        </Popover>
+                      }
+                    >
+                      <Col className="mb-3">
+                        <AnimatedCountup
+                          countUp="20"
+                          className="h-100"
+                          label="Participation moy./séance"
+                        />
+                      </Col>
+                    </OverlayTrigger>
                   </Row>
                 </div>
                 <Button

@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPath, useParams } from "react-router-dom";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
-import BootstrapSwitchButton from "bootstrap-switch-button-react";
 
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Image from "react-bootstrap/Image";
 import Modal from "react-bootstrap/Modal";
+import Form from "react-bootstrap/Form";
 import ListGroup from "react-bootstrap/ListGroup";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
@@ -33,6 +33,11 @@ import { sessionService } from "redux-react-session";
 import Switch from "../../utils/Switch/Switch.js";
 import DropdownButton from "react-bootstrap/esm/DropdownButton.js";
 import Dropdown from "react-bootstrap/Dropdown";
+// import { getDocument, version } from "pdfjs-dist/build/pdf";
+import { Document, Page, pdfjs } from "react-pdf";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker.entry";
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
@@ -49,10 +54,16 @@ const Classe = () => {
   const [counter, setCounter] = useState(null);
   const csvLink = useRef(); // setup the ref that we'll use for the hidden CsvLink click once we've updated the data
 
+  const [pdfLoaded, setPdfLoaded] = useState(false);
+  const [trombinoscope, setTrombinoscope] = useState(null);
+  const [numPages, setNumPages] = useState();
+  const [pageNumber, setPageNumber] = useState(1);
+
   const [modalParticipationStudent, setModalParticipationStudent] =
     useState(null);
 
-  // const {action, handlers} = useLongPress({handleModal: handleParticipationModalVisibilty}, {handleModalParticipation: handleModalParticipation});
+  const [showModalClassSettings, setShowModalClassSettings] = useState(false);
+
   let { classId } = useParams();
   let navigate = useNavigate();
   let val; //DON'T REMOVE THIS VARIABLE
@@ -100,6 +111,49 @@ const Classe = () => {
       id: "uzrcuy6_uçuaze",
     },
   ];
+
+  const handlePdfLoaded = (file) => {
+    console.log("handlePdfLoaded");
+    console.log(file);
+
+    if (file) {
+      const fileUrl = URL.createObjectURL(file);
+      console.log("fileUrl", fileUrl);
+
+      const loadingTask = pdfjsLib.getDocument({
+        data: fileUrl, // Utilisez l'objet File comme source de données
+      });
+
+      loadingTask.promise
+        .then((pdf) => {
+          // Extraire le texte de toutes les pages
+          return extractTextFromPdf(pdf);
+        })
+        .catch((error) => {
+          console.error(
+            "Une erreur s'est produite lors du chargement du PDF:",
+            error
+          );
+        });
+    }
+  };
+
+  // Fonction pour extraire le texte d'une page
+  const extractTextFromPage = async (page) => {
+    const textContent = await page.getTextContent();
+    const text = textContent.items.map((s) => s.str).join(" ");
+    console.log(text);
+  };
+
+  // Fonction pour extraire le texte de toutes les pages du PDF
+  const extractTextFromPdf = async (pdf) => {
+    const numPages = pdf.numPages;
+
+    for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      await extractTextFromPage(page);
+    }
+  };
 
   const switchStudents = (el) => {
     console.log(el);
@@ -240,6 +294,10 @@ const Classe = () => {
     console.log(eleve._id.toString());
     let path = `../eleves/${eleve._id}`;
     navigate(`${path}`);
+  };
+
+  const openClassSettings = () => {
+    setShowModalClassSettings(true);
   };
 
   const processSwitch = () => {
@@ -1199,6 +1257,77 @@ const Classe = () => {
           </Modal.Footer>
         </Modal>
 
+        <Modal show={showModalClassSettings}>
+          <Modal.Header closeButton>
+            <Modal.Title>Paramètres de la {classe}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <ListGroup>
+              <ListGroup.Item>
+                <span className="lead">
+                  Importer élèves à partir du trombinoscope{" "}
+                </span>
+                <Form.Control
+                  className="mt-4"
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => {
+                    console.log("nouveau pdf");
+                    console.log(e.target.files[0]);
+                    setTrombinoscope(e.target.files[0]);
+                    setPdfLoaded(true);
+                    handlePdfLoaded(e.target.files[0]);
+                    // handleUploadStudentFile(e.target.files[0]);
+                  }}
+                  // isInvalid={
+                  //   studentsFile
+                  //     ? !isValidFileUploadForStudentDB(studentsFile)
+                  //     : false
+                  // }
+                />
+                {pdfLoaded && (
+                  <>
+                    OOUUUUU
+                    {/* <Document
+                      file={trombinoscope}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                    >
+                      {Array.from(new Array(numPages), (el, index) => (
+                        <Page
+                          key={`page_${index + 1}`}
+                          pageNumber={index + 1}
+                          // width={
+                          //   containerWidth
+                          //     ? Math.min(containerWidth, maxWidth)
+                          //     : maxWidth
+                          // }
+                        />
+                      ))}
+                    </Document> */}
+                  </>
+                )}
+              </ListGroup.Item>
+              <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
+              <ListGroup.Item>Morbi leo risus</ListGroup.Item>
+              <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
+              <ListGroup.Item>Vestibulum at eros</ListGroup.Item>
+            </ListGroup>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowModalClassSettings(false);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button variant="primary" onClick={() => {}}>
+              Confirmer
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
         <Modal
           show={showModalNewSeance}
           onHide={() => {
@@ -1230,7 +1359,9 @@ const Classe = () => {
           <Modal.Header closeButton>
             <Modal.Title>Fin Evaluation compétence</Modal.Title>
           </Modal.Header>
-          <Modal.Body>Avez-vous fini d'évaluer <b>{selectedCompetence?.name} </b>?</Modal.Body>
+          <Modal.Body>
+            Avez-vous fini d'évaluer <b>{selectedCompetence?.name} </b>?
+          </Modal.Body>
           <Modal.Footer>
             <Button
               variant="secondary"
@@ -1792,7 +1923,7 @@ const Classe = () => {
                 </Tab>
                 <Tab
                   eventKey="echange"
-                  title="Echanger"
+                  title="Placer"
                   style={{ flex: 1, textAlign: "center" }}
                 >
                   <div id="students-cells-exchange">
@@ -2105,15 +2236,21 @@ const Classe = () => {
                 {isCompetenceInProgress &&
                   key === "competences" &&
                   isCompetenceInProgress && (
-                    <div >
-                      <div className="d-flex justify-content-center" style={{fontSize: '1.5rem'}}>
+                    <div>
+                      <div
+                        className="d-flex justify-content-center"
+                        style={{ fontSize: "1.5rem" }}
+                      >
                         Vous évaluez &nbsp;<b>"{selectedCompetence.name}"</b>
                       </div>
                       <div className="d-flex justify-content-center">
-                        <Button className='m-3' variant="secondary"
-                        onClick={() => {
-                          setShowModalEndCompetenceTest(true);
-                        }}>
+                        <Button
+                          className="m-3"
+                          variant="secondary"
+                          onClick={() => {
+                            setShowModalEndCompetenceTest(true);
+                          }}
+                        >
                           Terminer <br />
                           Evaluation
                         </Button>
@@ -2126,7 +2263,28 @@ const Classe = () => {
           <Col xs="3" md="3" lg="3">
             <div id="students-table-list" style={{}}>
               <div style={{ marginBottom: "1rem" }}>
-                <div>Classe: {classe}</div>
+                <Row>
+                  <Col xs="8">
+                    <div>Classe: {classe}</div>
+                  </Col>
+                  <Col>
+                    <button
+                      type="button"
+                      style={{
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer",
+                      }}
+                      onClick={openClassSettings}
+                    >
+                      <i
+                        className="fa-solid fa-gear fa-xl"
+                        style={{ marginLeft: "2rem", color: "grey" }}
+                      ></i>
+                    </button>
+                  </Col>
+                </Row>
+
                 <div>Discipline: {discipline}</div>
                 <div>
                   Séance n°: {currentSeance}

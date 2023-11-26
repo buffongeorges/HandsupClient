@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import "./Evaluation.css";
+
 import axios from "axios";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -48,7 +50,6 @@ const Evaluation = () => {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
   const [key, setKey] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [isQCM, setIsQCM] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [user, setUser] = useState(null);
@@ -218,7 +219,7 @@ const Evaluation = () => {
       setSelectedQuestionIndex(1); // first question added
     }
     let newQuestion = {
-      id: counter,
+      id: questions.length && questions.length <= 0 ? 0 : questions.length,
       name: "",
       possibleAnswers: [
         {
@@ -231,9 +232,12 @@ const Evaluation = () => {
         },
       ],
       points: 0,
+      type: "openQuestion",
+      attachedFiles: [],
+      isBonus: false,
     };
-    console.log('questions')
-    console.log(questions)
+    console.log("questions");
+    console.log(questions);
     let questionsData = [...questions];
     questionsData.push(newQuestion);
     setQuestions(questionsData);
@@ -253,6 +257,49 @@ const Evaluation = () => {
     console.log(possibleAnswers);
     console.log("questionsData");
     console.log(questionsData);
+    setQuestions(questionsData);
+    setCounter(counter + 1);
+  };
+
+  const setQuestionName = (questionName) => {
+    let questionsData = [...questions];
+    let modifiedQuestionIndex = questionsData?.findIndex(
+      (question) => question.id === selectedQuestionIndex - 1
+    );
+    questionsData[modifiedQuestionIndex].name = questionName;
+    setQuestions(questionsData);
+    setCounter(counter + 1);
+  };
+
+  const setQuestionPossibleAnswers = (answer, answerIndex) => {
+    let questionsData = [...questions];
+    let modifiedQuestionIndex = questionsData?.findIndex(
+      (question) => question.id === selectedQuestionIndex - 1
+    );
+    questionsData[modifiedQuestionIndex].possibleAnswers[answerIndex].answer = answer;
+    setQuestions(questionsData);
+    setCounter(counter + 1);
+  };
+
+  const setQuestionType = (isQCM) => {
+    console.log("je sette la valeur a ", isQCM);
+    let questionsData = [...questions];
+    let modifiedQuestionIndex = questionsData?.findIndex(
+      (question) => question.id === selectedQuestionIndex - 1
+    );
+    questionsData[modifiedQuestionIndex].type = isQCM ? "QCM" : "openQuestion";
+    setQuestions(questionsData);
+    setCounter(counter + 1);
+  };
+
+  const setQuestionBonus = (isBonus) => {
+    console.log("je sette la valeur a ", isBonus);
+    let questionsData = [...questions];
+    let modifiedQuestionIndex = questionsData?.findIndex(
+      (question) => question.id === selectedQuestionIndex - 1
+    );
+    questionsData[modifiedQuestionIndex].isBonus = isBonus;
+
     setQuestions(questionsData);
     setCounter(counter + 1);
   };
@@ -425,6 +472,32 @@ const Evaluation = () => {
     setShowModalImportedStudentsSchool(false);
   };
 
+  const handleSelectedQuestionClick = (selectedKey) => {
+    setKey(selectedKey);
+    const selectedKeySplitted = selectedKey.split("-");
+    const keyIndex = selectedKeySplitted[selectedKeySplitted.length - 1];
+    // get the last element of ['question', 'card, '1/2/whatever']
+    console.log("keyIndex", keyIndex);
+    setSelectedQuestionIndex(parseInt(keyIndex));
+  };
+
+  const handleQuestionPointsClick = (newQuestionPoints) => {
+    console.log(newQuestionPoints);
+    setTotalPoints(totalPoints + newQuestionPoints.difference);
+    let newArray = [...questions];
+    const indexValue = newArray.findIndex(
+      (item, index) => item.id === selectedQuestionIndex - 1
+    );
+    console.log("newArray");
+    console.log(newArray);
+    console.log("indexValue", indexValue);
+    newArray[indexValue].points =
+      newArray[indexValue].points + newQuestionPoints.difference;
+    console.log("erreur ?");
+    console.log(questions[indexValue]?.points);
+    setQuestions(newArray);
+  };
+
   useEffect(() => {
     //methode 1 : passer par le serveur pour appeler S3
     // const formData = new FormData();
@@ -450,7 +523,7 @@ const Evaluation = () => {
     //methode 2 : appeler directement s3 depuis le front
     if (
       selectedPicture ||
-      (pictureFile && isValidFileUploadForPicture(pictureFile))
+      pictureFile /*&& isValidFileUploadForPicture(pictureFile)*/
     ) {
       setIsFetching(true);
       getS3SecureURL()
@@ -495,47 +568,36 @@ const Evaluation = () => {
     return validExtensions.includes(fileExtension);
   };
 
-  const isValidFileUploadForPicture = (file) => {
-    console.log("la photo par webcam");
-    console.log(selectedPicture);
-    console.log("photo uploadée ");
-    console.log(pictureFile);
-    const validExtensions = ["png", "jpeg", "gif", "jpg"];
-    const fileExtension = file?.type.split("/")[1];
-    return validExtensions.includes(fileExtension);
+  const isValidFileUploadForQuestion = (file) => {
+    const validFiles = ["image", "audio", "video"];
+    const fileExtension = file?.type.split("/")[0];
+    return validFiles.includes(fileExtension);
   };
 
   const handleUploadQuestionFile = (file, index) => {
-    let newAttachedFiles = [];
+    let questionsData = [...questions];
+    const fileUrl = URL.createObjectURL(file);
+
+    const filesForQuestion =
+      questionsData[selectedQuestionIndex - 1]?.attachedFiles;
     const uploadedFile = {
-      index,
+      index: filesForQuestion?.length,
       type: file.type,
       title: file.name,
+      content: fileUrl, // ATTENTION : ne pas enregistrer le content en DB !!
     };
     console.log("uploadedFile");
     console.log(uploadedFile);
-    const indexOfFileInQuestion = attachedFiles.findIndex(
-      (item) => item.index == index
-    );
-    if (indexOfFileInQuestion <= -1) {
-      // does not exist yet
-      newAttachedFiles = [...attachedFiles, uploadedFile];
-    } else {
-      // already exists
-      newAttachedFiles = [...attachedFiles];
-      newAttachedFiles[indexOfFileInQuestion].title = file.name;
-    }
-
-    console.log("newAttachedFiles");
-    console.log(newAttachedFiles);
-    setAttachedFiles(newAttachedFiles);
-    const fileUrl = URL.createObjectURL(file);
+    console.log("filesForQuestion");
+    console.log(filesForQuestion);
+    console.log("questionsData");
+    console.log(questionsData);
     console.log("fileUrl");
     console.log(fileUrl);
-    const fileData = { ...uploadedFile, fileUrl };
-    console.log("fileData");
-    console.log(fileData);
-    setSelectedFile(fileData);
+
+    filesForQuestion?.push(uploadedFile);
+
+    setQuestions(questionsData);
     if (isValidFileUploadForEvaluation(file)) {
       // display preview of file in the area
     }
@@ -800,13 +862,7 @@ const Evaluation = () => {
                               variant="pills"
                               defaultActiveKey="question-card-1"
                               onSelect={(selectedKey) => {
-                                console.log(selectedKey);
-                                setKey(selectedKey);
-                                const indexValue = parseInt(
-                                  selectedKey[selectedKey.length - 1]
-                                );
-                                console.log("indexValue", indexValue);
-                                setSelectedQuestionIndex(indexValue);
+                                handleSelectedQuestionClick(selectedKey);
                               }}
                             >
                               {questions.map((question, index) => (
@@ -821,7 +877,12 @@ const Evaluation = () => {
                               ))}
                             </Nav>
                           </Card.Header>
-                          <ListGroup className="list-group-flush">
+                          <ListGroup
+                            className="list-group-flush"
+                            id={`question-content-${selectedQuestionIndex}`}
+                            key={`question-content-${selectedQuestionIndex}`}
+                            // REMARQUE : la props key est importante pour refresh la list groupe en fct de la Q
+                          >
                             <ListGroup.Item>
                               <Card.Body>
                                 <Card.Title>
@@ -835,6 +896,8 @@ const Evaluation = () => {
                                     <Form.Control
                                       as="textarea"
                                       required
+                                      defaultValue={questions[selectedQuestionIndex - 1]?.name}
+                                      onChange={(e) => setQuestionName(e.target.value)}
                                       type="text"
                                       placeholder={`Composez votre question n° ${selectedQuestionIndex}`}
                                     />
@@ -846,9 +909,24 @@ const Evaluation = () => {
                                     <span>QCM&nbsp;&nbsp;&nbsp;&nbsp;</span>
                                     <span>
                                       <Switch
+                                        checked={
+                                          questions[selectedQuestionIndex - 1]
+                                            ?.type === "QCM"
+                                        }
                                         onSwitchClick={(e) => {
-                                          console.log(e);
-                                          setIsQCM(e.current);
+                                          setQuestionType(e.current);
+                                        }}
+                                      />
+                                    </span>
+                                    <span className="ms-5">Question bonus&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    <span>
+                                      <Switch
+                                        checked={
+                                          questions[selectedQuestionIndex - 1]
+                                            ?.isBonus === true
+                                        }
+                                        onSwitchClick={(e) => {
+                                          setQuestionBonus(e.current);
                                         }}
                                       />
                                     </span>
@@ -862,7 +940,8 @@ const Evaluation = () => {
                                   Réponse(s) possible(s)
                                 </Card.Title>
                                 <Card.Text>
-                                  {!isQCM && (
+                                  {questions[selectedQuestionIndex - 1]
+                                    ?.type !== "QCM" && (
                                     <Form.Group
                                       className="mb-2 mt-2"
                                       controlId="text"
@@ -870,10 +949,10 @@ const Evaluation = () => {
                                       <Form.Control
                                         as="textarea"
                                         required
+                                        defaultValue={questions[selectedQuestionIndex - 1]?.possibleAnswers[0]?.answer}
+                                        onChange={(e) => setQuestionPossibleAnswers(e.target.value, 0)}
                                         type="text"
-                                        placeholder={`Entrez la/les réponse(s) possible(s) dans la question n° ${
-                                          selectedQuestionIndex
-                                        }`}
+                                        placeholder={`Entrez la/les réponse(s) possible(s) dans la question n° ${selectedQuestionIndex}`}
                                       />
                                       <Form.Text
                                         id="possible-answers-helper"
@@ -891,34 +970,44 @@ const Evaluation = () => {
                                       </Form.Text>
                                     </Form.Group>
                                   )}
-                                  {isQCM && (
+                                  {questions[selectedQuestionIndex - 1]
+                                    ?.type === "QCM" && (
                                     <>
                                       {Array.isArray(questions) &&
                                       Array.isArray(
-                                        questions[0]?.possibleAnswers
+                                        questions[selectedQuestionIndex - 1]
+                                          ?.possibleAnswers
                                       ) ? (
-                                        questions[0]?.possibleAnswers.map(
+                                        questions[
+                                          selectedQuestionIndex - 1
+                                        ]?.possibleAnswers.map(
                                           (answer, answerIndex) => (
-                                            <Form.Check
-                                              type="checkbox"
-                                              id={`qcm-checkbox-${answerIndex}`}
-                                              label={
-                                                <Form.Control
-                                                  type="text"
-                                                  placeholder={
-                                                    answer.name
-                                                      ? answer.name
-                                                      : `Proposition ${
-                                                          answerIndex + 1
-                                                        }`
-                                                  }
-                                                  className="mb-3"
-                                                  style={{
-                                                    marginTop: "-0.5rem",
-                                                  }}
-                                                />
-                                              }
-                                            />
+                                            <>
+                                              <Form.Check
+                                                type="checkbox"
+                                                id={`qcm-checkbox-${answerIndex}`}
+                                                className="mb-3"
+                                                label={
+                                                  <Form.Control
+                                                    type="input"
+                                                    id={`qcm-label-${answerIndex}`}
+                                                    defaultValue={questions[selectedQuestionIndex - 1]?.possibleAnswers[answerIndex]?.answer}
+                                                    onChange={(e) => setQuestionPossibleAnswers(e.target.value, answerIndex)}
+                                                    placeholder={
+                                                      answer.name
+                                                        ? answer.name
+                                                        : `Proposition ${
+                                                            answerIndex + 1
+                                                          }`
+                                                    }
+                                                    className="mb-3"
+                                                    style={{
+                                                      marginTop: "-0.5rem",
+                                                    }}
+                                                  />
+                                                }
+                                              ></Form.Check>
+                                            </>
                                           )
                                         )
                                       ) : (
@@ -939,7 +1028,11 @@ const Evaluation = () => {
                                       /> */}
                                       <Button
                                         variant="primary"
-                                        onClick={() => addNewAnswerToQCM(0)}
+                                        onClick={() =>
+                                          addNewAnswerToQCM(
+                                            selectedQuestionIndex - 1
+                                          )
+                                        }
                                       >
                                         Ajouter proposition
                                       </Button>
@@ -964,12 +1057,13 @@ const Evaluation = () => {
                                         );
                                       }}
                                       isInvalid={
-                                        questions[selectedQuestionIndex]
-                                          ?.files &&
-                                        questions[selectedQuestionIndex]
-                                          ?.files[0] &&
-                                        !isValidFileUploadForEvaluation(
-                                          teacherUploadedFile
+                                        questions[selectedQuestionIndex - 1]
+                                          ?.attachedFiles &&
+                                        questions[selectedQuestionIndex - 1]
+                                          ?.attachedFiles[0] &&
+                                        !isValidFileUploadForQuestion(
+                                          questions[selectedQuestionIndex - 1]
+                                            ?.attachedFiles[0]
                                         )
                                       }
                                     />
@@ -980,20 +1074,41 @@ const Evaluation = () => {
                                     </Form.Control.Feedback>
                                   </Form.Group>
                                 </Card.Text>
-                                {attachedFiles && (
+                                {questions[selectedQuestionIndex - 1]
+                                  ?.attachedFiles[0] && (
                                   <div
                                     style={{
                                       marginTop: "2rem",
                                       width: "400rem",
                                     }}
                                   >
-                                    {selectedFile?.type.includes("image") && (
+                                    {questions[selectedQuestionIndex - 1]
+                                      ?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.title && (
+                                      <div style={{ fontWeight: "bold" }}>
+                                        {
+                                          questions[selectedQuestionIndex - 1]
+                                            ?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.title
+                                        }
+                                      </div>
+                                    )}
+                                    {questions[
+                                      selectedQuestionIndex - 1
+                                    ]?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.type.includes(
+                                      "image"
+                                    ) && (
                                       <img
                                         alt="preview image"
-                                        src={selectedFile?.fileUrl}
+                                        src={
+                                          questions[selectedQuestionIndex - 1]
+                                            ?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.content
+                                        }
                                       />
                                     )}
-                                    {selectedFile?.type.includes("video") && (
+                                    {questions[
+                                      selectedQuestionIndex - 1
+                                    ]?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.type.includes(
+                                      "video"
+                                    ) && (
                                       <video
                                         style={{
                                           width: "50rem",
@@ -1002,17 +1117,27 @@ const Evaluation = () => {
                                         controls
                                       >
                                         <source
-                                          src={selectedFile?.fileUrl}
+                                          src={
+                                            questions[selectedQuestionIndex - 1]
+                                              ?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.content
+                                          }
                                           type="video/mp4"
                                         />
                                         Votre navigateur ne prend pas en charge
                                         la balise vidéo.
                                       </video>
                                     )}
-                                    {selectedFile?.type.includes("audio") && (
+                                    {questions[
+                                      selectedQuestionIndex - 1
+                                    ]?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.type.includes(
+                                      "audio"
+                                    ) && (
                                       <audio controls>
                                         <source
-                                          src={selectedFile?.fileUrl}
+                                          src={
+                                            questions[selectedQuestionIndex - 1]
+                                              ?.attachedFiles[questions[selectedQuestionIndex - 1]?.attachedFiles.length - 1]?.content
+                                          }
                                           type="audio/mp3"
                                         />
                                         Votre navigateur ne prend pas en charge
@@ -1026,7 +1151,7 @@ const Evaluation = () => {
                             <ListGroup.Item>
                               <Card.Body>
                                 <Card.Title>
-                                  Points question {selectedQuestionIndex + 1}
+                                  Points question {selectedQuestionIndex}
                                 </Card.Title>
                                 <Card.Text>
                                   <div
@@ -1039,19 +1164,13 @@ const Evaluation = () => {
                                     <Counter
                                       min={0}
                                       max={100}
-                                      value={questions[selectedQuestionIndex-1]?.points}
+                                      value={
+                                        questions[selectedQuestionIndex - 1]
+                                          ?.points
+                                      }
                                       delta={0.25}
                                       handleCounterValue={(e) => {
-                                        console.log(e);
-                                        setTotalPoints(
-                                          totalPoints + e.difference
-                                        );
-                                        let newArray = [...questions];
-                                        const indexValue = newArray.findIndex((item) => item.id === selectedQuestionIndex);
-                                        newArray[indexValue].points = newArray[indexValue].points + e.difference; 
-                                        console.log('newArray')
-                                        console.log(newArray)
-                                        setQuestions(newArray);
+                                        handleQuestionPointsClick(e);
                                       }}
                                     ></Counter>
                                   </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
-import Alert from "react-bootstrap/Alert";
+import Popover from "react-bootstrap/Popover";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 import {
   LineChart,
@@ -335,20 +336,47 @@ const Statistics = ({ handleNavbar, userType }) => {
             </div>
             <div>
               <Row>
-                <Col className="mb-3">
-                  <AnimatedCountup
-                    countUp="13"
-                    className="h-100"
-                    label="Nb compétences abordées"
-                  />
-                </Col>
-                <Col className="mb-3">
-                  <AnimatedCountup
-                    countUp="20"
-                    className="h-100"
-                    label="Participation moy./séance"
-                  />
-                </Col>
+                <OverlayTrigger
+                  trigger={["click", "hover", "focus"]}
+                  overlay={
+                    <Popover id="popover-competences">
+                      <Popover.Header as="h3">Compétences</Popover.Header>
+                      <Popover.Body>
+                        Vous avez déjà abordé <strong>13 compétences</strong>{" "}
+                        dont 7 avec la 6EME6.
+                      </Popover.Body>
+                    </Popover>
+                  }
+                >
+                  <Col className="mb-3">
+                    <AnimatedCountup
+                      countUp="13"
+                      className="h-100"
+                      label="Nb compétences abordées"
+                    />
+                  </Col>
+                </OverlayTrigger>
+                <OverlayTrigger
+                  trigger={["click", "hover", "focus"]}
+                  overlay={
+                    <Popover id="popover-participation">
+                      <Popover.Header as="h3">Participation</Popover.Header>
+                      <Popover.Body>
+                        En moyenne vous accordez
+                        <strong> 20 pts de participation par séance. </strong>
+                        La classe qui participe le + est la 5EME3.
+                      </Popover.Body>
+                    </Popover>
+                  }
+                >
+                  <Col className="mb-3">
+                    <AnimatedCountup
+                      countUp="20"
+                      className="h-100"
+                      label="Participation moy./séance"
+                    />
+                  </Col>
+                </OverlayTrigger>
                 <Col className="mb-3">
                   <AnimatedCountup
                     countUp="240"
