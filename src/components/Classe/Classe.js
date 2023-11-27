@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPath, useParams } from "react-router-dom";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
+import { Buffer } from "buffer";
 
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -14,6 +15,9 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import CsvDownloader from "react-csv-downloader";
 import { ObjectID } from "bson";
+import { createWorker } from "tesseract.js";
+
+import { Image as ImageJS } from "image-js";
 
 // auth & redux
 import { connect } from "react-redux";
@@ -33,11 +37,6 @@ import { sessionService } from "redux-react-session";
 import Switch from "../../utils/Switch/Switch.js";
 import DropdownButton from "react-bootstrap/esm/DropdownButton.js";
 import Dropdown from "react-bootstrap/Dropdown";
-// import { getDocument, version } from "pdfjs-dist/build/pdf";
-import { Document, Page, pdfjs } from "react-pdf";
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker.entry";
-
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const Classe = () => {
   const [user, setUser] = useState(store.getState().session.user);
@@ -54,10 +53,18 @@ const Classe = () => {
   const [counter, setCounter] = useState(null);
   const csvLink = useRef(); // setup the ref that we'll use for the hidden CsvLink click once we've updated the data
 
-  const [pdfLoaded, setPdfLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [trombinoscope, setTrombinoscope] = useState(null);
   const [numPages, setNumPages] = useState();
   const [pageNumber, setPageNumber] = useState(1);
+  const [currentImage, setCurrentImage] = useState(null);
+  const [extractedStudentPictures, setExtractedStudentPictures] =
+    useState(null);
+  const [extractedStudentNames, setExtractedStudentNames] = useState(null);
+  const [selectedTrombinoscopeSample, setSelectedTrombinoscopeSample] =
+    useState(null);
+  const [studentsData, setStudentsData] = useState([]);
+  const worker = createWorker();
 
   const [modalParticipationStudent, setModalParticipationStudent] =
     useState(null);
@@ -112,48 +119,220 @@ const Classe = () => {
     },
   ];
 
-  const handlePdfLoaded = (file) => {
-    console.log("handlePdfLoaded");
+  const extractIndividualNames = async (data) => {
+    // data est au format File {Blablabla}
+    console.log("data en entrée");
+    console.log(data);
+    // if (!selectedTrombinoscopeSample) return;
+    setIsFetching(true);
+    if (!data) return;
+    const worker = await createWorker("eng"); // attention une mauvaise langue crée une erreur bizarre
+    // Error: Network error while fetching https://cdn.jsdelivr.net/npm/@tesseract.js-data/fr/4.0.0_best_int/fr.traineddata.gz. Response code: 404
+    // const ret = await worker.recognize(selectedTrombinoscopeSample);
+    const ret = await worker.recognize(data);
+    console.log("data");
+    console.log(ret.data);
+    console.log(ret.data.text);
+    await worker.terminate();
+
+    // setExtractedStudentNames(ret.data.text);
+  };
+
+  const processImage = async (file) => {
+    try {
+      // Charger l'image
+      setIsFetching(true);
+      console.log("file");
+      console.log(file);
+      const numStudents = 29;
+      const imageUrl = URL.createObjectURL(file);
+      const fullImage = await ImageJS.load(imageUrl);
+      const imageWidth = fullImage.width;
+      const imageHeight = fullImage.height;
+
+      console.log("imageWidth", imageWidth);
+      console.log("imageHeight", imageHeight);
+
+      const studentsData = [];
+
+      // Calculer le nombre d'élèves par ligne et la largeur de chaque élève
+      const studentsPerRow = 9; // Modifier en fonction de votre mise en page
+      const photoWidth = 250; /*imageWidth / studentsPerRow;*/
+      const photoHeight = 312; // OK NE PLUS TOUCHER!!
+      const headerOffsetY = 95; // Remplacez par la valeur de décalage désirée
+
+      // Spécifiez l'espacement entre les photos (en pixels)
+      const spacingBetweenPhotosX = 0; // Remplacez par l'espacement réel en direction horizontale
+      const spacingBetweenPhotosY = 0; // Remplacez par l'espacement réel en direction verticale
+
+      const valueToDeletePictureFromTheImageToGetName = 200;
+      const valueToDeletePictureFromTheImageToGetPicture = 110;
+      // Spécifiez le décalage Y pour la première ligne (entête)
+
+      // Boucle pour extraire chaque élève
+      for (let i = 0; i < /*numStudents*/ 12; i++) {
+        // Calculer les coordonnées du coin supérieur gauche de l'élève
+        const row = Math.floor(i / studentsPerRow);
+        const col = i % studentsPerRow;
+        const startX = col * (photoWidth);
+
+        // Ajuster startYForStudentName en fonction de la ligne
+        let startYForStudentName = row * (photoHeight);
+        startYForStudentName += headerOffsetY // Appliquer le décalage du à l'entete qui se répercute sur tout le monde
+        startYForStudentName += valueToDeletePictureFromTheImageToGetName; // enlever la partie sur la photo
+
+        let startYForStudentPicture = row * (photoHeight);
+        startYForStudentPicture += headerOffsetY
+
+        // Extraire la portion d'image correspondant à un élève
+        const studentImageWithNameOnly = fullImage.crop({
+          x: startX,
+          y: startYForStudentName,
+          width: photoWidth,
+          height: photoHeight - valueToDeletePictureFromTheImageToGetName,
+        });
+
+        const emptySpaceAfterPicture = 95;
+        const studentImageWithPictureOnly = fullImage.crop({
+          x: startX,
+          y: startYForStudentPicture,
+          width: photoWidth - emptySpaceAfterPicture,
+          height: photoHeight - valueToDeletePictureFromTheImageToGetPicture,
+        });
+
+        // console.log("studentImageWithNameOnly");
+        // console.log(studentImageWithNameOnly);
+        // Obtenir le canevas et le contexte de l'image
+        // const canvas = studentImageWithNameOnly
+
+        // console.log("imageData", imageData);
+        // Convertir l'image en base64
+        const base64Image = studentImageWithNameOnly.toDataURL().split(",")[1];
+        // console.log("base64Image", base64Image);
+        let imageBuffer = Buffer.from(base64Image, "base64");
+        // console.log("imageBuffer", imageBuffer);
+
+        ///////
+        const worker = await createWorker("eng"); // attention une mauvaise langue crée une erreur bizarre
+        const ret = await worker.recognize(imageBuffer);
+        console.log("-----------------");
+        console.log("L eleve : ");
+        console.log("row", row);
+        console.log("col", col);
+        console.log("startX", startX);
+        console.log("startYForStudentName", startYForStudentName);
+
+        // console.log(ret);
+        // console.log(ret.data);
+        console.log("son nom: ", ret.data.text);
+        console.log("-----------------");
+
+        
+
+        // Ajouter les données de l'élève à la liste
+        studentsData.push({
+          name: ret.data.text.trim(),
+          photo: studentImageWithPictureOnly.toDataURL(),
+          namePhoto: studentImageWithNameOnly.toDataURL(),
+        });
+      }
+      // console.log("studentsData");
+      // console.log(studentsData);
+      // // Mettre à jour l'état avec les données des élèves
+      setStudentsData(studentsData);
+      setCurrentImage(studentsData[2]);
+      setExtractedStudentPictures(studentsData);
+    } catch (error) {
+      console.error(
+        "Une erreur s'est produite lors du traitement de l'image:",
+        error
+      );
+    }
+  };
+
+  useEffect(() => {
+    console.log("oui dans use effect, c est MAJ!");
+    // extractIndividualNames(selectedTrombinoscopeSample);
+
+    processImage(selectedTrombinoscopeSample)
+      .then(() => {
+        setIsFetching(true);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
+  }, [selectedTrombinoscopeSample /*extractIndividualNames*/]);
+
+  const extractIndividualImages = (originalImage) => {
+    // Replace these values with the actual dimensions of each individual photo
+    const photoWidth = 160; // Width of each photo
+    const photoHeight = 170; // Height of each photo
+
+    const individualImages = [];
+
+    // Loop through rows and columns
+    for (let row = 0; row < originalImage.height; row += photoHeight) {
+      for (let col = 0; col < originalImage.width; col += photoWidth) {
+        // Adjust crop dimensions to stay within the image boundaries
+        const x = col;
+        const y = row;
+        const width = Math.min(photoWidth, originalImage.width - x);
+        const height = Math.min(photoHeight, originalImage.height - y);
+
+        // Crop each photo from the original image
+        const croppedImage = originalImage.crop({ x, y, width, height });
+
+        // Convert the cropped image to base64 format
+        const base64Image = croppedImage.toDataURL();
+
+        // Add the base64 image to the array
+        individualImages.push(base64Image);
+      }
+    }
+
+    return individualImages;
+  };
+
+  const handleStudentNewTrombinoscopeUploaded = (file) => {
+    console.log("handleStudentNewTrombinoscopeUploaded");
     console.log(file);
 
-    if (file) {
-      const fileUrl = URL.createObjectURL(file);
-      console.log("fileUrl", fileUrl);
+    const imageUrl = URL.createObjectURL(file);
+    // extractIndividualNames(file); // not here!
+    setSelectedTrombinoscopeSample(file);
 
-      const loadingTask = pdfjsLib.getDocument({
-        data: fileUrl, // Utilisez l'objet File comme source de données
-      });
+    // Load the image from the URL
+    // ImageJS.load(imageUrl).then((image) => {
+    //   console.log("Image dimensions:", image.width, "x", image.height);
 
-      loadingTask.promise
-        .then((pdf) => {
-          // Extraire le texte de toutes les pages
-          return extractTextFromPdf(pdf);
-        })
-        .catch((error) => {
-          console.error(
-            "Une erreur s'est produite lors du chargement du PDF:",
-            error
-          );
-        });
-    }
+    //   // Extract individual images (assuming the image contains a grid of photos)
+    //   // const individualImages = extractIndividualImages(image);
+
+    //   // extract firstname / lastname :
+    //   // extractIndividualNames(image);
+
+    //   // console.log("individualImages");
+    //   // console.log(individualImages);
+
+    //   // // Update the state with the individual images
+    //   // setCurrentImage(individualImages[1]);
+    //   // setExtractedStudentPictures(individualImages);
+
+    //   // Revoke the object URL to prevent memory leaks
+    //   URL.revokeObjectURL(imageUrl);
+    // });
   };
 
-  // Fonction pour extraire le texte d'une page
-  const extractTextFromPage = async (page) => {
-    const textContent = await page.getTextContent();
-    const text = textContent.items.map((s) => s.str).join(" ");
-    console.log(text);
-  };
-
-  // Fonction pour extraire le texte de toutes les pages du PDF
-  const extractTextFromPdf = async (pdf) => {
-    const numPages = pdf.numPages;
-
-    for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {
-      const page = await pdf.getPage(pageNumber);
-      await extractTextFromPage(page);
-    }
-  };
+  // const extractIndividualNames = async (originalImage) => {
+  //   console.log('originalImage')
+  //   console.log(originalImage);
+  //   (await worker).load();
+  //   (await worker).loadLanguage('eng');
+  //   (await worker).reinitialize('eng');
+  //   const {data} = (await worker).recognize(originalImage);
+  //   console.log('dataaaaaaaaaa');
+  //   console.log(data);
+  // };
 
   const switchStudents = (el) => {
     console.log(el);
@@ -1270,13 +1449,13 @@ const Classe = () => {
                 <Form.Control
                   className="mt-4"
                   type="file"
-                  accept=".pdf"
+                  accept=".jpg, .jpeg, .png"
                   onChange={(e) => {
                     console.log("nouveau pdf");
                     console.log(e.target.files[0]);
                     setTrombinoscope(e.target.files[0]);
-                    setPdfLoaded(true);
-                    handlePdfLoaded(e.target.files[0]);
+                    setImageLoaded(true);
+                    handleStudentNewTrombinoscopeUploaded(e.target.files[0]);
                     // handleUploadStudentFile(e.target.files[0]);
                   }}
                   // isInvalid={
@@ -1285,9 +1464,42 @@ const Classe = () => {
                   //     : false
                   // }
                 />
-                {pdfLoaded && (
+                {imageLoaded && (
                   <>
-                    OOUUUUU
+                    OOOOOUUUUU
+                    {currentImage && (
+                      <Row>
+                        {extractedStudentPictures.map((image, index) => (
+                          <Col className="mt-3">
+                            <Row className="align-items-center">
+                              <Col>
+                                <img
+                                  key={`student-${index}-picture`}
+                                  src={image.photo}
+                                  alt="Image extraite"
+                                  style={{ border: "2px solid red" }}
+                                />
+                              </Col>
+                              {/* <Col>
+                                <img
+                                  key={`student-${index}-picture`}
+                                  src={image.namePhoto}
+                                  alt="Image extraite"
+                                  style={{ border: "2px solid red" }}
+                                />
+                              </Col> */}
+                              <Col>
+                                <Form.Control
+                                  type="text"
+                                  id={`stuident-name-${index}`}
+                                  defaultValue={image.name}
+                                />
+                              </Col>
+                            </Row>
+                          </Col>
+                        ))}
+                      </Row>
+                    )}
                     {/* <Document
                       file={trombinoscope}
                       onLoadSuccess={onDocumentLoadSuccess}
@@ -1507,7 +1719,7 @@ const Classe = () => {
                 }}
                 style={{
                   display: "flex",
-                  flexWrap: "nowrap",
+                  // flexWrap: "nowrap", // a cause de ca, les items de la navbar ne vont pas à la ligne si plus de place
                   alignItems: "stretch",
                   margin: 0,
                   padding: 0,

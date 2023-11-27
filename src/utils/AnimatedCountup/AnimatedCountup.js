@@ -72,7 +72,7 @@ export default function AnimatedCountup({
         <div className="count-up-number">
           <p>
             <span className="count-up-value">{Math.round(counter)} </span>
-            {unit && <span className="count-up-additional-unit">{unit}</span>}
+            {unit && <span className="count-up-additional-unit fs-4">{unit}</span>}
           </p>
         </div>
         <span className="count-up-text">{label}</span>
