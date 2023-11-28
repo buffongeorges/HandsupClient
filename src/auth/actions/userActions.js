@@ -361,6 +361,22 @@ export const uploadImageToS3 = (url, file) => {
     });
 };
 
+//Get student gender
+export const getEleveGender = (eleveName) => {
+  console.log("eleveName");
+  console.log(eleveName);
+  const genderEndpointUrl = `https://api.genderize.io?name=${eleveName}&country_id=FR`;
+
+  return axios
+    .get(genderEndpointUrl)
+    .then((response) => {
+      console.log("response du genre");
+      console.log(response);
+      return response;
+    })
+    .catch((err) => console.log(err));
+};
+
 //get students in a specific class
 //Get teacher registered classes
 export const getElevesInClasse = (data) => {

@@ -100,7 +100,7 @@ import {
             )}
           </Formik>
         </StyledFormArea>
-        <CopyrightText>All rights reserved &copy;2022</CopyrightText>
+        <CopyrightText>All rights reserved &copy;2023</CopyrightText>
       </div>
     );
   };

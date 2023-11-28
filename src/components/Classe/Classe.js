@@ -11,6 +11,8 @@ import Form from "react-bootstrap/Form";
 import ListGroup from "react-bootstrap/ListGroup";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import ToggleButton from "react-bootstrap/ToggleButton";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import CsvDownloader from "react-csv-downloader";
@@ -31,6 +33,7 @@ import {
   editEleveNote,
   endClassSequence,
   getElevesInClasse,
+  getEleveGender,
   increaseClassSeanceIndex,
 } from "../../auth/actions/userActions";
 import { sessionService } from "redux-react-session";
@@ -53,18 +56,11 @@ const Classe = () => {
   const [counter, setCounter] = useState(null);
   const csvLink = useRef(); // setup the ref that we'll use for the hidden CsvLink click once we've updated the data
 
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [trombinoscopeLoadedSuccessfully, setTrombinoscopeLoadedSuccessfully] =
+    useState(false);
   const [trombinoscope, setTrombinoscope] = useState(null);
-  const [numPages, setNumPages] = useState();
-  const [pageNumber, setPageNumber] = useState(1);
-  const [currentImage, setCurrentImage] = useState(null);
-  const [extractedStudentPictures, setExtractedStudentPictures] =
-    useState(null);
-  const [extractedStudentNames, setExtractedStudentNames] = useState(null);
-  const [selectedTrombinoscopeSample, setSelectedTrombinoscopeSample] =
-    useState(null);
-  const [studentsData, setStudentsData] = useState([]);
-  const worker = createWorker();
+
+  const [extractedStudentsData, setExtractedStudentsData] = useState(null);
 
   const [modalParticipationStudent, setModalParticipationStudent] =
     useState(null);
@@ -119,23 +115,34 @@ const Classe = () => {
     },
   ];
 
-  const extractIndividualNames = async (data) => {
-    // data est au format File {Blablabla}
-    console.log("data en entrée");
-    console.log(data);
-    // if (!selectedTrombinoscopeSample) return;
-    setIsFetching(true);
-    if (!data) return;
-    const worker = await createWorker("eng"); // attention une mauvaise langue crée une erreur bizarre
-    // Error: Network error while fetching https://cdn.jsdelivr.net/npm/@tesseract.js-data/fr/4.0.0_best_int/fr.traineddata.gz. Response code: 404
-    // const ret = await worker.recognize(selectedTrombinoscopeSample);
-    const ret = await worker.recognize(data);
-    console.log("data");
-    console.log(ret.data);
-    console.log(ret.data.text);
-    await worker.terminate();
+  const separateFirstnameAndLastname = (fullName) => {
+    console.log("fullName", fullName);
+    fullName = fullName.replace(/\s/g, '');
+    // Supprimer les retours à la ligne
+    const cleanedFullName = fullName.replace(/[\r\n]+/g, "");
+    console.log("cleanedFullName", cleanedFullName);
 
-    // setExtractedStudentNames(ret.data.text);
+    // Trouver la transition entre la dernière majuscule et la première minuscule
+    const indexTransition = cleanedFullName.search(/[A-Z](?=[A-Z][a-z])/);
+    console.log("indexTransition", indexTransition);
+
+
+    // Vérifier si une telle transition a été trouvée
+    if (indexTransition !== -1) {
+      const lastname = cleanedFullName.substring(0, indexTransition + 1).trim();
+      const firstname = cleanedFullName.substring(indexTransition + 1).trim();
+
+      return {
+        lastname,
+        firstname,
+      };
+    } else {
+      // Si aucune transition n'est trouvée, renvoyer le nom complet
+      return {
+        lastname: cleanedFullName,
+        firstname: "",
+      };
+    }
   };
 
   const processImage = async (file) => {
@@ -170,19 +177,19 @@ const Classe = () => {
       // Spécifiez le décalage Y pour la première ligne (entête)
 
       // Boucle pour extraire chaque élève
-      for (let i = 0; i < /*numStudents*/ 12; i++) {
+      for (let i = 0; i < /*numStudents*/ 5; i++) {
         // Calculer les coordonnées du coin supérieur gauche de l'élève
         const row = Math.floor(i / studentsPerRow);
         const col = i % studentsPerRow;
-        const startX = col * (photoWidth);
+        const startX = col * photoWidth;
 
         // Ajuster startYForStudentName en fonction de la ligne
-        let startYForStudentName = row * (photoHeight);
-        startYForStudentName += headerOffsetY // Appliquer le décalage du à l'entete qui se répercute sur tout le monde
+        let startYForStudentName = row * photoHeight;
+        startYForStudentName += headerOffsetY; // Appliquer le décalage du à l'entete qui se répercute sur tout le monde
         startYForStudentName += valueToDeletePictureFromTheImageToGetName; // enlever la partie sur la photo
 
-        let startYForStudentPicture = row * (photoHeight);
-        startYForStudentPicture += headerOffsetY
+        let startYForStudentPicture = row * photoHeight;
+        startYForStudentPicture += headerOffsetY;
 
         // Extraire la portion d'image correspondant à un élève
         const studentImageWithNameOnly = fullImage.crop({
@@ -227,41 +234,47 @@ const Classe = () => {
         console.log("son nom: ", ret.data.text);
         console.log("-----------------");
 
-        
-
+        //Get gender by calling gender API
+        const studentSeparatedName = separateFirstnameAndLastname(
+          ret.data.text.trim()
+        );
+        const firstname = studentSeparatedName.firstname;
+        const lastname = studentSeparatedName.lastname;
+        const studentGenderData = await getEleveGender(firstname);
+        const gender = studentGenderData.data.gender
+          ? studentGenderData.data.gender
+          : "unknown";
+        console.log("gender");
+        console.log(gender);
         // Ajouter les données de l'élève à la liste
         studentsData.push({
+          firstname,
+          lastname,
           name: ret.data.text.trim(),
           photo: studentImageWithPictureOnly.toDataURL(),
           namePhoto: studentImageWithNameOnly.toDataURL(),
+          gender,
         });
       }
-      // console.log("studentsData");
-      // console.log(studentsData);
+      console.log("studentsData");
+      console.log(studentsData);
       // // Mettre à jour l'état avec les données des élèves
-      setStudentsData(studentsData);
-      setCurrentImage(studentsData[2]);
-      setExtractedStudentPictures(studentsData);
+      // setCurrentImage(studentsData[2]);
+      setExtractedStudentsData(studentsData);
+      URL.revokeObjectURL(imageUrl);
     } catch (error) {
       console.error(
         "Une erreur s'est produite lors du traitement de l'image:",
         error
       );
+    } finally {
+      setIsFetching(false);
     }
   };
 
   useEffect(() => {
-    console.log("oui dans use effect, c est MAJ!");
-    // extractIndividualNames(selectedTrombinoscopeSample);
-
-    processImage(selectedTrombinoscopeSample)
-      .then(() => {
-        setIsFetching(true);
-      })
-      .finally(() => {
-        setIsFetching(false);
-      });
-  }, [selectedTrombinoscopeSample /*extractIndividualNames*/]);
+    processImage(trombinoscope);
+  }, [trombinoscope]);
 
   const extractIndividualImages = (originalImage) => {
     // Replace these values with the actual dimensions of each individual photo
@@ -289,17 +302,12 @@ const Classe = () => {
         individualImages.push(base64Image);
       }
     }
-
     return individualImages;
   };
 
   const handleStudentNewTrombinoscopeUploaded = (file) => {
-    console.log("handleStudentNewTrombinoscopeUploaded");
-    console.log(file);
-
-    const imageUrl = URL.createObjectURL(file);
-    // extractIndividualNames(file); // not here!
-    setSelectedTrombinoscopeSample(file);
+    setTrombinoscope(file);
+    setTrombinoscopeLoadedSuccessfully(true);
 
     // Load the image from the URL
     // ImageJS.load(imageUrl).then((image) => {
@@ -316,23 +324,12 @@ const Classe = () => {
 
     //   // // Update the state with the individual images
     //   // setCurrentImage(individualImages[1]);
-    //   // setExtractedStudentPictures(individualImages);
+    //   // setextractedStudentsData(individualImages);
 
     //   // Revoke the object URL to prevent memory leaks
     //   URL.revokeObjectURL(imageUrl);
     // });
   };
-
-  // const extractIndividualNames = async (originalImage) => {
-  //   console.log('originalImage')
-  //   console.log(originalImage);
-  //   (await worker).load();
-  //   (await worker).loadLanguage('eng');
-  //   (await worker).reinitialize('eng');
-  //   const {data} = (await worker).recognize(originalImage);
-  //   console.log('dataaaaaaaaaa');
-  //   console.log(data);
-  // };
 
   const switchStudents = (el) => {
     console.log(el);
@@ -1069,8 +1066,11 @@ const Classe = () => {
       placement: el.position,
     };
   });
+
   useEffect(() => {
+    // setIsFetching(true);
     setEleves(eleves);
+    // setIsFetching(false);
     // setCurrentSeance(currentSeance + 1)
   }, [counter]);
 
@@ -1078,6 +1078,7 @@ const Classe = () => {
     if (eleves && discipline) {
       console.log("eleves[0]");
       console.log(eleves[0].participation);
+
       // setCurrentSeance(
       //   eleves[0].participation.find((matiere) => matiere.matière == discipline)
       //     .nbSeances
@@ -1090,111 +1091,115 @@ const Classe = () => {
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });
+    console.log("début?????");
     setIsFetching(true);
-    sessionService.loadUser().then((user) => {
-      console.log("my user");
-      console.log(user);
-      setTeacherAvertissementDelta(user.avertissement);
-      setTeacherBonusDelta(user.bonus);
-      setTeacherParticipationDelta(user.participation);
-      setTeacherNoteDepart(user.noteDepart);
-      // console.log(user.college.name);
-      let userCollege;
-      if (Array.isArray(user.college)) {
-        userCollege = user.college[0].name;
-      } else {
-        userCollege = user.college;
-      }
-      let data = {
-        classId,
-        college: userCollege,
-        discipline: user.discipline.name,
-        currentDate: new Date(localeTime),
-      };
-      getElevesInClasse(data)
-        .then((response) => {
-          const students = response.data.data.students;
-          console.log("les eleves");
-          console.log(response.data.data.students);
-          setClasse(response.data.data.classe.name);
-          setEleves(response.data.data.students);
-          setElevesOrdreAlphabetique(
-            response.data.data.studentsAlphabeticalOrder
-          );
-          setCollege(response.data.data.classe.ecole.name);
-          // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
-          setDiscipline(user.discipline.name);
-          setCounter(students.length);
-          setEleves(students);
-          setExportList(students);
-          setCurrentSeance(response.data.data.nbSeances);
-          setIsNewSeance(response.data.data.isNewSeance);
-          if (response.data.data.isNewSeance == true) {
-            setShowModalNewSeance(response.data.data.isNewSeance);
-          }
-          console.log("response.data.data.isNewSeance------");
-          console.log(response.data.data.isNewSeance);
 
-          if (response.data.data.isNewSeance) {
-            //user is fetching class from another day so we have to increase the seance
-            let increaseSeanceData = {
-              classe: response.data.data.classe.name,
-              college: response.data.data.classe.ecole.name,
-              nbSeances: response.data.data.nbSeances,
-              discipline: user.discipline.name,
-            };
-            increaseClassSeanceIndex(increaseSeanceData)
-              .then((responseIncrease) => {
-                console.log("responseIncrease");
-                console.log(responseIncrease);
-                let data = {
-                  classId,
-                  college: { name: response.data.data.classe.ecole.name },
-                  discipline: user.discipline.name,
-                  currentDate: new Date(localeTime),
-                };
-                getElevesInClasse(data)
-                  .then((response) => {
-                    const students = response.data.data.students;
-                    console.log("les eleves");
-                    console.log(response.data.data.students);
-                    setClasse(response.data.data.classe.name);
-                    setEleves(response.data.data.students);
-                    setElevesOrdreAlphabetique(
-                      response.data.data.studentsAlphabeticalOrder
-                    );
+    sessionService
+      .loadUser()
+      .then((user) => {
+        console.log("my user");
+        console.log(user);
+        setTeacherAvertissementDelta(user.avertissement);
+        setTeacherBonusDelta(user.bonus);
+        setTeacherParticipationDelta(user.participation);
+        setTeacherNoteDepart(user.noteDepart);
+        // console.log(user.college.name);
+        let userCollege;
+        if (Array.isArray(user.college)) {
+          userCollege = user.college[0].name;
+        } else {
+          userCollege = user.college;
+        }
+        let data = {
+          classId,
+          college: userCollege,
+          discipline: user.discipline.name,
+          currentDate: new Date(localeTime),
+        };
+        getElevesInClasse(data)
+          .then((response) => {
+            const students = response.data.data.students;
+            console.log("les eleves");
+            console.log(response.data.data.students);
+            setClasse(response.data.data.classe.name);
+            setEleves(response.data.data.students);
+            setElevesOrdreAlphabetique(
+              response.data.data.studentsAlphabeticalOrder
+            );
+            setCollege(response.data.data.classe.ecole.name);
+            // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
+            setDiscipline(user.discipline.name);
+            setCounter(students.length);
+            setEleves(students);
+            setExportList(students);
+            setCurrentSeance(response.data.data.nbSeances);
+            setIsNewSeance(response.data.data.isNewSeance);
+            if (response.data.data.isNewSeance == true) {
+              setShowModalNewSeance(response.data.data.isNewSeance);
+            }
+            console.log("response.data.data.isNewSeance------");
+            console.log(response.data.data.isNewSeance);
 
-                    setCollege(response.data.data.classe.ecole.name);
-                    setCounter(students.length);
-                    setEleves(students);
-                    setExportList(students);
-                    setCurrentSeance(response.data.data.nbSeances);
-                    setIsNewSeance(response.data.data.isNewSeance);
-                    if (response.data.data.isNewSeance == true) {
-                      setShowModalNewSeance(response.data.data.isNewSeance);
-                    }
-                  })
-                  .catch((error) => {
-                    console.log("error while fetching students");
-                    console.log(error);
-                  })
-                  .finally(() => {
-                    setIsFetching(false);
-                  });
-              })
-              .catch((errorIncrease) => {
-                console.log(errorIncrease);
-              });
-          }
-        })
-        .catch((error) => {
-          console.log("error while fetching students");
-          console.log(error);
-        })
-        .finally(() => {
-          setIsFetching(false);
-        });
-    });
+            if (response.data.data.isNewSeance) {
+              //user is fetching class from another day so we have to increase the seance
+              let increaseSeanceData = {
+                classe: response.data.data.classe.name,
+                college: response.data.data.classe.ecole.name,
+                nbSeances: response.data.data.nbSeances,
+                discipline: user.discipline.name,
+              };
+              increaseClassSeanceIndex(increaseSeanceData)
+                .then((responseIncrease) => {
+                  console.log("responseIncrease");
+                  console.log(responseIncrease);
+                  let data = {
+                    classId,
+                    college: { name: response.data.data.classe.ecole.name },
+                    discipline: user.discipline.name,
+                    currentDate: new Date(localeTime),
+                  };
+                  getElevesInClasse(data)
+                    .then((response) => {
+                      const students = response.data.data.students;
+                      console.log("les eleves");
+                      console.log(response.data.data.students);
+                      setClasse(response.data.data.classe.name);
+                      setEleves(response.data.data.students);
+                      setElevesOrdreAlphabetique(
+                        response.data.data.studentsAlphabeticalOrder
+                      );
+
+                      setCollege(response.data.data.classe.ecole.name);
+                      setCounter(students.length);
+                      setEleves(students);
+                      setExportList(students);
+                      setCurrentSeance(response.data.data.nbSeances);
+                      setIsNewSeance(response.data.data.isNewSeance);
+                      if (response.data.data.isNewSeance == true) {
+                        setShowModalNewSeance(response.data.data.isNewSeance);
+                      }
+                    })
+                    .catch((error) => {
+                      console.log("error while fetching students");
+                      console.log(error);
+                    });
+                })
+                .catch((errorIncrease) => {
+                  console.log(errorIncrease);
+                });
+            }
+          })
+          .catch((error) => {
+            console.log("error while fetching students");
+            console.log(error);
+          })
+          .finally(() => {
+            setIsFetching(false);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     console.log("eleves");
     console.log(eleves);
   }, []);
@@ -1435,71 +1440,141 @@ const Classe = () => {
             </Button>
           </Modal.Footer>
         </Modal>
-
-        <Modal show={showModalClassSettings}>
-          <Modal.Header closeButton>
-            <Modal.Title>Paramètres de la {classe}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <ListGroup>
-              <ListGroup.Item>
-                <span className="lead">
-                  Importer élèves à partir du trombinoscope{" "}
-                </span>
-                <Form.Control
-                  className="mt-4"
-                  type="file"
-                  accept=".jpg, .jpeg, .png"
-                  onChange={(e) => {
-                    console.log("nouveau pdf");
-                    console.log(e.target.files[0]);
-                    setTrombinoscope(e.target.files[0]);
-                    setImageLoaded(true);
-                    handleStudentNewTrombinoscopeUploaded(e.target.files[0]);
-                    // handleUploadStudentFile(e.target.files[0]);
-                  }}
-                  // isInvalid={
-                  //   studentsFile
-                  //     ? !isValidFileUploadForStudentDB(studentsFile)
-                  //     : false
-                  // }
-                />
-                {imageLoaded && (
+        <div className="testing">
+          <Modal
+            dialogClassName="modal-90w"
+            size="xl"
+            id="modal-import-students-from-imagefie"
+            show={showModalClassSettings}
+            onHide={() => {
+              setShowModalClassSettings(false);
+            }}
+          >
+              <Modal.Header closeButton>
+                <Modal.Title>Paramètres de la {classe}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {!trombinoscope && (
                   <>
-                    OOOOOUUUUU
-                    {currentImage && (
-                      <Row>
-                        {extractedStudentPictures.map((image, index) => (
-                          <Col className="mt-3">
-                            <Row className="align-items-center">
-                              <Col>
-                                <img
-                                  key={`student-${index}-picture`}
-                                  src={image.photo}
-                                  alt="Image extraite"
-                                  style={{ border: "2px solid red" }}
-                                />
-                              </Col>
-                              {/* <Col>
-                                <img
-                                  key={`student-${index}-picture`}
-                                  src={image.namePhoto}
-                                  alt="Image extraite"
-                                  style={{ border: "2px solid red" }}
-                                />
-                              </Col> */}
-                              <Col>
-                                <Form.Control
-                                  type="text"
-                                  id={`stuident-name-${index}`}
-                                  defaultValue={image.name}
-                                />
-                              </Col>
-                            </Row>
-                          </Col>
-                        ))}
-                      </Row>
-                    )}
+                    <span className="lead">
+                      Importer élèves à partir du trombinoscope{" "}
+                    </span>
+                    <Form.Control
+                      className="mt-4"
+                      type="file"
+                      accept=".jpg, .jpeg, .png"
+                      onChange={(e) => {
+                        console.log("nouveau pdf");
+                        console.log(e.target.files[0]);
+
+                        handleStudentNewTrombinoscopeUploaded(
+                          e.target.files[0]
+                        );
+                        // handleUploadStudentFile(e.target.files[0]);
+                      }}
+                      // isInvalid={
+                      //   studentsFile
+                      //     ? !isValidFileUploadForStudentDB(studentsFile)
+                      //     : false
+                      // }
+                    />
+                    <Form.Text className="text-muted lead">
+                      ATTENTION : Le fichier doit être au format Image (PNG ou JPEG) !
+                    </Form.Text>
+                  </>
+                )}
+                {Array.isArray(extractedStudentsData) && trombinoscope && (
+                  <>
+                    {trombinoscopeLoadedSuccessfully &&
+                      extractedStudentsData.length > 0 && (
+                        <Row>
+                          <div className="fs-5">
+                            <b>Chargement terminé. Veuillez vérifier que les
+                            informations sont correctes :{" "}</b>
+                          </div>
+                          {extractedStudentsData.map((image, index) => (
+                            <Col
+                              className="mt-3 mb-4"
+                              key={`student-${index}-col`}
+                            >
+                              <Row className="align-items-center">
+                                <Col className="d-inline-flex justify-content-center mb-2">
+                                  <img
+                                    key={`student-${index}-picture`}
+                                    src={image.photo}
+                                    alt="Image extraite"
+                                    style={{ border: "2px solid #6668f4" }}
+                                  />
+                                </Col>
+                                <Col>
+                                  <Form.Control
+                                    type="text"
+                                    style={{ wordWrap: "break-word" }}
+                                    id={`stuident-name-${index}`}
+                                    defaultValue={`${image.lastname} ${image.firstname}`}
+                                  />
+                                </Col>
+                              </Row>
+                              <Row className="align-items-center" key='gender-option'>
+                                <Col className="mt-2 d-inline-flex justify-content-center" key='gender-choice'>
+                                  <ButtonGroup>
+                                    <ToggleButton
+                                      key={`radio-gender-${image.name}-male-option`}
+                                      id={`radio-gender-${image.name}-male-option`}
+                                      type="radio"
+                                      variant={`${image.gender === 'male' ? "primary": 'outline-primary'}`}
+                                      name="radio-male"
+                                      value={image.gender}
+                                      // value={1}
+                                      defaultChecked={`${image.gender === 'male' ? true : false}`}
+                                      // checked={`${image.gender === 'male' ? true : false}`}
+                                      onClick={(e) => {
+                                        let newStudentsData = [...extractedStudentsData];
+                                        let newStudentToUpdateIndex = newStudentsData.findIndex((student, stIndex) => stIndex === index);
+                                        let newStudentToUpdate = newStudentsData[newStudentToUpdateIndex];
+                                        newStudentToUpdate.gender = 'male';
+                                        console.log('newStudentToUpdate')
+                                        console.log(newStudentToUpdate)
+                                        console.log('newStudentsData')
+                                        console.log(newStudentsData)
+                                        
+                                        setExtractedStudentsData(newStudentsData);
+                                        console.log(e.target.value);
+                                      }}
+                                    >
+                                      Garçon
+                                    </ToggleButton>
+                                    <ToggleButton
+                                      key={`radio-gender-${image.name}-female-option`}
+                                      id={`radio-gender-${image.name}-female-option`}
+                                      type="radio"
+                                      name="radio-female"
+                                      defaultChecked={`${image.gender === 'female' ? true : false}`}
+                                      variant={`${image.gender === 'female' ? "danger": 'outline-danger'}`}
+                                      value={image.gender}
+                                      // value={`${image.gender === 'female' ? '2' : image.gender === 'male' ? '1': ''}`}
+                                      // checked={`${image.gender === 'female' ? true : false}`}
+                                      onClick={(e) => {
+                                        let newStudentsData = [...extractedStudentsData];
+                                        let newStudentToUpdateIndex = newStudentsData.findIndex((student, stIndex) => stIndex === index);
+                                        let newStudentToUpdate = newStudentsData[newStudentToUpdateIndex];
+                                        newStudentToUpdate.gender = 'female';
+                                        console.log('newStudentToUpdate')
+                                        console.log(newStudentToUpdate)
+                                        setExtractedStudentsData(newStudentsData);
+                                        console.log(e.target.value);
+                                      }
+                                    }
+                                    >
+                                      Fille
+                                    </ToggleButton>
+                                  </ButtonGroup>
+                                </Col>
+                              </Row>
+                            </Col>
+                          ))}
+                        </Row>
+                      )}
                     {/* <Document
                       file={trombinoscope}
                       onLoadSuccess={onDocumentLoadSuccess}
@@ -1518,27 +1593,24 @@ const Classe = () => {
                     </Document> */}
                   </>
                 )}
-              </ListGroup.Item>
-              <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
-              <ListGroup.Item>Morbi leo risus</ListGroup.Item>
-              <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
-              <ListGroup.Item>Vestibulum at eros</ListGroup.Item>
-            </ListGroup>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowModalClassSettings(false);
-              }}
-            >
-              Annuler
-            </Button>
-            <Button variant="primary" onClick={() => {}}>
-              Confirmer
-            </Button>
-          </Modal.Footer>
-        </Modal>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setShowModalClassSettings(false);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button variant="primary" onClick={() => {
+                    setShowModalClassSettings(false);
+                }}>
+                  Importer
+                </Button>
+              </Modal.Footer>
+          </Modal>
+        </div>
 
         <Modal
           show={showModalNewSeance}

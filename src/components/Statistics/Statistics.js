@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Popover from "react-bootstrap/Popover";
+import Accordion from "react-bootstrap/Accordion";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 import {
@@ -12,6 +13,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 import { useNavigate } from "react-router-dom";
@@ -44,6 +48,19 @@ const Statistics = ({ handleNavbar, userType }) => {
   const fromLogin = sessionStorage.fromLogin;
   console.log("fromLogin", fromLogin);
   console.log(fromLogin == "true");
+
+  const data03 = [
+    { name: "Geeksforgeeks", students: 2400, color: "#0c9564" },
+    { name: "Technical scripter", students: 700, color: "#8455ca" },
+    { name: "Geek-i-knack", students: 1200, color: "#af1546" },
+  ];
+  const data04 = [
+    { name: "Geeksforgeeks", students: 400, color: "#8455ca" },
+    { name: "Technical scripter", students: 700, color: "#0c9564" },
+    { name: "Geek-i-knack", students: 200, color: "#525659" },
+    { name: "Geek-i-knackez", students: 570, color: "#eb984b" },
+    { name: "Geek-i-knackxc", students: 570, color: "#af1546" },
+  ];
 
   const data = [
     {
@@ -186,239 +203,594 @@ const Statistics = ({ handleNavbar, userType }) => {
         >
           Mes Stats
         </h1>
-        <div className="m-3">
-          <div>
-            <div className="mt-5" style={{ fontSize: "2rem" }}>
-              {" "}
-              En graphique{" "}
-            </div>
-            <div>
-              <Row className="mt-5">
-                <Col>
-                  <Form>
-                    <div className="mb-3 mx-5">
-                      {Array.isArray(classes)
-                        ? classes.map((classe, index) => (
-                            <Form.Check
-                              inline={true}
-                              type="checkbox"
-                              id={`inline-${classe.label}-${index}`}
-                              label={`${classe.label}`}
-                              //   checked={
-                              //     setCheckedClasses &&
-                              //     setCheckedClasses._id == classe._id
-                              //   }
-                              onClick={() => {
-                                //   setShowDisciplineAlert(false);
-                                setCheckedClasses(classe);
+        <Row>
+          <Col>
+            <div className="m-3">
+              <div>
+                <Accordion defaultActiveKey="0" alwaysOpen={true}>
+                  <Accordion.Item eventKey="0">
+                    <Accordion.Header>
+                      <div className="fs-2">En graphique</div>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      <div>
+                        <Row className="mt-1">
+                          <Col>
+                            <Form>
+                              <div className="mb-3 mx-2">
+                                {Array.isArray(classes)
+                                  ? classes.map((classe, index) => (
+                                      <Form.Check
+                                        inline={true}
+                                        type="checkbox"
+                                        id={`inline-${classe.label}-${index}`}
+                                        label={`${classe.label}`}
+                                        //   checked={
+                                        //     setCheckedClasses &&
+                                        //     setCheckedClasses._id == classe._id
+                                        //   }
+                                        onClick={() => {
+                                          //   setShowDisciplineAlert(false);
+                                          setCheckedClasses(classe);
+                                        }}
+                                      />
+                                    ))
+                                  : null}
+                              </div>
+                            </Form>
+                            {/* <Row
+                              style={{
+                                marginBottom: "2rem",
+                                marginTop: "2rem",
                               }}
+                            >
+                              <Col>
+                                <div style={{ textAlign: "center" }}>
+                                  <strong>Participations</strong>
+                                  <center>
+                                    <p
+                                      style={{
+                                        borderRadius: "50%",
+                                        backgroundColor: "#82ca9d",
+                                        marginTop: "1.5rem",
+                                        width: "5rem",
+                                        height: "5rem",
+                                        textAlign: "center",
+                                        display: "table-cell",
+                                        verticalAlign: "middle",
+                                        fontSize: "2rem",
+                                      }}
+                                    >
+                                      {sumParticipations}
+                                    </p>
+                                  </center>
+                                </div>
+                              </Col>
+                              <Col>
+                                <div style={{ textAlign: "center" }}>
+                                  <strong>Bonus</strong>
+                                  <center>
+                                    <p
+                                      style={{
+                                        borderRadius: "50%",
+                                        backgroundColor: "#8884d8",
+                                        marginTop: "1.5rem",
+                                        width: "5rem",
+                                        height: "5rem",
+                                        textAlign: "center",
+                                        display: "table-cell",
+                                        verticalAlign: "middle",
+                                        fontSize: "2rem",
+                                      }}
+                                    >
+                                      {sumBonus}
+                                    </p>
+                                  </center>
+                                </div>
+                              </Col>
+                              <Col>
+                                <div style={{ textAlign: "center" }}>
+                                  <strong>Avertissements</strong>
+                                  <center>
+                                    <p
+                                      style={{
+                                        borderRadius: "50%",
+                                        backgroundColor: "#c29825",
+                                        marginTop: "1.5rem",
+                                        width: "5rem",
+                                        height: "5rem",
+                                        textAlign: "center",
+                                        display: "table-cell",
+                                        verticalAlign: "middle",
+                                        fontSize: "2rem",
+                                      }}
+                                    >
+                                      {sumAvertissements}
+                                    </p>
+                                  </center>
+                                </div>
+                              </Col>
+                            </Row> */}
+                            <Row style={{ marginTop: "-6.5rem" }}>
+                              <Col md="6" style={{ marginTop: "0px" }}>
+                                <ResponsiveContainer
+                                  width="100%"
+                                  height={500}
+                                  className="mb-5"
+                                >
+                                  <PieChart width={400} height={400}>
+                                    <Pie
+                                      data={data03}
+                                      dataKey="students"
+                                      outerRadius={130}
+                                    >
+                                      <Cell
+                                        key={`cell-1-`}
+                                        fill={data03[0].color}
+                                      />
+                                      <Cell
+                                        key={`cell-2-`}
+                                        fill={data03[1].color}
+                                      />
+                                      <Cell
+                                        key={`cell-3-`}
+                                        fill={data03[2].color}
+                                      />
+                                    </Pie>
+                                  </PieChart>
+                                  <div style={{ marginTop: "-6rem" }}>
+                                    {" "}
+                                    <Row>
+                                      <Col className="d-inline-flex align-items-center justify-content-end">
+                                        <span>
+                                          <i
+                                            className="fa-solid fa-pen-to-square"
+                                            style={{ color: "#0c9564" }}
+                                          ></i>
+                                        </span>
+                                      </Col>
+                                      <Col>
+                                        <span>
+                                          <b
+                                            className="fs-5"
+                                            style={{ color: "#0c9564" }}
+                                          >
+                                            Participations
+                                          </b>
+                                        </span>
+                                      </Col>
+                                      <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                        <span
+                                          style={{
+                                            fontSize: "large",
+                                            color: "#0c9564",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          <b>45</b>
+                                        </span>
+                                      </Col>
+                                    </Row>
+                                    <Row>
+                                      <Col className="d-inline-flex align-items-center justify-content-end">
+                                        <span>
+                                          <i
+                                            className="fa-solid fa-pen-to-square"
+                                            style={{ color: "#0c9564af1546" }}
+                                          ></i>
+                                        </span>
+                                      </Col>
+                                      <Col>
+                                        <span>
+                                          <b
+                                            className="fs-5"
+                                            style={{ color: "#af1546" }}
+                                          >
+                                            Avertissements
+                                          </b>
+                                        </span>
+                                      </Col>
+                                      <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                        <span
+                                          style={{
+                                            fontSize: "large",
+                                            color: "#af1546",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          <b>25</b>
+                                        </span>
+                                      </Col>
+                                    </Row>
+                                    <Row>
+                                      <Col className="d-inline-flex align-items-center justify-content-end">
+                                        <span>
+                                          <i
+                                            className="fa-solid fa-pen-to-square"
+                                            style={{ color: "#8455ca" }}
+                                          ></i>
+                                        </span>
+                                      </Col>
+                                      <Col>
+                                        <span>
+                                          <b
+                                            className="fs-5"
+                                            style={{ color: "#8455ca" }}
+                                          >
+                                            Bonus
+                                          </b>
+                                        </span>
+                                      </Col>
+                                      <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                        <span
+                                          style={{
+                                            fontSize: "large",
+                                            color: "#8455ca",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          <b>14</b>
+                                        </span>
+                                      </Col>
+                                    </Row>
+                                  </div>
+
+                                  {/* <div>
+                                    <span>
+                                      <i className="fa-solid fa-pen-to-square"></i>
+                                    </span>
+                                    <span>Participations</span>
+                                    <span>660</span>
+                                  </div> */}
+                                </ResponsiveContainer>
+                              </Col>
+                              <Col md="6">
+                                <ResponsiveContainer
+                                  width="100%"
+                                  height={500}
+                                  className="mb-5"
+                                >
+                                  <PieChart width={400} height={400}>
+                                    <Pie
+                                      data={data04}
+                                      dataKey="students"
+                                      outerRadius={130}
+                                    >
+                                      <Cell
+                                        key={`cell-1-`}
+                                        fill={data04[0].color}
+                                      />
+                                      <Cell
+                                        key={`cell-2-`}
+                                        fill={data04[1].color}
+                                      />
+                                      <Cell
+                                        key={`cell-3-`}
+                                        fill={data04[2].color}
+                                      />
+                                      <Cell
+                                        key={`cell-4-`}
+                                        fill={data04[3].color}
+                                      />
+                                      <Cell
+                                        key={`cell-5-`}
+                                        fill={data04[4].color}
+                                      />
+                                    </Pie>
+                                  </PieChart>
+                                  <div style={{ marginTop: "-6.5rem" }}>
+                                    {" "}
+                                    <Col>
+                                      <Row>
+                                        <Col className="d-inline-flex align-items-center justify-content-end">
+                                          <span>
+                                            <i
+                                              className="fa-solid fa-pen-to-square"
+                                              style={{ color: "#0c9564" }}
+                                            ></i>
+                                          </span>
+                                        </Col>
+                                        <Col>
+                                          <span>
+                                            <b
+                                              className="fs-5"
+                                              style={{ color: "#0c9564" }}
+                                            >
+                                              Maîtrise
+                                            </b>
+                                          </span>
+                                        </Col>
+                                        <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                          <span
+                                            style={{
+                                              fontSize: "large",
+                                              color: "#0c9564",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            <b>45</b>
+                                          </span>
+                                        </Col>
+                                      </Row>
+                                      <Row>
+                                        <Col className="d-inline-flex align-items-center justify-content-end">
+                                          <span>
+                                            <i
+                                              className="fa-solid fa-pen-to-square"
+                                              style={{ color: "#af1546" }}
+                                            ></i>
+                                          </span>
+                                        </Col>
+                                        <Col>
+                                          <span>
+                                            <b
+                                              className="fs-5"
+                                              style={{ color: "#af1546" }}
+                                            >
+                                              Acquis
+                                            </b>
+                                          </span>
+                                        </Col>
+                                        <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                          <span
+                                            style={{
+                                              fontSize: "large",
+                                              color: "#af1546",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            <b>25</b>
+                                          </span>
+                                        </Col>
+                                      </Row>
+                                      <Row>
+                                        <Col className="d-inline-flex align-items-center justify-content-end">
+                                          <span>
+                                            <i
+                                              className="fa-solid fa-pen-to-square"
+                                              style={{ color: "#8455ca" }}
+                                            ></i>
+                                          </span>
+                                        </Col>
+                                        <Col>
+                                          <span>
+                                            <b
+                                              className="fs-5"
+                                              style={{ color: "#8455ca" }}
+                                            >
+                                              ECA 2
+                                            </b>
+                                          </span>
+                                        </Col>
+                                        <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                          <span
+                                            style={{
+                                              fontSize: "large",
+                                              color: "#8455ca",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            <b>14</b>
+                                          </span>
+                                        </Col>
+                                      </Row>
+                                    </Col>
+                                    <Col>
+                                      <Row>
+                                        <Col className="d-inline-flex align-items-center justify-content-end">
+                                          <span>
+                                            <i
+                                              className="fa-solid fa-pen-to-square"
+                                              style={{ color: "#eb984b" }}
+                                            ></i>
+                                          </span>
+                                        </Col>
+                                        <Col>
+                                          <span>
+                                            <b
+                                              className="fs-5"
+                                              style={{ color: "#eb984b" }}
+                                            >
+                                              ECA 1
+                                            </b>
+                                          </span>
+                                        </Col>
+                                        <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                          <span
+                                            style={{
+                                              fontSize: "large",
+                                              color: "#eb984b",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            <b>14</b>
+                                          </span>
+                                        </Col>
+                                      </Row>
+                                      <Row>
+                                        <Col className="d-inline-flex align-items-center justify-content-end">
+                                          <span>
+                                            <i
+                                              className="fa-solid fa-pen-to-square"
+                                              style={{ color: "#525659" }}
+                                            ></i>
+                                          </span>
+                                        </Col>
+                                        <Col>
+                                          <span>
+                                            <b
+                                              className="fs-5"
+                                              style={{ color: "#525659" }}
+                                            >
+                                              Non acquis
+                                            </b>
+                                          </span>
+                                        </Col>
+                                        <Col className="lead d-inline-flex align-items-center justify-content-start">
+                                          <span
+                                            style={{
+                                              fontSize: "large",
+                                              color: "#525659",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            <b>14</b>
+                                          </span>
+                                        </Col>
+                                      </Row>
+                                    </Col>
+                                  </div>
+                                </ResponsiveContainer>
+                              </Col>
+                            </Row>
+                            <Row>
+                              {Array.isArray(data) &&
+                              (true || graphData.length) > 0 ? (
+                                <ResponsiveContainer width="100%" height={300}>
+                                  <LineChart
+                                    width={500}
+                                    height={300}
+                                    data={graphData}
+                                    margin={{
+                                      top: 5,
+                                      right: 30,
+                                      left: 0,
+                                      bottom: 5,
+                                    }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="Participation"
+                                      stroke="#82ca9d"
+                                    />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="Bonus"
+                                      stroke="#8884d8"
+                                      activeDot={{ r: 8 }}
+                                    />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="Avertissement"
+                                      stroke="#c29825"
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              ) : null}
+                            </Row>
+                          </Col>
+                        </Row>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                  <Accordion.Item eventKey="1">
+                    <Accordion.Header className="fs-2">
+                      <div className="fs-2">En chiffres</div>
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      <div>
+                        <Row>
+                          <OverlayTrigger
+                            trigger={["click", "hover", "focus"]}
+                            overlay={
+                              <Popover id="popover-competences">
+                                <Popover.Header as="h3">
+                                  Compétences
+                                </Popover.Header>
+                                <Popover.Body>
+                                  Vous avez déjà abordé{" "}
+                                  <strong>13 compétences</strong> dont 7 avec la
+                                  6EME6.
+                                </Popover.Body>
+                              </Popover>
+                            }
+                          >
+                            <Col className="mb-3">
+                              <AnimatedCountup
+                                countUp="13"
+                                className="h-100"
+                                label="Nb compétences abordées"
+                              />
+                            </Col>
+                          </OverlayTrigger>
+                          <OverlayTrigger
+                            trigger={["click", "hover", "focus"]}
+                            overlay={
+                              <Popover id="popover-participation">
+                                <Popover.Header as="h3">
+                                  Participation
+                                </Popover.Header>
+                                <Popover.Body>
+                                  En moyenne vous accordez
+                                  <strong>
+                                    {" "}
+                                    20 pts de participation par séance.{" "}
+                                  </strong>
+                                  La classe qui participe le + est la 5EME3.
+                                </Popover.Body>
+                              </Popover>
+                            }
+                          >
+                            <Col className="mb-3">
+                              <AnimatedCountup
+                                countUp="20"
+                                className="h-100"
+                                label="Participation moy./séance"
+                              />
+                            </Col>
+                          </OverlayTrigger>
+                          <Col className="mb-3">
+                            <AnimatedCountup
+                              countUp="240"
+                              className="h-100"
+                              label="Participation totale"
                             />
-                          ))
-                        : null}
-                    </div>
-                  </Form>
-                  <Row style={{ marginBottom: "2rem", marginTop: "2rem" }}>
-                    <Col>
-                      <div style={{ textAlign: "center" }}>
-                        <strong>Participations</strong>
-                        <center>
-                          <p
-                            style={{
-                              borderRadius: "50%",
-                              backgroundColor: "#82ca9d",
-                              marginTop: "1.5rem",
-                              width: "5rem",
-                              height: "5rem",
-                              textAlign: "center",
-                              display: "table-cell",
-                              verticalAlign: "middle",
-                              fontSize: "2rem",
-                            }}
-                          >
-                            {sumParticipations}
-                          </p>
-                        </center>
+                          </Col>
+                          <Col>
+                            <AnimatedCountup />
+                          </Col>
+                        </Row>
+                        <Row>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={22} />
+                          </Col>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={31} />
+                          </Col>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={45} />
+                          </Col>
+                        </Row>
+                        <Row>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={54} />
+                          </Col>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={104} />
+                          </Col>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={77} />
+                          </Col>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={2} />
+                          </Col>
+                          <Col>
+                            <AnimatedCountup className="mt-3" countUp={59} />
+                          </Col>
+                        </Row>
                       </div>
-                    </Col>
-                    <Col>
-                      <div style={{ textAlign: "center" }}>
-                        <strong>Bonus</strong>
-                        <center>
-                          <p
-                            style={{
-                              borderRadius: "50%",
-                              backgroundColor: "#8884d8",
-                              marginTop: "1.5rem",
-                              width: "5rem",
-                              height: "5rem",
-                              textAlign: "center",
-                              display: "table-cell",
-                              verticalAlign: "middle",
-                              fontSize: "2rem",
-                            }}
-                          >
-                            {sumBonus}
-                          </p>
-                        </center>
-                      </div>
-                    </Col>
-                    <Col>
-                      <div style={{ textAlign: "center" }}>
-                        <strong>Avertissements</strong>
-                        <center>
-                          <p
-                            style={{
-                              borderRadius: "50%",
-                              backgroundColor: "#c29825",
-                              marginTop: "1.5rem",
-                              width: "5rem",
-                              height: "5rem",
-                              textAlign: "center",
-                              display: "table-cell",
-                              verticalAlign: "middle",
-                              fontSize: "2rem",
-                            }}
-                          >
-                            {sumAvertissements}
-                          </p>
-                        </center>
-                      </div>
-                    </Col>
-                  </Row>
-                  {Array.isArray(data) && (true || graphData.length) > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart
-                        width={500}
-                        height={300}
-                        data={graphData}
-                        margin={{
-                          top: 5,
-                          right: 30,
-                          left: 0,
-                          bottom: 5,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="Participation"
-                          stroke="#82ca9d"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Bonus"
-                          stroke="#8884d8"
-                          activeDot={{ r: 8 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Avertissement"
-                          stroke="#c29825"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : null}
-                </Col>
-              </Row>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
+              </div>
             </div>
-          </div>
-          <div>
-            <div
-              className="mb-5"
-              style={{ fontSize: "2rem", marginTop: "9rem" }}
-            >
-              {" "}
-              En chiffres{" "}
-            </div>
-            <div>
-              <Row>
-                <OverlayTrigger
-                  trigger={["click", "hover", "focus"]}
-                  overlay={
-                    <Popover id="popover-competences">
-                      <Popover.Header as="h3">Compétences</Popover.Header>
-                      <Popover.Body>
-                        Vous avez déjà abordé <strong>13 compétences</strong>{" "}
-                        dont 7 avec la 6EME6.
-                      </Popover.Body>
-                    </Popover>
-                  }
-                >
-                  <Col className="mb-3">
-                    <AnimatedCountup
-                      countUp="13"
-                      className="h-100"
-                      label="Nb compétences abordées"
-                    />
-                  </Col>
-                </OverlayTrigger>
-                <OverlayTrigger
-                  trigger={["click", "hover", "focus"]}
-                  overlay={
-                    <Popover id="popover-participation">
-                      <Popover.Header as="h3">Participation</Popover.Header>
-                      <Popover.Body>
-                        En moyenne vous accordez
-                        <strong> 20 pts de participation par séance. </strong>
-                        La classe qui participe le + est la 5EME3.
-                      </Popover.Body>
-                    </Popover>
-                  }
-                >
-                  <Col className="mb-3">
-                    <AnimatedCountup
-                      countUp="20"
-                      className="h-100"
-                      label="Participation moy./séance"
-                    />
-                  </Col>
-                </OverlayTrigger>
-                <Col className="mb-3">
-                  <AnimatedCountup
-                    countUp="240"
-                    className="h-100"
-                    label="Participation totale"
-                  />
-                </Col>
-                <Col>
-                  <AnimatedCountup />
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={22} />
-                </Col>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={31} />
-                </Col>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={45} />
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={54} />
-                </Col>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={104} />
-                </Col>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={77} />
-                </Col>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={2} />
-                </Col>
-                <Col>
-                  <AnimatedCountup className="mt-3" countUp={59} />
-                </Col>
-              </Row>
-            </div>
-          </div>
-        </div>
+          </Col>
+        </Row>
 
         {/* {statistics && statistics?.length > 0 && (
           <div
