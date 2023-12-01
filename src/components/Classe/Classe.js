@@ -15,6 +15,8 @@ import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import ToastContainer from "react-bootstrap/ToastContainer";
+import Toast from "react-bootstrap/Toast";
 import CsvDownloader from "react-csv-downloader";
 import { ObjectID } from "bson";
 import { createWorker } from "tesseract.js";
@@ -66,6 +68,7 @@ const Classe = () => {
     useState(null);
 
   const [showModalClassSettings, setShowModalClassSettings] = useState(false);
+  const [showStudentSwitchToast, setShowStudentSwitchToast] = useState(false);
 
   let { classId } = useParams();
   let navigate = useNavigate();
@@ -117,7 +120,7 @@ const Classe = () => {
 
   const separateFirstnameAndLastname = (fullName) => {
     console.log("fullName", fullName);
-    fullName = fullName.replace(/\s/g, '');
+    fullName = fullName.replace(/\s/g, "");
     // Supprimer les retours à la ligne
     const cleanedFullName = fullName.replace(/[\r\n]+/g, "");
     console.log("cleanedFullName", cleanedFullName);
@@ -125,7 +128,6 @@ const Classe = () => {
     // Trouver la transition entre la dernière majuscule et la première minuscule
     const indexTransition = cleanedFullName.search(/[A-Z](?=[A-Z][a-z])/);
     console.log("indexTransition", indexTransition);
-
 
     // Vérifier si une telle transition a été trouvée
     if (indexTransition !== -1) {
@@ -331,18 +333,30 @@ const Classe = () => {
     // });
   };
 
-  const switchStudents = (el) => {
-    console.log(el);
-    alert("Sélectionnez le 2ème élève");
+  const switchStudents = (selectedStudent) => {
+    console.log("selectedStudent");
+    console.log(selectedStudent);
+    // alert("Sélectionnez le 2ème élève");
+    if (selectedStudent.empty) return;
+    setShowStudentSwitchToast(true);
     setIsSwitching(true);
     setCounter(counter + 1);
-    setSwitchStudent(el);
-    console.log(switchStudent);
+    // setSwitchStudent(selectedStudent);
+    // console.log(switchStudent);
   };
 
   const studentInTableClick = (student) => {
+    console.log("studentInTableClick");
+    console.log("student");
+    console.log(student);
+    console.log("key", key);
     setSelectedStudent(student);
-    getCompetenceLevelBasedOnClicks(student._id);
+    if (key === "competences") {
+      getCompetenceLevelBasedOnClicks(student._id);
+    }
+    if (key === "echange") {
+      handleStudentClick(student);
+    }
   };
 
   const getCompetenceLevelBasedOnClicks = (studentId) => {
@@ -459,6 +473,7 @@ const Classe = () => {
 
   const goToStudentStats = (eleve) => {
     console.log(location);
+    if (eleve.empty) return;
     let path = `../eleves/${eleve._id}/stats`;
     console.log(path);
     navigate(`${path}`);
@@ -481,7 +496,9 @@ const Classe = () => {
     console.log(eleves);
     setIsFetching(true);
     setShowModal(false);
+    setShowStudentSwitchToast(false);
 
+    console.log('dans processSwitch');
     console.log("selectedStudent");
     console.log(selectedStudent);
     console.log("switchStudent");
@@ -815,10 +832,23 @@ const Classe = () => {
       // });
     }
     if (isSwitching && key === "echange") {
-      setShowModal(true);
+      // 2ème phase de l'échange
+      // 1ère élève : switchStudent && selectedStudent à ce moment là du code
+      // 2ème eleve est dans la var "eleve"
+
       setSelectedStudent(eleve);
+      setSwitchStudent(selectedStudent);
+      console.log(switchStudent);
+      // console.log('selectedStudent')
+      // console.log(selectedStudent)
+      // console.log('switchStudent')
+      // console.log(switchStudent)
+      // console.log('eleve')
+      // console.log(eleve)
+      // setShowModal(true);
     } else {
       if (key === "echange") {
+        // 1ère phase de l'échange
         switchStudents(eleve);
       }
     }
@@ -826,6 +856,24 @@ const Classe = () => {
     setSelectedStudent(eleve);
     setCounter(counter + 1);
   };
+
+  useEffect(() => {
+    if (selectedStudent && isSwitching) {
+      // Faites quelque chose avec selectedStudent après la mise à jour mis à jour
+      console.log("dans le useEffect switchStudent :", selectedStudent);
+
+      console.log("selectedStudent");
+      console.log(selectedStudent);
+      console.log("switchStudent");
+      console.log(switchStudent);
+      console.log('----------------------');
+      // setSelectedStudent(switchStudent);
+      // console.log('eleve')
+      // console.log(eleve)
+      setShowStudentSwitchToast(false);
+      setShowModal(true);
+    }
+  }, [switchStudent]);
 
   const saveAvertissement = (student) => {
     setSelectedStudent(null);
@@ -1415,11 +1463,70 @@ const Classe = () => {
   } else if (!isFetching) {
     return (
       <Container fluid style={{ marginTop: "1rem" }}>
+        {(selectedStudent?.empty === false) && (<ToastContainer
+          className="p-3"
+          position="top-center"
+          style={{ zIndex: 1 }}
+        >
+          <Toast
+            bg="light"
+            className="d-inline-block m-3"
+            show={showStudentSwitchToast}
+            onClose={() => {
+              console.log("fermé!");
+              setShowStudentSwitchToast(false);
+              setIsSwitching(false);
+            }}
+          >
+            <Toast.Header closeButton={true}>
+              <img
+                src="/images/blank.png"
+                className="rounded me-2"
+                style={{ width: "1.2rem", height: "1.2rem" }}
+                alt=""
+              />
+              <strong className="me-auto">Placer Eleve</strong>
+              {/* <small>11 mins ago</small> */}
+            </Toast.Header>
+            <Toast.Body>
+              Où souhaitez-vous placer{" "}
+              <b>
+                {selectedStudent?.firstname} {selectedStudent?.lastname}?
+              </b>
+            </Toast.Body>
+          </Toast>
+        </ToastContainer>)}
         <Modal show={showModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Echange de places</Modal.Title>
+          <Modal.Header
+            closeButton
+            onHide={() => {
+              console.log("ouiiiii?");
+              setShowModal(false);
+              setIsSwitching(false);
+              setShowStudentSwitchToast(false);
+            }}
+          >
+            <Modal.Title>Echange de places 🔁</Modal.Title>
           </Modal.Header>
-          <Modal.Body>Etes vous sur de vouloir faire l'échange ?</Modal.Body>
+          <Modal.Body>
+            {!selectedStudent?.empty && !switchStudent?.empty && (
+              <>
+                Etes vous sur de vouloir faire l'échange
+                <br /> <b>{selectedStudent?.firstname}</b> 🔁{" "}
+                <b>{switchStudent?.firstname} ?</b>
+              </>
+            )}
+            {(selectedStudent?.empty === true ||
+              switchStudent?.empty === true) && (
+                <>
+                  Etes vous sur de vouloir placer{" "}
+                  {selectedStudent?.empty === false && (<b>{selectedStudent?.firstname}</b>)}
+                  {switchStudent?.empty === false && (<b>{switchStudent?.firstname}</b>)}
+                  {" "}à cette position ?
+                </>
+              )}
+          </Modal.Body>
+
           <Modal.Footer>
             <Button
               variant="secondary"
@@ -1450,132 +1557,168 @@ const Classe = () => {
               setShowModalClassSettings(false);
             }}
           >
-              <Modal.Header closeButton>
-                <Modal.Title>Paramètres de la {classe}</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                {!trombinoscope && (
-                  <>
-                    <span className="lead">
-                      Importer élèves à partir du trombinoscope{" "}
-                    </span>
-                    <Form.Control
-                      className="mt-4"
-                      type="file"
-                      accept=".jpg, .jpeg, .png"
-                      onChange={(e) => {
-                        console.log("nouveau pdf");
-                        console.log(e.target.files[0]);
+            <Modal.Header closeButton>
+              <Modal.Title>Paramètres de la {classe}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {!trombinoscope && (
+                <>
+                  <span className="lead">
+                    Importer élèves à partir du trombinoscope{" "}
+                  </span>
+                  <Form.Control
+                    className="mt-4"
+                    type="file"
+                    accept=".jpg, .jpeg, .png"
+                    onChange={(e) => {
+                      console.log("nouveau pdf");
+                      console.log(e.target.files[0]);
 
-                        handleStudentNewTrombinoscopeUploaded(
-                          e.target.files[0]
-                        );
-                        // handleUploadStudentFile(e.target.files[0]);
-                      }}
-                      // isInvalid={
-                      //   studentsFile
-                      //     ? !isValidFileUploadForStudentDB(studentsFile)
-                      //     : false
-                      // }
-                    />
-                    <Form.Text className="text-muted lead">
-                      ATTENTION : Le fichier doit être au format Image (PNG ou JPEG) !
-                    </Form.Text>
-                  </>
-                )}
-                {Array.isArray(extractedStudentsData) && trombinoscope && (
-                  <>
-                    {trombinoscopeLoadedSuccessfully &&
-                      extractedStudentsData.length > 0 && (
-                        <Row>
-                          <div className="fs-5">
-                            <b>Chargement terminé. Veuillez vérifier que les
-                            informations sont correctes :{" "}</b>
-                          </div>
-                          {extractedStudentsData.map((image, index) => (
-                            <Col
-                              className="mt-3 mb-4"
-                              key={`student-${index}-col`}
+                      handleStudentNewTrombinoscopeUploaded(e.target.files[0]);
+                      // handleUploadStudentFile(e.target.files[0]);
+                    }}
+                    // isInvalid={
+                    //   studentsFile
+                    //     ? !isValidFileUploadForStudentDB(studentsFile)
+                    //     : false
+                    // }
+                  />
+                  <Form.Text className="text-muted lead">
+                    ATTENTION : Le fichier doit être au format Image (PNG ou
+                    JPEG) !
+                  </Form.Text>
+                </>
+              )}
+              {Array.isArray(extractedStudentsData) && trombinoscope && (
+                <>
+                  {trombinoscopeLoadedSuccessfully &&
+                    extractedStudentsData.length > 0 && (
+                      <Row>
+                        <div className="fs-5">
+                          <b>
+                            Chargement terminé. Veuillez vérifier que les
+                            informations sont correctes :{" "}
+                          </b>
+                        </div>
+                        {extractedStudentsData.map((image, index) => (
+                          <Col
+                            className="mt-3 mb-4"
+                            key={`student-${index}-col`}
+                          >
+                            <Row className="align-items-center">
+                              <Col className="d-inline-flex justify-content-center mb-2">
+                                <img
+                                  key={`student-${index}-picture`}
+                                  src={image.photo}
+                                  alt="Image extraite"
+                                  style={{ border: "2px solid #6668f4" }}
+                                />
+                              </Col>
+                              <Col>
+                                <Form.Control
+                                  type="text"
+                                  style={{ wordWrap: "break-word" }}
+                                  id={`stuident-name-${index}`}
+                                  defaultValue={`${image.lastname} ${image.firstname}`}
+                                />
+                              </Col>
+                            </Row>
+                            <Row
+                              className="align-items-center"
+                              key="gender-option"
                             >
-                              <Row className="align-items-center">
-                                <Col className="d-inline-flex justify-content-center mb-2">
-                                  <img
-                                    key={`student-${index}-picture`}
-                                    src={image.photo}
-                                    alt="Image extraite"
-                                    style={{ border: "2px solid #6668f4" }}
-                                  />
-                                </Col>
-                                <Col>
-                                  <Form.Control
-                                    type="text"
-                                    style={{ wordWrap: "break-word" }}
-                                    id={`stuident-name-${index}`}
-                                    defaultValue={`${image.lastname} ${image.firstname}`}
-                                  />
-                                </Col>
-                              </Row>
-                              <Row className="align-items-center" key='gender-option'>
-                                <Col className="mt-2 d-inline-flex justify-content-center" key='gender-choice'>
-                                  <ButtonGroup>
-                                    <ToggleButton
-                                      key={`radio-gender-${image.name}-male-option`}
-                                      id={`radio-gender-${image.name}-male-option`}
-                                      type="radio"
-                                      variant={`${image.gender === 'male' ? "primary": 'outline-primary'}`}
-                                      name="radio-male"
-                                      value={image.gender}
-                                      // value={1}
-                                      defaultChecked={`${image.gender === 'male' ? true : false}`}
-                                      // checked={`${image.gender === 'male' ? true : false}`}
-                                      onClick={(e) => {
-                                        let newStudentsData = [...extractedStudentsData];
-                                        let newStudentToUpdateIndex = newStudentsData.findIndex((student, stIndex) => stIndex === index);
-                                        let newStudentToUpdate = newStudentsData[newStudentToUpdateIndex];
-                                        newStudentToUpdate.gender = 'male';
-                                        console.log('newStudentToUpdate')
-                                        console.log(newStudentToUpdate)
-                                        console.log('newStudentsData')
-                                        console.log(newStudentsData)
-                                        
-                                        setExtractedStudentsData(newStudentsData);
-                                        console.log(e.target.value);
-                                      }}
-                                    >
-                                      Garçon
-                                    </ToggleButton>
-                                    <ToggleButton
-                                      key={`radio-gender-${image.name}-female-option`}
-                                      id={`radio-gender-${image.name}-female-option`}
-                                      type="radio"
-                                      name="radio-female"
-                                      defaultChecked={`${image.gender === 'female' ? true : false}`}
-                                      variant={`${image.gender === 'female' ? "danger": 'outline-danger'}`}
-                                      value={image.gender}
-                                      // value={`${image.gender === 'female' ? '2' : image.gender === 'male' ? '1': ''}`}
-                                      // checked={`${image.gender === 'female' ? true : false}`}
-                                      onClick={(e) => {
-                                        let newStudentsData = [...extractedStudentsData];
-                                        let newStudentToUpdateIndex = newStudentsData.findIndex((student, stIndex) => stIndex === index);
-                                        let newStudentToUpdate = newStudentsData[newStudentToUpdateIndex];
-                                        newStudentToUpdate.gender = 'female';
-                                        console.log('newStudentToUpdate')
-                                        console.log(newStudentToUpdate)
-                                        setExtractedStudentsData(newStudentsData);
-                                        console.log(e.target.value);
-                                      }
-                                    }
-                                    >
-                                      Fille
-                                    </ToggleButton>
-                                  </ButtonGroup>
-                                </Col>
-                              </Row>
-                            </Col>
-                          ))}
-                        </Row>
-                      )}
-                    {/* <Document
+                              <Col
+                                className="mt-2 d-inline-flex justify-content-center"
+                                key="gender-choice"
+                              >
+                                <ButtonGroup>
+                                  <ToggleButton
+                                    key={`radio-gender-${image.name}-male-option`}
+                                    id={`radio-gender-${image.name}-male-option`}
+                                    type="radio"
+                                    variant={`${
+                                      image.gender === "male"
+                                        ? "primary"
+                                        : "outline-primary"
+                                    }`}
+                                    name="radio-male"
+                                    value={image.gender}
+                                    // value={1}
+                                    defaultChecked={`${
+                                      image.gender === "male" ? true : false
+                                    }`}
+                                    // checked={`${image.gender === 'male' ? true : false}`}
+                                    onClick={(e) => {
+                                      let newStudentsData = [
+                                        ...extractedStudentsData,
+                                      ];
+                                      let newStudentToUpdateIndex =
+                                        newStudentsData.findIndex(
+                                          (student, stIndex) =>
+                                            stIndex === index
+                                        );
+                                      let newStudentToUpdate =
+                                        newStudentsData[
+                                          newStudentToUpdateIndex
+                                        ];
+                                      newStudentToUpdate.gender = "male";
+                                      console.log("newStudentToUpdate");
+                                      console.log(newStudentToUpdate);
+                                      console.log("newStudentsData");
+                                      console.log(newStudentsData);
+
+                                      setExtractedStudentsData(newStudentsData);
+                                      console.log(e.target.value);
+                                    }}
+                                  >
+                                    Garçon
+                                  </ToggleButton>
+                                  <ToggleButton
+                                    key={`radio-gender-${image.name}-female-option`}
+                                    id={`radio-gender-${image.name}-female-option`}
+                                    type="radio"
+                                    name="radio-female"
+                                    defaultChecked={`${
+                                      image.gender === "female" ? true : false
+                                    }`}
+                                    variant={`${
+                                      image.gender === "female"
+                                        ? "danger"
+                                        : "outline-danger"
+                                    }`}
+                                    value={image.gender}
+                                    // value={`${image.gender === 'female' ? '2' : image.gender === 'male' ? '1': ''}`}
+                                    // checked={`${image.gender === 'female' ? true : false}`}
+                                    onClick={(e) => {
+                                      let newStudentsData = [
+                                        ...extractedStudentsData,
+                                      ];
+                                      let newStudentToUpdateIndex =
+                                        newStudentsData.findIndex(
+                                          (student, stIndex) =>
+                                            stIndex === index
+                                        );
+                                      let newStudentToUpdate =
+                                        newStudentsData[
+                                          newStudentToUpdateIndex
+                                        ];
+                                      newStudentToUpdate.gender = "female";
+                                      console.log("newStudentToUpdate");
+                                      console.log(newStudentToUpdate);
+                                      setExtractedStudentsData(newStudentsData);
+                                      console.log(e.target.value);
+                                    }}
+                                  >
+                                    Fille
+                                  </ToggleButton>
+                                </ButtonGroup>
+                              </Col>
+                            </Row>
+                          </Col>
+                        ))}
+                      </Row>
+                    )}
+                  {/* <Document
                       file={trombinoscope}
                       onLoadSuccess={onDocumentLoadSuccess}
                     >
@@ -1591,24 +1734,27 @@ const Classe = () => {
                         />
                       ))}
                     </Document> */}
-                  </>
-                )}
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setShowModalClassSettings(false);
-                  }}
-                >
-                  Annuler
-                </Button>
-                <Button variant="primary" onClick={() => {
-                    setShowModalClassSettings(false);
-                }}>
-                  Importer
-                </Button>
-              </Modal.Footer>
+                </>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowModalClassSettings(false);
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setShowModalClassSettings(false);
+                }}
+              >
+                Importer
+              </Button>
+            </Modal.Footer>
           </Modal>
         </div>
 
@@ -2273,7 +2419,11 @@ const Classe = () => {
                                   }}
                                 >
                                   <img
-                                    src={eleve.photo}
+                                    src={
+                                      eleve.firstname !== "Crystal"
+                                        ? eleve.photo
+                                        : "/images/handsup.png"
+                                    }
                                     style={{
                                       opacity:
                                         eleve.empty == true &&
@@ -2659,7 +2809,7 @@ const Classe = () => {
                             }}
                           >
                             {eleve.firstname}
-                            {key !== "competences" && (
+                            {key !== "competences" && key !== "echange" && (
                               <i
                                 className="fa-solid fa-pen-to-square"
                                 style={{ marginLeft: "2rem" }}

@@ -50,16 +50,24 @@ const Statistics = ({ handleNavbar, userType }) => {
   console.log(fromLogin == "true");
 
   const data03 = [
-    { name: "Geeksforgeeks", students: 2400, color: "#0c9564" },
-    { name: "Technical scripter", students: 700, color: "#8455ca" },
-    { name: "Geek-i-knack", students: 1200, color: "#af1546" },
+    { name: "Geeksforgeeks", students: 20, color: "#0c9564" },
+    { name: "Technical scripter", students: 10, color: "#8455ca" },
+    { name: "Geek-i-knack", students: 8, color: "#af1546" },
   ];
+
+// 8455ca : violet
+// dbdae5 : gris
+// eb984b : jaune
+// af1546 : rouge
+// 525659 : gris
+// 0c9564 : vert
+
   const data04 = [
-    { name: "Geeksforgeeks", students: 400, color: "#8455ca" },
-    { name: "Technical scripter", students: 700, color: "#0c9564" },
-    { name: "Geek-i-knack", students: 200, color: "#525659" },
-    { name: "Geek-i-knackez", students: 570, color: "#eb984b" },
-    { name: "Geek-i-knackxc", students: 570, color: "#af1546" },
+    { name: "Maitrise", students: 10, color: "#0c9564" },
+    { name: "Acquis", students: 8, color: "#af1546" },
+    { name: "ECA 2", students: 5, color: "#8455ca" },
+    { name: "ECA 1", students: 5, color: "#eb984b" },
+    { name: "Non acquis", students: 10, color: "#525659" },
   ];
 
   const data = [
@@ -367,7 +375,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                             fontWeight: "bold",
                                           }}
                                         >
-                                          <b>45</b>
+                                          <b>20</b>
                                         </span>
                                       </Col>
                                     </Row>
@@ -398,7 +406,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                             fontWeight: "bold",
                                           }}
                                         >
-                                          <b>25</b>
+                                          <b>8</b>
                                         </span>
                                       </Col>
                                     </Row>
@@ -429,7 +437,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                             fontWeight: "bold",
                                           }}
                                         >
-                                          <b>14</b>
+                                          <b>10</b>
                                         </span>
                                       </Col>
                                     </Row>
@@ -508,7 +516,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                               fontWeight: "bold",
                                             }}
                                           >
-                                            <b>45</b>
+                                            <b>10</b>
                                           </span>
                                         </Col>
                                       </Row>
@@ -539,7 +547,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                               fontWeight: "bold",
                                             }}
                                           >
-                                            <b>25</b>
+                                            <b>8</b>
                                           </span>
                                         </Col>
                                       </Row>
@@ -570,7 +578,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                               fontWeight: "bold",
                                             }}
                                           >
-                                            <b>14</b>
+                                            <b>5</b>
                                           </span>
                                         </Col>
                                       </Row>
@@ -603,7 +611,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                               fontWeight: "bold",
                                             }}
                                           >
-                                            <b>14</b>
+                                            <b>5</b>
                                           </span>
                                         </Col>
                                       </Row>
@@ -634,7 +642,7 @@ const Statistics = ({ handleNavbar, userType }) => {
                                               fontWeight: "bold",
                                             }}
                                           >
-                                            <b>14</b>
+                                            <b>10</b>
                                           </span>
                                         </Col>
                                       </Row>
