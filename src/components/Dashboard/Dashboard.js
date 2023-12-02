@@ -12,36 +12,22 @@ import {
 //Logo
 import Logo from "./../../images/icone_handsup.png";
 
-// auth & redux
-import { connect } from "react-redux";
 import { logoutUser } from "../../auth/actions/userActions";
-import { sessionService } from "redux-react-session";
 
 // React router
 import { useNavigate } from "react-router-dom";
-import store from "../../auth/store.js";
-import { useAuth } from "../../auth/context/AuthContext.js";
 import { useEffect } from "react";
 
 const Dashboard = ({ logoutUser, user }) => {
-  const { currentUser, setCurrentUser } = useAuth();
-  let professeur = store.getState().session.user;
+  const currentUser = '';
+  const setCurrentUser = undefined;
+  // let professeur = store.getState().session.user;
+  let professeur = '';
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    sessionService.loadUser().then((user) => {
-      console.log('user est-il à jour?');
-      console.log(user)
-    })
 
-    setCurrentUser({
-      user: professeur,
-      username: professeur.email,
-      firstname: professeur.firstname,
-      lastname: professeur.lastname,
-      isAdmin: false,
-    });
   }, []);
   return (
     <div>
@@ -85,8 +71,4 @@ const Dashboard = ({ logoutUser, user }) => {
   );
 };
 
-const mapStateToProps = ({ session }) => ({
-  user: session.user,
-});
-
-export default connect(mapStateToProps, { logoutUser })(Dashboard);
+export default Dashboard;

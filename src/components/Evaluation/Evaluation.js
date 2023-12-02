@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./Evaluation.css";
 
 import axios from "axios";
@@ -17,11 +17,7 @@ import { FaPlusCircle } from "react-icons/fa";
 import Counter from "../../utils/Counter/Counter";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
-import store from "../../auth/store";
-import { AuthContext, useAuth } from "../../auth/context/AuthContext";
 
-// auth & redux
-import { connect } from "react-redux";
 import {
   editProfesseur,
   getProfesseurData,
@@ -35,24 +31,26 @@ import {
 } from "../../auth/actions/userActions";
 import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
-import { sessionService } from "redux-react-session";
 import Switch from "../../utils/Switch/Switch";
+import AuthContext from "../../auth/context/AuthContext";
 
 const allowedExtensions = ["csv", "xls"];
 
 const Evaluation = () => {
+  // NOUVELLE FACON DE FAIRE
+  const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
+  let currentUser = user ? user : localStorage.getItem("userData");
+
   const [multiselectOptions, setMultiselectOptions] = useState([]);
   const [endOfTrimestre, setEndOfTrimestre] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
-  const [isFetching, setIsFetching] = useState(null);
   const [selectedSchool, setSelectedSchool] = useState(null);
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
   const [key, setKey] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -136,15 +134,13 @@ const Evaluation = () => {
   ];
 
   useEffect(() => {
-    sessionStorage.setItem("fromLogin", JSON.stringify(false));
+    localStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
-    sessionService.loadUser().then((user) => {
       console.log("user");
-      console.log(user);
-      console.log(user._id);
-      setUserId(user._id);
-      setUser(user);
-      getProfesseurDataForEvaluation(user._id)
+      console.log(currentUser);
+      console.log(currentUser?._id);
+      setUserId(currentUser?._id);
+      getProfesseurDataForEvaluation(currentUser?._id)
         .then((response) => {
           console.log("les infos prof");
           console.log(response.data);
@@ -184,7 +180,6 @@ const Evaluation = () => {
         .finally(() => {
           setIsFetching(false);
         });
-    });
   }, []);
 
   //   useEffect(() => {
@@ -397,7 +392,7 @@ const Evaluation = () => {
       newEndOfTrimestre: endOfTrimestre,
     };
 
-    let sessionStorageValues = {
+    let localStorageValues = {
       firstname: firstname,
       lastname: lastname,
       college: updatedCollegeDetails,
@@ -414,14 +409,11 @@ const Evaluation = () => {
 
     let newUserFields = {
       ...user,
-      ...sessionStorageValues,
+      ...localStorageValues,
       //Point cours : What if both the object has same key, it simply merge the last objects value and have only one key value.
     };
 
-    sessionService.saveUser(newUserFields).then(() => {
-      console.log("user has been saved in session successfully");
-    });
-    sessionStorage.setItem("professeur", JSON.stringify(sessionStorageValues));
+    localStorage.setItem("professeur", JSON.stringify(localStorageValues));
     editProfesseur(credentials, navigate).then(async (response) => {
       console.log("réponse de edit");
       console.log(response);
@@ -1308,8 +1300,4 @@ const Evaluation = () => {
   }
 };
 
-const mapStateToProps = ({ session }) => ({
-  checked: session.checked,
-});
-
-export default connect(mapStateToProps)(Evaluation);
+export default Evaluation;

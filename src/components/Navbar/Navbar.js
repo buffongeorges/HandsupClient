@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button } from "../Button";
 import { MenuItems } from "./MenuItems";
 import "./Navbar.css";
 import { useNavigate } from "react-router-dom";
-import store from "../../auth/store";
-import { sessionService } from "redux-react-session";
+import AuthContext from "../../auth/context/AuthContext";
 
 export const Navbar = () => {
+  // look for user data by localStorage and with the context value
+  const userData = localStorage.getItem("userData");
+  const { user, logout, isFetching, setIsFetching } = useContext(AuthContext);
+
   const [clicked, setClicked] = useState(false);
-  // const [connected, setConnected] = useState(false);
-  const authent = localStorage.getItem("connected");
-  const authenticated = store.getState().session.authenticated ? true : false;
+  const authenticated = user != null || userData != null;
   console.log("connecté?");
-  console.log(store.getState().session.authenticated);
+  console.log(authenticated);
 
   let navigate = useNavigate();
 
@@ -26,10 +27,10 @@ export const Navbar = () => {
     navigate(path);
   };
 
-  const Logout = () => {
-    sessionService.deleteSession();
-    sessionService.deleteUser();
-    navigate("/dashboard");
+  const Logout = async () => {
+    const result = await logout();
+    console.log('result de logout')
+    console.log(result)
   };
 
   return (
@@ -37,7 +38,7 @@ export const Navbar = () => {
       {/* <h1 className="navbar-logo"> */}
       <img
         src={"/images/handsup-removebg-preview.png"}
-        style={{ maxWidth: "100%", maxHeight: "60%", marginLeft: '1rem' }}
+        style={{ maxWidth: "100%", maxHeight: "60%", marginLeft: "1rem" }}
       />
       <img
         src={"/images/icone_handsup.png"}
@@ -65,7 +66,13 @@ export const Navbar = () => {
             );
           })}
       </ul>
-      <div style={{ marginLeft: "1rem", marginRight: '1rem', whiteSpace: "nowrap" }}>
+      <div
+        style={{
+          marginLeft: "1rem",
+          marginRight: "1rem",
+          whiteSpace: "nowrap",
+        }}
+      >
         {!authenticated && (
           <Button id="login-button" onClick={goToLogin}>
             Log In

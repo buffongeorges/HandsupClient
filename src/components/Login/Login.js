@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 // import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "./Login.css";
@@ -30,21 +30,30 @@ import {
 //form validation
 import * as Yup from "yup";
 
-//auth & redux
-import { connect } from "react-redux";
-import { loginUser } from "../../auth/actions/userActions.js";
-
 //icons
 import { FiMail, FiLock } from "react-icons/fi";
 
 //loader
 import { ThreeDots } from "react-loader-spinner";
+import AuthContext from "../../auth/context/AuthContext.js";
 
-const Login = ({loginUser}) => {
+const Login = ({ loginUser }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   let navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
+  const loginSubmit = async (values) => {
+    let payload = {...values};
+    const result = await login(payload);
+    console.log('result de loginSubmit');
+    console.log(result);
+    if (result.status === 200) {
+      localStorage.setItem("fromLogin", JSON.stringify(true));
+      navigate('/classes');
+    }
+
+  };
 
   // function handleSubmit(event) {
   //   event.preventDefault();
@@ -101,9 +110,13 @@ const Login = ({loginUser}) => {
               .required("Required"),
           })}
           onSubmit={(values, { setSubmitting, setFieldError }) => {
-            console.log('coucou')
+            console.log("coucou");
             console.log(values);
-            loginUser(values, navigate, setFieldError, setSubmitting);
+
+            loginSubmit(values);
+
+            // JE COMMENTE POUR LA RESTRUCTURATION
+            // loginUser(values, navigate, setFieldError, setSubmitting);
           }}
         >
           {({ isSubmitting }) => (
@@ -135,7 +148,7 @@ const Login = ({loginUser}) => {
             </Form>
           )}
         </Formik>
-        <ExtraText style={{marginTop: '2rem'}}>
+        <ExtraText style={{ marginTop: "2rem" }}>
           Mot de passe oublié?
           <TextLink to="/forgottenpassword"> Renvoyer</TextLink>
         </ExtraText>
@@ -146,6 +159,6 @@ const Login = ({loginUser}) => {
       <CopyrightText>All rights reserved &copy;2023</CopyrightText>
     </div>
   );
-}
+};
 
-export default connect(null, { loginUser })(Login);
+export default Login;

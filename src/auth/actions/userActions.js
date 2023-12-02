@@ -1,5 +1,4 @@
 import axios from "axios";
-import { sessionService } from "redux-react-session";
 import { useNavigate } from "react-router-dom";
 
 //the remote endpoint and local
@@ -45,19 +44,8 @@ export const loginUser = (
         } else if (data.status === 200) {
           const userData = data.data[0];
           console.log('OKayy')
-          console.log(data)
-
-          const token = userData._id;
-
-          sessionService
-            .saveSession(token)
-            .then(() => {
-              sessionService.saveUser(userData).then(() => {
-                sessionStorage.setItem("fromLogin", JSON.stringify(true));
-                navigate("/classes");
-              });
-            })
-            .catch((err) => console.log(err));
+          console.log(userData);
+          console.log(JSON.parse(localStorage.getItem('userData')));
         }
 
         //complete submission
@@ -111,10 +99,10 @@ export const signupUser = (
 
 export const logoutUser = (navigate) => {
   return () => {
-    sessionService.deleteSession();
-    sessionService.deleteUser();
-    sessionService.invalidateSession();
-    sessionService.navigate("/login");
+    // sessionService.deleteSession();
+    // sessionService.deleteUser();
+    // sessionService.invalidateSession();
+    // sessionService.navigate("/login");
   };
 };
 
@@ -202,6 +190,7 @@ export const editProfesseur = (data) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");
@@ -221,6 +210,7 @@ export const importStudentsFromFile = (formData) => {
       //   "Content-Type": "application/json",
       // },
       headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");
@@ -237,6 +227,7 @@ export const editEleve = (data) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -253,6 +244,7 @@ export const deleteEleve = (data) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -267,6 +259,7 @@ export const getProfesseurData = (profId) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -281,6 +274,7 @@ export const getProfesseurDataForEvaluation = (profId) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -292,11 +286,15 @@ export const getProfesseurDataForEvaluation = (profId) => {
 export const getProfesseurClasses = (profId) => {
   console.log("profId");
   console.log(profId);
+  const headers = {
+    "Content-Type": "application/json",
+  }
+  console.log('headers')
+  console.log(headers)
   return axios
     .get(`${backendUrl}/classes/get/${profId}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -313,6 +311,7 @@ export const addEleveToClasse = (credentials) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -325,6 +324,7 @@ export const uploadTeacherPicture = (formData) => {
   return axios
     .post(`${backendUrl}/images`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -352,6 +352,7 @@ export const uploadImageToS3 = (url, file) => {
   return axios
     .put(`${url}`, file, {
       headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
     })
     .then((response) => {
       return response;
@@ -387,6 +388,7 @@ export const getElevesInClasse = (data) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");
@@ -403,6 +405,7 @@ export const getElevesData = (eleveId) => {
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");
@@ -418,6 +421,7 @@ export const editEleveNote = (eleveData) => {
   return axios
     .post(`${backendUrl}/eleve/updateMark`, eleveData, {
       headers: { "Content-Type": "application/json" },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");
@@ -432,6 +436,7 @@ export const endClassSequence = (eleveData) => {
   return axios
     .post(`${backendUrl}/classe/endSequence`, eleveData, {
       headers: { "Content-Type": "application/json" },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");
@@ -446,6 +451,7 @@ export const increaseClassSeanceIndex = (eleveData) => {
   return axios
     .post(`${backendUrl}/classe/increaseSeance`, eleveData, {
       headers: { "Content-Type": "application/json" },
+      withCredentials: true,
     })
     .then((response) => {
       console.log("response");

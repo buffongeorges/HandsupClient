@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
@@ -21,21 +21,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// auth & redux
-import { connect } from "react-redux";
-import { sessionService } from "redux-react-session";
 import { getElevesData } from "../../auth/actions/userActions";
 import { TailSpin } from "react-loader-spinner";
 import { colors } from "../../utils/Styles";
 import AnimatedCountup from "../../utils/AnimatedCountup/AnimatedCountup";
+import AuthContext from "../../auth/context/AuthContext";
 
 const EleveStats = () => {
+  // NOUVELLE FACON DE FAIRE
+  const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
+  let currentUser = user ? user : localStorage.getItem("userData");
+
   let dataTest = [];
   let { studentId } = useParams();
   let navigate = useNavigate();
   console.log("studentId");
   console.log(studentId);
-  const [user, setUser] = useState(null);
   const [firstname, setFirstname] = useState(null);
   const [lastname, setLastname] = useState(null);
   const [eleve, setEleve] = useState(null);
@@ -48,16 +49,13 @@ const EleveStats = () => {
   const [sumAvertissements, setSumAvertissements] = useState(0);
   const [avertissements, setAvertissements] = useState(null);
   const [discipline, setDiscipline] = useState(null);
-  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
-    sessionStorage.setItem("fromLogin", JSON.stringify(false));
+    localStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
-    sessionService.loadUser().then((user) => {
       console.log("mon utilisateur");
-      console.log(user);
-      setUser(user);
-      setDiscipline(user.discipline);
+      console.log(currentUser);
+      setDiscipline(currentUser?.discipline);
       getElevesData(studentId)
         .then((response) => {
           console.log("infos eleve");
@@ -80,7 +78,6 @@ const EleveStats = () => {
         .finally(() => {
           // setIsFetching(false);
         });
-    });
   }, []);
 
   useEffect(() => {
@@ -474,8 +471,4 @@ const EleveStats = () => {
   }
 };
 
-const mapStateToProps = ({ session }) => ({
-  checked: session.checked,
-});
-
-export default connect(mapStateToProps)(EleveStats);
+export default EleveStats;

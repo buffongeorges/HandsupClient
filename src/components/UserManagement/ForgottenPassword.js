@@ -26,8 +26,6 @@ import { FiMail, FiLock } from "react-icons/fi";
 //loader
 import { ThreeDots } from "react-loader-spinner";
 
-//auth & redux
-import { connect } from "react-redux";
 import { forgottenPassword } from "./../../auth/actions/userActions.js";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -35,6 +33,7 @@ import { useNavigate, useParams } from "react-router-dom";
 const frontendUrl = window.location.origin;
 
 const ForgottenPassword = ({ forgottenPassword }) => {
+  
   console.log('the base url:');
   console.log(window.location.origin);
   const history = useNavigate();
@@ -94,4 +93,4 @@ const ForgottenPassword = ({ forgottenPassword }) => {
   );
 };
 
-export default connect(null, { forgottenPassword })(ForgottenPassword);
+export default ForgottenPassword;

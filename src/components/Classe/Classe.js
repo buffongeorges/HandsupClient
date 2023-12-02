@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPath, useParams } from "react-router-dom";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 import { Buffer } from "buffer";
@@ -23,9 +29,6 @@ import { createWorker } from "tesseract.js";
 
 import { Image as ImageJS } from "image-js";
 
-// auth & redux
-import { connect } from "react-redux";
-import store from "../../auth/store.js";
 import { colors } from "../../utils/Styles.js";
 
 import { useNavigate } from "react-router-dom";
@@ -38,13 +41,16 @@ import {
   getEleveGender,
   increaseClassSeanceIndex,
 } from "../../auth/actions/userActions";
-import { sessionService } from "redux-react-session";
 import Switch from "../../utils/Switch/Switch.js";
 import DropdownButton from "react-bootstrap/esm/DropdownButton.js";
 import Dropdown from "react-bootstrap/Dropdown";
+import AuthContext from "../../auth/context/AuthContext.js";
 
 const Classe = () => {
-  const [user, setUser] = useState(store.getState().session.user);
+  // NOUVELLE FACON DE FAIRE
+  const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
+  let currentUser = user ? user : localStorage.getItem("userData");
+
   const [participationModal, setParticipationModal] = useState(false);
   const [college, setCollege] = useState(null);
   const [discipline, setDiscipline] = useState(null);
@@ -90,7 +96,7 @@ const Classe = () => {
     useState(false);
   const [showModalEndCompetenceTest, setShowModalEndCompetenceTest] =
     useState(false);
-  const [isFetching, setIsFetching] = useState(true);
+  // const [isFetching, setIsFetching] = useState(true);
   const [isCompetenceInProgress, setIsCompetenceInProgress] = useState(false);
 
   //teacher settings
@@ -498,7 +504,7 @@ const Classe = () => {
     setShowModal(false);
     setShowStudentSwitchToast(false);
 
-    console.log('dans processSwitch');
+    console.log("dans processSwitch");
     console.log("selectedStudent");
     console.log(selectedStudent);
     console.log("switchStudent");
@@ -549,48 +555,46 @@ const Classe = () => {
         console.log(response);
 
         //now let's get the updated student list
-        sessionService.loadUser().then((user) => {
-          console.log("my user");
-          console.log(user);
-          console.log("la discipline....");
-          console.log(user.discipline.name);
-          // console.log(user.college.name);
-          let userCollege;
-          if (Array.isArray(user.college)) {
-            userCollege = user.college[0].name;
-          } else {
-            userCollege = user.college;
-          }
-          let data = {
-            classId,
-            college: userCollege,
-            discipline: user.discipline.name,
-            currentDate: new Date(localeTime),
-          };
-          getElevesInClasse(data)
-            .then((response) => {
-              const students = response.data.data.students;
-              console.log("les eleves");
-              console.log(response.data.data.students);
-              setClasse(response.data.data.classe.name);
-              setEleves(response.data.data.students);
-              setElevesOrdreAlphabetique(
-                response.data.data.studentsAlphabeticalOrder
-              );
+        console.log("my user");
+        console.log(currentUser);
+        console.log("la discipline....");
+        console.log(currentUser?.discipline.name);
+        // console.log(user.college.name);
+        let userCollege;
+        if (Array.isArray(currentUser?.college)) {
+          userCollege = currentUser?.college[0].name;
+        } else {
+          userCollege = currentUser?.college;
+        }
+        let data = {
+          classId,
+          college: userCollege,
+          discipline: currentUser?.discipline.name,
+          currentDate: new Date(localeTime),
+        };
+        getElevesInClasse(data)
+          .then((response) => {
+            const students = response.data.data.students;
+            console.log("les eleves");
+            console.log(response.data.data.students);
+            setClasse(response.data.data.classe.name);
+            setEleves(response.data.data.students);
+            setElevesOrdreAlphabetique(
+              response.data.data.studentsAlphabeticalOrder
+            );
 
-              setCollege(response.data.data.classe.ecole.name);
-              setCounter(students.length);
-              setEleves(students);
-              setExportList(students);
-            })
-            .catch((error) => {
-              console.log("error while fetching students");
-              console.log(error);
-            })
-            .finally(() => {
-              setIsFetching(false);
-            });
-        });
+            setCollege(response.data.data.classe.ecole.name);
+            setCounter(students.length);
+            setEleves(students);
+            setExportList(students);
+          })
+          .catch((error) => {
+            console.log("error while fetching students");
+            console.log(error);
+          })
+          .finally(() => {
+            setIsFetching(false);
+          });
       })
       .catch((error) => {
         console.log(error);
@@ -629,77 +633,75 @@ const Classe = () => {
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });
-    sessionService.loadUser().then((user) => {
-      setIsFetching(true);
-      let increaseSeanceData = {
-        classe: classe,
-        college: college,
-        nbSeances: currentSeance,
-        discipline: user.discipline.name,
-      };
-      increaseClassSeanceIndex(increaseSeanceData)
-        .then((responseIncrease) => {
-          console.log("responseIncrease");
-          console.log(responseIncrease);
-          let data = {
-            classId,
-            college: { name: college },
-            discipline: user.discipline.name,
-            currentDate: new Date(localeTime),
-          };
-          //increase seance index
-          const updatedEleveData = {
-            ...eleveData,
-            nbSeances: currentSeance + 1,
-          };
+    setIsFetching(true);
+    let increaseSeanceData = {
+      classe: classe,
+      college: college,
+      nbSeances: currentSeance,
+      discipline: currentUser?.discipline.name,
+    };
+    increaseClassSeanceIndex(increaseSeanceData)
+      .then((responseIncrease) => {
+        console.log("responseIncrease");
+        console.log(responseIncrease);
+        let data = {
+          classId,
+          college: { name: college },
+          discipline: currentUser?.discipline.name,
+          currentDate: new Date(localeTime),
+        };
+        //increase seance index
+        const updatedEleveData = {
+          ...eleveData,
+          nbSeances: currentSeance + 1,
+        };
 
-          if (markType == "participation") {
-            updatedEleveData["newParticipation"] = markValue;
-          } else if (markType == "avertissement") {
-            updatedEleveData["newAvertissement"] = markValue;
-          } else if (markType == "bonus") {
-            updatedEleveData["newBonus"] = markValue;
-          }
+        if (markType == "participation") {
+          updatedEleveData["newParticipation"] = markValue;
+        } else if (markType == "avertissement") {
+          updatedEleveData["newAvertissement"] = markValue;
+        } else if (markType == "bonus") {
+          updatedEleveData["newBonus"] = markValue;
+        }
 
-          editEleveNote(updatedEleveData)
-            .then((response) => {
-              console.log("response");
-              console.log(response);
-              getElevesInClasse(data)
-                .then((response) => {
-                  console.log("after increase....");
-                  console.log(response.data.data);
-                  const students = response.data.data.students;
+        editEleveNote(updatedEleveData)
+          .then((response) => {
+            console.log("response");
+            console.log(response);
+            getElevesInClasse(data)
+              .then((response) => {
+                console.log("after increase....");
+                console.log(response.data.data);
+                const students = response.data.data.students;
 
-                  setClasse(response.data.data.classe.name);
-                  setEleves(response.data.data.students);
-                  setElevesOrdreAlphabetique(
-                    response.data.data.studentsAlphabeticalOrder
-                  );
+                setClasse(response.data.data.classe.name);
+                setEleves(response.data.data.students);
+                setElevesOrdreAlphabetique(
+                  response.data.data.studentsAlphabeticalOrder
+                );
 
-                  setCollege(response.data.data.classe.ecole.name);
-                  setCounter(students.length);
-                  setEleves(students);
-                  setExportList(students);
-                  setCurrentSeance(response.data.data.nbSeances);
-                  setIsNewSeance(response.data.data.isNewSeance);
-                })
-                .catch((error) => {
-                  console.log("error while fetching students");
-                  console.log(error);
-                })
-                .finally(() => {
-                  setIsFetching(false);
-                });
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        })
-        .catch((errorIncrease) => {
-          console.log(errorIncrease);
-        });
-    });
+                setCollege(response.data.data.classe.ecole.name);
+                setCounter(students.length);
+                setEleves(students);
+                setExportList(students);
+                setCurrentSeance(response.data.data.nbSeances);
+                setIsNewSeance(response.data.data.isNewSeance);
+              })
+              .catch((error) => {
+                console.log("error while fetching students");
+                console.log(error);
+              })
+              .finally(() => {
+                setIsFetching(false);
+              });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })
+      .catch((errorIncrease) => {
+        console.log(errorIncrease);
+      });
   };
 
   const handleStudentClick = (eleve, note) => {
@@ -866,7 +868,7 @@ const Classe = () => {
       console.log(selectedStudent);
       console.log("switchStudent");
       console.log(switchStudent);
-      console.log('----------------------');
+      console.log("----------------------");
       // setSelectedStudent(switchStudent);
       // console.log('eleve')
       // console.log(eleve)
@@ -1135,119 +1137,118 @@ const Classe = () => {
   }, [eleves]);
 
   useEffect(() => {
-    sessionStorage.setItem("fromLogin", JSON.stringify(false));
+    localStorage.setItem("fromLogin", JSON.stringify(false));
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });
     console.log("début?????");
     setIsFetching(true);
 
-    sessionService
-      .loadUser()
-      .then((user) => {
-        console.log("my user");
-        console.log(user);
-        setTeacherAvertissementDelta(user.avertissement);
-        setTeacherBonusDelta(user.bonus);
-        setTeacherParticipationDelta(user.participation);
-        setTeacherNoteDepart(user.noteDepart);
-        // console.log(user.college.name);
-        let userCollege;
-        if (Array.isArray(user.college)) {
-          userCollege = user.college[0].name;
-        } else {
-          userCollege = user.college;
-        }
-        let data = {
-          classId,
-          college: userCollege,
-          discipline: user.discipline.name,
-          currentDate: new Date(localeTime),
-        };
-        getElevesInClasse(data)
-          .then((response) => {
-            const students = response.data.data.students;
-            console.log("les eleves");
-            console.log(response.data.data.students);
-            setClasse(response.data.data.classe.name);
-            setEleves(response.data.data.students);
-            setElevesOrdreAlphabetique(
-              response.data.data.studentsAlphabeticalOrder
-            );
-            setCollege(response.data.data.classe.ecole.name);
-            // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
-            setDiscipline(user.discipline.name);
-            setCounter(students.length);
-            setEleves(students);
-            setExportList(students);
-            setCurrentSeance(response.data.data.nbSeances);
-            setIsNewSeance(response.data.data.isNewSeance);
-            if (response.data.data.isNewSeance == true) {
-              setShowModalNewSeance(response.data.data.isNewSeance);
-            }
-            console.log("response.data.data.isNewSeance------");
-            console.log(response.data.data.isNewSeance);
-
-            if (response.data.data.isNewSeance) {
-              //user is fetching class from another day so we have to increase the seance
-              let increaseSeanceData = {
-                classe: response.data.data.classe.name,
-                college: response.data.data.classe.ecole.name,
-                nbSeances: response.data.data.nbSeances,
-                discipline: user.discipline.name,
-              };
-              increaseClassSeanceIndex(increaseSeanceData)
-                .then((responseIncrease) => {
-                  console.log("responseIncrease");
-                  console.log(responseIncrease);
-                  let data = {
-                    classId,
-                    college: { name: response.data.data.classe.ecole.name },
-                    discipline: user.discipline.name,
-                    currentDate: new Date(localeTime),
-                  };
-                  getElevesInClasse(data)
-                    .then((response) => {
-                      const students = response.data.data.students;
-                      console.log("les eleves");
-                      console.log(response.data.data.students);
-                      setClasse(response.data.data.classe.name);
-                      setEleves(response.data.data.students);
-                      setElevesOrdreAlphabetique(
-                        response.data.data.studentsAlphabeticalOrder
-                      );
-
-                      setCollege(response.data.data.classe.ecole.name);
-                      setCounter(students.length);
-                      setEleves(students);
-                      setExportList(students);
-                      setCurrentSeance(response.data.data.nbSeances);
-                      setIsNewSeance(response.data.data.isNewSeance);
-                      if (response.data.data.isNewSeance == true) {
-                        setShowModalNewSeance(response.data.data.isNewSeance);
-                      }
-                    })
-                    .catch((error) => {
-                      console.log("error while fetching students");
-                      console.log(error);
-                    });
-                })
-                .catch((errorIncrease) => {
-                  console.log(errorIncrease);
-                });
-            }
-          })
-          .catch((error) => {
-            console.log("error while fetching students");
-            console.log(error);
-          })
-          .finally(() => {
-            setIsFetching(false);
-          });
-      })
-      .catch((err) => {
-        console.log(err);
+    if (!currentUser) {
+      logout().then(() => {
+        // navigate("/login");
       });
+    } else {
+      console.log("my user");
+      console.log(currentUser);
+      setTeacherAvertissementDelta(currentUser.avertissement);
+      setTeacherBonusDelta(currentUser.bonus);
+      setTeacherParticipationDelta(currentUser.participation);
+      setTeacherNoteDepart(currentUser.noteDepart);
+      // console.log(user.college.name);
+      let userCollege;
+      if (Array.isArray(currentUser.college)) {
+        userCollege = currentUser.college[0].name;
+      } else {
+        userCollege = currentUser.college;
+      }
+      let data = {
+        classId,
+        college: userCollege,
+        discipline: currentUser.discipline.name,
+        currentDate: new Date(localeTime),
+      };
+      getElevesInClasse(data)
+        .then((response) => {
+          const students = response.data.data.students;
+          console.log("les eleves");
+          console.log(response.data.data.students);
+          setClasse(response.data.data.classe.name);
+          setEleves(response.data.data.students);
+          setElevesOrdreAlphabetique(
+            response.data.data.studentsAlphabeticalOrder
+          );
+          setCollege(response.data.data.classe.ecole.name);
+          // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
+          setDiscipline(currentUser.discipline.name);
+          setCounter(students.length);
+          setEleves(students);
+          setExportList(students);
+          setCurrentSeance(response.data.data.nbSeances);
+          setIsNewSeance(response.data.data.isNewSeance);
+          if (response.data.data.isNewSeance == true) {
+            setShowModalNewSeance(response.data.data.isNewSeance);
+          }
+          console.log("response.data.data.isNewSeance------");
+          console.log(response.data.data.isNewSeance);
+
+          if (response.data.data.isNewSeance) {
+            //user is fetching class from another day so we have to increase the seance
+            let increaseSeanceData = {
+              classe: response.data.data.classe.name,
+              college: response.data.data.classe.ecole.name,
+              nbSeances: response.data.data.nbSeances,
+              discipline: currentUser.discipline.name,
+            };
+            increaseClassSeanceIndex(increaseSeanceData)
+              .then((responseIncrease) => {
+                console.log("responseIncrease");
+                console.log(responseIncrease);
+                let data = {
+                  classId,
+                  college: { name: response.data.data.classe.ecole.name },
+                  discipline: currentUser.discipline.name,
+                  currentDate: new Date(localeTime),
+                };
+                getElevesInClasse(data)
+                  .then((response) => {
+                    const students = response.data.data.students;
+                    console.log("les eleves");
+                    console.log(response.data.data.students);
+                    setClasse(response.data.data.classe.name);
+                    setEleves(response.data.data.students);
+                    setElevesOrdreAlphabetique(
+                      response.data.data.studentsAlphabeticalOrder
+                    );
+
+                    setCollege(response.data.data.classe.ecole.name);
+                    setCounter(students.length);
+                    setEleves(students);
+                    setExportList(students);
+                    setCurrentSeance(response.data.data.nbSeances);
+                    setIsNewSeance(response.data.data.isNewSeance);
+                    if (response.data.data.isNewSeance == true) {
+                      setShowModalNewSeance(response.data.data.isNewSeance);
+                    }
+                  })
+                  .catch((error) => {
+                    console.log("error while fetching students");
+                    console.log(error);
+                  });
+              })
+              .catch((errorIncrease) => {
+                console.log(errorIncrease);
+              });
+          }
+        })
+        .catch((error) => {
+          console.log("error while fetching students");
+          console.log(error);
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
+    }
     console.log("eleves");
     console.log(eleves);
   }, []);
@@ -1256,13 +1257,12 @@ const Classe = () => {
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });
-    sessionService.loadUser().then((user) => {
       setIsFetching(true);
       let increaseSeanceData = {
         classe: classe,
         college: college,
         nbSeances: currentSeance,
-        discipline: user.discipline.name,
+        discipline: currentUser?.discipline.name,
       };
       increaseClassSeanceIndex(increaseSeanceData)
         .then((responseIncrease) => {
@@ -1271,7 +1271,7 @@ const Classe = () => {
           let data = {
             classId,
             college: { name: college },
-            discipline: user.discipline.name,
+            discipline: currentUser?.discipline.name,
             currentDate: new Date(localeTime),
           };
           getElevesInClasse(data)
@@ -1304,7 +1304,6 @@ const Classe = () => {
         .catch((errorIncrease) => {
           console.log(errorIncrease);
         });
-    });
   };
 
   const isEmptyPlace = (studentIndex) => {
@@ -1392,22 +1391,21 @@ const Classe = () => {
         });
 
         //now let's get the student list, with new sequence starting
-        sessionService.loadUser().then((user) => {
           console.log("my user");
-          console.log(user);
+          console.log(currentUser);
           console.log("la discipline....");
-          console.log(user.discipline.name);
+          console.log(currentUser?.discipline.name);
           // console.log(user.college.name);
           let userCollege;
-          if (Array.isArray(user.college)) {
-            userCollege = user.college[0].name;
+          if (Array.isArray(currentUser?.college)) {
+            userCollege = currentUser?.college[0].name;
           } else {
-            userCollege = user.college;
+            userCollege = currentUser?.college;
           }
           let data = {
             classId,
             college: userCollege,
-            discipline: user.discipline.name,
+            discipline: currentUser?.discipline.name,
             currentDate: new Date(localeTime),
           };
           getElevesInClasse(data)
@@ -1436,7 +1434,6 @@ const Classe = () => {
             .finally(() => {
               setIsFetching(false);
             });
-        });
       })
       .catch((error) => {
         console.log(error);
@@ -1463,39 +1460,41 @@ const Classe = () => {
   } else if (!isFetching) {
     return (
       <Container fluid style={{ marginTop: "1rem" }}>
-        {(selectedStudent?.empty === false) && (<ToastContainer
-          className="p-3"
-          position="top-center"
-          style={{ zIndex: 1 }}
-        >
-          <Toast
-            bg="light"
-            className="d-inline-block m-3"
-            show={showStudentSwitchToast}
-            onClose={() => {
-              console.log("fermé!");
-              setShowStudentSwitchToast(false);
-              setIsSwitching(false);
-            }}
+        {selectedStudent?.empty === false && (
+          <ToastContainer
+            className="p-3"
+            position="top-center"
+            style={{ zIndex: 1 }}
           >
-            <Toast.Header closeButton={true}>
-              <img
-                src="/images/blank.png"
-                className="rounded me-2"
-                style={{ width: "1.2rem", height: "1.2rem" }}
-                alt=""
-              />
-              <strong className="me-auto">Placer Eleve</strong>
-              {/* <small>11 mins ago</small> */}
-            </Toast.Header>
-            <Toast.Body>
-              Où souhaitez-vous placer{" "}
-              <b>
-                {selectedStudent?.firstname} {selectedStudent?.lastname}?
-              </b>
-            </Toast.Body>
-          </Toast>
-        </ToastContainer>)}
+            <Toast
+              bg="light"
+              className="d-inline-block m-3"
+              show={showStudentSwitchToast}
+              onClose={() => {
+                console.log("fermé!");
+                setShowStudentSwitchToast(false);
+                setIsSwitching(false);
+              }}
+            >
+              <Toast.Header closeButton={true}>
+                <img
+                  src="/images/blank.png"
+                  className="rounded me-2"
+                  style={{ width: "1.2rem", height: "1.2rem" }}
+                  alt=""
+                />
+                <strong className="me-auto">Placer Eleve</strong>
+                {/* <small>11 mins ago</small> */}
+              </Toast.Header>
+              <Toast.Body>
+                Où souhaitez-vous placer{" "}
+                <b>
+                  {selectedStudent?.firstname} {selectedStudent?.lastname}?
+                </b>
+              </Toast.Body>
+            </Toast>
+          </ToastContainer>
+        )}
         <Modal show={showModal}>
           <Modal.Header
             closeButton
@@ -1518,13 +1517,17 @@ const Classe = () => {
             )}
             {(selectedStudent?.empty === true ||
               switchStudent?.empty === true) && (
-                <>
-                  Etes vous sur de vouloir placer{" "}
-                  {selectedStudent?.empty === false && (<b>{selectedStudent?.firstname}</b>)}
-                  {switchStudent?.empty === false && (<b>{switchStudent?.firstname}</b>)}
-                  {" "}à cette position ?
-                </>
-              )}
+              <>
+                Etes vous sur de vouloir placer{" "}
+                {selectedStudent?.empty === false && (
+                  <b>{selectedStudent?.firstname}</b>
+                )}
+                {switchStudent?.empty === false && (
+                  <b>{switchStudent?.firstname}</b>
+                )}{" "}
+                à cette position ?
+              </>
+            )}
           </Modal.Body>
 
           <Modal.Footer>
@@ -2854,8 +2857,4 @@ const Classe = () => {
   }
 };
 
-const mapStateToProps = ({ session }) => ({
-  checked: session.checked,
-});
-
-export default connect(mapStateToProps)(Classe);
+export default Classe;

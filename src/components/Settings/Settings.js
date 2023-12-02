@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -15,11 +15,7 @@ import { MultiSelect } from "react-multi-select-component";
 import Counter from "../../utils/Counter/Counter";
 import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
-import store from "../../auth/store";
-import { AuthContext, useAuth } from "../../auth/context/AuthContext";
 
-// auth & redux
-import { connect } from "react-redux";
 import {
   editProfesseur,
   getProfesseurData,
@@ -32,22 +28,23 @@ import {
 } from "../../auth/actions/userActions";
 import { colors } from "../../utils/Styles";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
-import { sessionService } from "redux-react-session";
 import AnimatedCountup from "../../utils/AnimatedCountup/AnimatedCountup";
+import AuthContext from "../../auth/context/AuthContext";
 
 const allowedExtensions = ["csv", "xls"];
 
 const Settings = () => {
-  const { currentUser, setCurrentUser } = useAuth();
+  // NOUVELLE FACON DE FAIRE
+  const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
+  let currentUser = user ? user : localStorage.getItem("userData");
+
   const [selected, setSelected] = useState([]);
   const [multiselectOptions, setMultiselectOptions] = useState([]);
   const [endOfTrimestre, setEndOfTrimestre] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
-  const [isFetching, setIsFetching] = useState(null);
   const [selectedSchool, setSelectedSchool] = useState(null);
 
-  const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -107,15 +104,13 @@ const Settings = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
-    sessionStorage.setItem("fromLogin", JSON.stringify(false));
+    localStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
-    sessionService.loadUser().then((user) => {
       console.log("user");
-      console.log(user);
-      console.log(user._id);
-      setUserId(user._id);
-      setUser(user);
-      getProfesseurData(user._id)
+      console.log(currentUser);
+      console.log(currentUser?._id);
+      setUserId(currentUser?._id);
+      getProfesseurData(currentUser?._id)
         .then((response) => {
           console.log("les infos prof");
           console.log(response.data);
@@ -174,8 +169,6 @@ const Settings = () => {
         .finally(() => {
           setIsFetching(false);
         });
-    });
-    // console.log(store.getState());
     // console.log(currentUser);
     // console.log("prof de la session:");
     // console.log(sessionStorage.professeurId);
@@ -396,10 +389,7 @@ const Settings = () => {
       //Point cours : What if both the object has same key, it simply merge the last objects value and have only one key value.
     };
 
-    sessionService.saveUser(newUserFields).then(() => {
-      console.log("user has been saved in session successfully");
-    });
-    sessionStorage.setItem("professeur", JSON.stringify(sessionStorageValues));
+    localStorage.setItem("userData", JSON.stringify(sessionStorageValues));
     editProfesseur(credentials, navigate).then(async (response) => {
       console.log("réponse de edit");
       console.log(response);
@@ -1206,8 +1196,4 @@ const Settings = () => {
   }
 };
 
-const mapStateToProps = ({ session }) => ({
-  checked: session.checked,
-});
-
-export default connect(mapStateToProps)(Settings);
+export default Settings;

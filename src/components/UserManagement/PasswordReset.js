@@ -26,8 +26,6 @@ import {
   //loader
   import { ThreeDots } from "react-loader-spinner";
   
-  //auth & redux
-  import { connect } from "react-redux";
   import { resetPassword } from "./../../auth/actions/userActions.js";
   import { useNavigate, useParams } from "react-router-dom";
   
@@ -105,5 +103,5 @@ import {
     );
   };
   
-  export default connect(null, { resetPassword })(PasswordReset);
+  export default PasswordReset;
   

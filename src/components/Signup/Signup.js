@@ -26,8 +26,6 @@ import { FiMail, FiLock, FiUser, FiCalendar } from "react-icons/fi";
 //loader
 import { ThreeDots } from "react-loader-spinner";
 
-//auth & redux
-import { connect } from "react-redux";
 import { signupUser } from "../../auth/actions/userActions.js";
 import { useNavigate } from "react-router-dom";
 
@@ -140,4 +138,4 @@ const Signup = ({ signupUser }) => {
   );
 };
 
-export default connect(null, { signupUser })(Signup);
+export default Signup;

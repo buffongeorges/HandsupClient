@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
@@ -15,25 +15,24 @@ import {
 import { TailSpin, ThreeDots } from "react-loader-spinner";
 import { colors } from "../../utils/Styles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import AuthContext from "../../auth/context/AuthContext";
 
-// auth & redux
-import { connect } from "react-redux";
-import { sessionService } from "redux-react-session";
 
 const allowedExtensions = ["csv", "xls"];
 
 const EleveEdit = () => {
+  // NOUVELLE FACON DE FAIRE
+  const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
+  let currentUser = user ? user : localStorage.getItem("userData");
+
   const [showCamera, setShowCamera] = useState(false);
   const [file, setFile] = useState("");
   const webcamRef = React.useRef(null);
   const [showModalSave, setShowModalSave] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
-  const [isFetching, setIsFetching] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pictureFile, setPictureFile] = useState(null);
 
-  const [user, setUser] = useState(null);
-  const [userId, setUserId] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const [firstname, setFirstname] = useState(null);
@@ -71,10 +70,9 @@ const EleveEdit = () => {
   useEffect(() => {
     sessionStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
-    sessionService.loadUser().then((user) => {
       console.log("mon utilisateur");
-      console.log(user);
-      setAdmin(user.admin);
+      console.log(currentUser);
+      setAdmin(currentUser?.admin);
       getElevesData(eleveId)
         .then((response) => {
           if (response.status === 200 && response.data.status === "SUCCESS") {
@@ -120,7 +118,6 @@ const EleveEdit = () => {
         .finally(() => {
           setIsFetching(false);
         });
-    });
   }, []);
 
   useEffect(() => {
@@ -695,8 +692,4 @@ const EleveEdit = () => {
   }
 };
 
-const mapStateToProps = ({ session }) => ({
-  checked: session.checked,
-});
-
-export default connect(mapStateToProps)(EleveEdit);
+export default EleveEdit;
