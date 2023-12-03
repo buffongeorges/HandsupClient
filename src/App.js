@@ -32,6 +32,7 @@ import { colors } from "./utils/Styles.js";
 import AuthContext, {
   AuthContextProvider,
 } from "./auth/context/AuthContext.js";
+import EvaluationSessions from "./components/Evaluation/EvaluationSessions.js";
 
 function App() {
   // look for user data by localStorage and with the context value
@@ -124,6 +125,22 @@ function App() {
                 element={
                   <ProtectedRoute accessBy="authenticated">
                     <Evaluation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/evaluations/:evaluationId"
+                element={
+                  <ProtectedRoute accessBy="authenticated">
+                    <Evaluation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/evaluations/:evaluationId/sessions"
+                element={
+                  <ProtectedRoute accessBy="authenticated">
+                    <EvaluationSessions />
                   </ProtectedRoute>
                 }
               />
