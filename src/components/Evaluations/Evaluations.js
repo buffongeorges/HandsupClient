@@ -51,7 +51,7 @@ const Evaluations = ({ handleNavbar }) => {
       ],
     },
     {
-      id: 1,
+      id: 2,
       name: "Littérature",
       competences: ["Lire"],
       classes: ["6EME4", "6EME6"],
@@ -223,7 +223,7 @@ const Evaluations = ({ handleNavbar }) => {
                         <Button
                           variant="link"
                           onClick={() => {
-                            goToEditEvaluation(evaluation);
+                            navigate('/pending');
                           }}
                         >
                           Apercu du test
