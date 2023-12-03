@@ -1,6 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Card from "react-bootstrap/Card";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 
 import { useNavigate } from "react-router-dom";
@@ -24,6 +27,47 @@ const Evaluations = ({ handleNavbar }) => {
   console.log("fromLogin", fromLogin);
   console.log(fromLogin == "true");
 
+  let evaluationsTest = [
+    {
+      id: 1,
+      name: "Algèbre",
+      competences: ["Calcul", "Expression littérale"],
+      classes: ["6EME4", "5EME3", "5EME5"],
+      duree: "1 heure",
+      creationDate: new Date(2023, 10, 20),
+      questions: [
+        {
+          id: 1,
+          name: "Que veut dire développer ?",
+          réponses: [],
+          options: [],
+        },
+        {
+          id: 2,
+          name: "Que veut dire réduire ?",
+          réponses: [],
+          options: [],
+        },
+      ],
+    },
+    {
+      id: 1,
+      name: "Littérature",
+      competences: ["Lire"],
+      classes: ["6EME4", "6EME6"],
+      duree: "2 heures",
+      creationDate: new Date(2023, 11, 1),
+      questions: [
+        {
+          id: 1,
+          name: "Qui a écrit Les Misérables ?",
+          réponses: [],
+          options: [],
+        },
+      ],
+    },
+  ];
+
   const goToClass = (selectedClass) => {
     console.log("selectedClass");
     console.log(selectedClass);
@@ -38,12 +82,10 @@ const Evaluations = ({ handleNavbar }) => {
 
   useEffect(() => {
     console.log("to be defined/////");
+    // setIsFetching(true);
     getProfesseurClasses(currentUser?._id)
       .then((response) => {
-        //   console.log(response.data)
-        //   console.log("les classes:");
-        //   console.log(response.data.data.classes);
-        //   setClasses(response.data.data.classes);
+        setEvaluations(evaluationsTest);
       })
       .catch((error) => {
         console.log(error);
@@ -52,6 +94,31 @@ const Evaluations = ({ handleNavbar }) => {
         setIsFetching(false);
       });
   }, []);
+
+  const goToEditEvaluation = (evaluation) => {
+    const evaluationId = evaluation.id;
+
+    localStorage.setItem("selectedEvaluation", JSON.stringify(evaluation));
+    let path = `${location.pathname}/${evaluationId}`;
+    navigate(`${path}`);
+  };
+
+  const goToEvaluationSessions = (evaluation) => {
+    const evaluationId = evaluation.id;
+
+    localStorage.setItem("selectedEvaluation", JSON.stringify(evaluation));
+    let path = `${location.pathname}/${evaluationId}/sessions`;
+    navigate(`${path}`);
+  };
+
+  const parseDate = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // Ajouter 1 car les mois commencent à partir de 0
+    const day = date.getDate();
+    
+    // Afficher la date au format "DD/MM/YYYY"
+    return `${day}/${month}/${year}`;
+  }
 
   if (isFetching) {
     return (
@@ -80,37 +147,102 @@ const Evaluations = ({ handleNavbar }) => {
         >
           Mes évaluations
         </h1>
-        {evaluations && evaluations?.length > 0 && (
-          <div
-            className="container"
-            style={{
-              textAlign: "center",
-              position: "relative",
-              justifyContent: "center",
-              paddingTop: "2rem",
-              paddingLeft: "2rem",
-            }}
-          >
-            {/* <Container fluid> */}
-            <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {evaluations.map((classe, index) => {
-                return (
-                  <div
+        {Array.isArray(evaluations) && evaluations?.length > 0 && (
+          <div className="m-4">
+            {evaluations.map((evaluation, index) => (
+              <Row className="mt-3">
+                <Col>
+                  <Card
                     style={{
-                      marginBottom: "2rem",
-                      marginRight: "2rem",
-                      flex: "1 0 21%",
+                      boxShadow: "1px 1px 8px rgba(0, 0, 0, 0.6)",
+                      // border: "1px solid",
                     }}
-                    key={index}
                   >
-                    <Button onClick={() => goToClass(classe)}>
-                      {classe.value}
-                    </Button>
-                  </div>
-                );
-              })}
+                    <Card.Body className="text-center">
+                      <Card.Title style={{ fontSize: "1.6rem" }}>
+                        {evaluation.name}
+                      </Card.Title>
+                      <Card.Text>
+                        {evaluation?.competences?.length == 1 && (
+                          <div>
+                            Compétence: &nbsp;
+                            <b>{evaluation?.competences?.join(", ")}</b>
+                          </div>
+                        )}
+                        {evaluation?.competences?.length > 1 && (
+                          <div>
+                            Compétences: &nbsp;
+                            <b>{evaluation?.competences?.join(", ")}</b>
+                          </div>
+                        )}
+                        {evaluation?.classes?.length == 1 && (
+                          <div>
+                            Classe: &nbsp;
+                            <b>{evaluation?.classes?.join(", ")}</b>
+                          </div>
+                        )}
+                        {evaluation?.classes?.length > 1 && (
+                          <div>
+                            Classes: &nbsp;
+                            <b>{evaluation?.classes?.join(", ")}</b>
+                          </div>
+                        )}
+                        <div>
+                          Durée: &nbsp;<b>{evaluation?.duree}</b>
+                        </div>
+                        {evaluation?.questions?.length == 1 && (
+                          <div>
+                            Nombre: &nbsp;<b>1 question</b>
+                          </div>
+                        )}
+                        {evaluation?.questions?.length > 1 && (
+                          <div>
+                            Nombre: &nbsp;
+                            <b> {evaluation?.questions?.length} questions</b>
+                          </div>
+                        )}
+                        <div className="me-4">
+                          Créée le: &nbsp;
+                          <b>{parseDate(evaluation?.creationDate)}</b>
+                        </div>
+                      </Card.Text>
+                      <div className="d-inline-flex">
+                        <Button
+                          className="me-4"
+                          onClick={() => goToEvaluationSessions(evaluation)}
+                        >
+                          Gérer sessions
+                        </Button>
+                        <Button
+                          className="me-4"
+                          variant="secondary"
+                          onClick={() => goToEditEvaluation(evaluation)}
+                        >
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="link"
+                          onClick={() => {
+                            goToEditEvaluation(evaluation);
+                          }}
+                        >
+                          Apercu du test
+                        </Button>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+            ))}
+            <div className="mt-4 text-center">
+              <Button
+                onClick={() => {
+                  navigate("/evaluation-create");
+                }}
+              >
+                Nouvelle évaluation
+              </Button>
             </div>
-            {/* </Container> */}
           </div>
         )}
         {(!evaluations || evaluations?.length == 0) && (

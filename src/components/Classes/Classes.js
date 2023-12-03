@@ -57,19 +57,19 @@ const Classes = ({ handleNavbar }) => {
     console.log("selectedClass");
     console.log(selectedClass);
     // sessionStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
-    localStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
     let classeName = selectedClass.value;
     const classeId = selectedClass._id;
     classeName = classeName.replace(/\s/g, "");
-
+    
     let updatedUserFields = {
       ...user,
       selectedClass: selectedClass,
     };
-
+    
     console.log("updatedUserFields");
     console.log(updatedUserFields);
-    localStorage.setItem('userData', JSON.stringify(updatedUserFields));
+    localStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
+    // localStorage.setItem('userData', JSON.stringify(updatedUserFields));
 
     // ANCIENNE FACON DE FAIRE
     // sessionService
