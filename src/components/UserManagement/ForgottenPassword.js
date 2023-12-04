@@ -26,17 +26,28 @@ import { FiMail, FiLock } from "react-icons/fi";
 //loader
 import { ThreeDots } from "react-loader-spinner";
 
-import { forgottenPassword } from "./../../auth/actions/userActions.js";
 import { useNavigate, useParams } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../auth/context/AuthContext.js";
 
-//the frontend url 
+//the frontend url
 const frontendUrl = window.location.origin;
 
-const ForgottenPassword = ({ forgottenPassword }) => {
-  
-  console.log('the base url:');
+const ForgottenPassword = () => {
+  const { resetPasswordRequest } = useContext(AuthContext);
+  console.log("the base url:");
   console.log(window.location.origin);
   const history = useNavigate();
+
+  const forgottenPassword = async (
+    values,
+    navigate,
+    setFieldError,
+    setSubmitting
+  ) => {
+    let payload = { ...values };
+    await resetPasswordRequest(payload, navigate, setFieldError, setSubmitting);
+  };
   const { userEmail } = useParams();
   return (
     <div

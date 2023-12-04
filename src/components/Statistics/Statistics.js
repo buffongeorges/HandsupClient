@@ -134,7 +134,8 @@ const Statistics = ({ handleNavbar, userType }) => {
     console.log("updatedUserFields");
     console.log(updatedUserFields);
     let path = `${location.pathname}/${classeId}`;
-
+// Supprimer une barre oblique en double s'il y en a une
+path = path.replace(/\/\//g, "/");
     navigate(`${path}`);
   };
 

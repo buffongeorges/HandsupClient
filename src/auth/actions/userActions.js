@@ -1,8 +1,8 @@
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 //the remote endpoint and local
-const preprodApiUrl = "https://preprod--handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
+const preprodApiUrl =
+  "https://preprod--handsup-server.netlify.app/.netlify/functions/api"; // pre-prod
 // const productionApiUrl = "https://handsup-server.netlify.app/.netlify/functions/api"; // prod
 
 const localUrl = "http://localhost:8888/.netlify/functions/api";
@@ -26,8 +26,8 @@ export const loginUser = (
       })
       .then((response) => {
         const { data } = response;
-        console.log("qqn???")
-        console.log(response)
+        console.log("qqn???");
+        console.log(response);
 
         if (data.status === "FAILED") {
           const { message } = data;
@@ -43,9 +43,9 @@ export const loginUser = (
           }
         } else if (data.status === 200) {
           const userData = data.data[0];
-          console.log('OKayy')
+          console.log("OKayy");
           console.log(userData);
-          console.log(JSON.parse(localStorage.getItem('userData')));
+          console.log(JSON.parse(localStorage.getItem("userData")));
         }
 
         //complete submission
@@ -232,7 +232,10 @@ export const editEleve = (data) => {
     .then((response) => {
       return response;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      return err;
+    });
 };
 
 //Update student data
@@ -288,9 +291,9 @@ export const getProfesseurClasses = (profId) => {
   console.log(profId);
   const headers = {
     "Content-Type": "application/json",
-  }
-  console.log('headers')
-  console.log(headers)
+  };
+  console.log("headers");
+  console.log(headers);
   return axios
     .get(`${backendUrl}/classes/get/${profId}`, {
       headers,
@@ -300,6 +303,29 @@ export const getProfesseurClasses = (profId) => {
       return response;
     })
     .catch((err) => console.log(err));
+};
+
+//Get student chemistries
+export const getEleveMatiere = (eleveId) => {
+  console.log("eleveId");
+  console.log(eleveId);
+  const headers = {
+    "Content-Type": "application/json",
+  };
+  console.log("headers");
+  console.log(headers);
+  return axios
+    .get(`${backendUrl}/eleve/matieres/${eleveId}`, {
+      headers,
+      withCredentials: true,
+    })
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => {
+      console.log(err);
+      return err;
+    });
 };
 
 //Add student to a specific class

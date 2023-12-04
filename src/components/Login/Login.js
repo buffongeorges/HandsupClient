@@ -37,22 +37,13 @@ import { FiMail, FiLock } from "react-icons/fi";
 import { ThreeDots } from "react-loader-spinner";
 import AuthContext from "../../auth/context/AuthContext.js";
 
-const Login = ({ loginUser }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Login = () => {
   let navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
-  const loginSubmit = async (values) => {
+  const loginSubmit = async (values, navigate, setFieldError, setSubmitting) => {
     let payload = {...values};
-    const result = await login(payload);
-    console.log('result de loginSubmit');
-    console.log(result);
-    if (result.status === 200) {
-      localStorage.setItem("fromLogin", JSON.stringify(true));
-      navigate('/classes');
-    }
-
+    await login(payload, navigate, setFieldError, setSubmitting);
   };
 
   // function handleSubmit(event) {
@@ -113,7 +104,7 @@ const Login = ({ loginUser }) => {
             console.log("coucou");
             console.log(values);
 
-            loginSubmit(values);
+            loginSubmit(values, navigate, setFieldError, setSubmitting);
 
             // JE COMMENTE POUR LA RESTRUCTURATION
             // loginUser(values, navigate, setFieldError, setSubmitting);

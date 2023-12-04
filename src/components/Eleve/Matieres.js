@@ -1,43 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import { ThreeDots, TailSpin } from "react-loader-spinner";
 
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
 import { colors } from "../../utils/Styles.js";
-import { getProfesseurClasses } from "../../auth/actions/userActions.js";
+import { getEleveMatiere } from "../../auth/actions/userActions.js";
 import AuthContext from "../../auth/context/AuthContext.js";
 
-let classesTest = [
-  "6EME 1",
-  "6EME 2",
-  "6EME 3",
-  "6EME 4",
-  "6EME 5",
-  "6EME 6",
-  "5EME 1",
-  "5EME 2",
-  "5EME 3",
-  "5EME 4",
-  "5EME 5",
-  "5EME 6",
-  "4EME 1",
-  "4EME 2",
-  "4EME 3",
-  "4EME 4",
-  "4EME 5",
-  "4EME 6",
-  "3EME 1",
-  "3EME 2",
-  "3EME 3",
-  "3EME 4",
-  "3EME 5",
-  "3EME 6",
-];
-
-const Classes = ({ handleNavbar }) => {
+const Matieres = ({ handleNavbar }) => {
   let navigate = useNavigate();
   const location = useLocation();
 
@@ -45,7 +20,7 @@ const Classes = ({ handleNavbar }) => {
   const { user, logout } = useContext(AuthContext);
   let currentUser = user ? user : localStorage.getItem("userData");
 
-  const [classes, setClasses] = useState([]);
+  const [matieres, setMatieres] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const fromLogin = localStorage.getItem("fromLogin");
   // fromLogin permet d'avoir l'effet d'arriver sur une app
@@ -53,23 +28,23 @@ const Classes = ({ handleNavbar }) => {
   console.log("fromLogin", fromLogin);
   console.log(fromLogin == "true");
 
-  const goToClass = (selectedClass) => {
-    console.log("selectedClass");
-    console.log(selectedClass);
-    // sessionStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
-    let classeName = selectedClass.value;
-    const classeId = selectedClass._id;
-    classeName = classeName.replace(/\s/g, "");
+  const goToMatiere = (selectedMatiere) => {
+    console.log("selectedMatiere");
+    console.log(selectedMatiere);
+    // sessionStorage.setItem("selectedMatieree", JSON.stringify(selectedMatiere));
+    let matiereName = selectedMatiere.value;
+    const matiereId = selectedMatiere.id;
+    // matiereName = matiereName.replace(/\s/g, "");
 
-    let updatedUserFields = {
-      ...user,
-      selectedClass: selectedClass,
-    };
+    // let updatedUserFields = {
+    //   ...user,
+    //   selectedMatiere: selectedMatiere,
+    // };
 
-    console.log("updatedUserFields");
-    console.log(updatedUserFields);
-    localStorage.setItem("selectedClasse", JSON.stringify(selectedClass));
-    let path = `${location.pathname}/${classeId}`;
+    // console.log("updatedUserFields");
+    // console.log(updatedUserFields);
+    localStorage.setItem("selectedMatiere", JSON.stringify(selectedMatiere));
+    let path = `${location.pathname}/${matiereId}`;
     // Supprimer une barre oblique en double s'il y en a une
     path = path.replace(/\/\//g, "/");
     navigate(`${path}`);
@@ -81,23 +56,23 @@ const Classes = ({ handleNavbar }) => {
         // navigate("/login");
       });
     } else {
-      const teacherClasses = currentUser?.classes;
+      const studentChemistry = currentUser?.matieres;
       try {
-        if (Array.isArray(teacherClasses) && teacherClasses?.length > 0) {
+        if (Array.isArray(studentChemistry) && studentChemistry?.length > 0) {
           if (typeof handleNavbar === "function" && fromLogin == "true") {
             handleNavbar(false);
           }
-          console.log("teacherClasses");
-          console.log(teacherClasses);
-          setClasses(teacherClasses);
+          console.log("studentChemistry");
+          console.log(studentChemistry);
+          setMatieres(studentChemistry);
         } else {
-          //if not call api for teacher classes:
-          getProfesseurClasses(currentUser._id)
+          //if not call api for teacher matieres:
+          getEleveMatiere(currentUser._id)
             .then((response) => {
               console.log(response.data);
-              console.log("les classes:");
-              console.log(response.data.data.classes);
-              setClasses(response.data.data.classes);
+              console.log("les matieres:");
+              console.log(response.data.data);
+              setMatieres(response.data.data);
             })
             .catch((error) => {
               console.log(error);
@@ -114,12 +89,11 @@ const Classes = ({ handleNavbar }) => {
             if (typeof handleNavbar === "function") {
               handleNavbar(true);
             }
-          }, 2500);
+          }, 3000);
         }
       }
     }
   }, []);
-
   if (isLoading && fromLogin == "true") {
     return (
       <>
@@ -145,7 +119,18 @@ const Classes = ({ handleNavbar }) => {
   } else if (!isLoading || fromLogin == "false") {
     return (
       <>
-        {classes && classes?.length > 0 && (
+        <Row className="text-center">
+          <Col>
+            <h1 className="m-3"> Bonjour {currentUser?.firstname}</h1>
+          </Col>
+        </Row>
+        <Row className="text-center">
+          <Col>
+            <div className="lead m-3"> A quel cours vas-tu assister ?</div>
+          </Col>
+        </Row>
+
+        {matieres && matieres?.length > 0 && (
           <div
             className="container"
             style={{
@@ -157,19 +142,18 @@ const Classes = ({ handleNavbar }) => {
             }}
           >
             {/* <Container fluid> */}
-            <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {classes.map((classe, index) => {
+            <div style={{ display: "inline-flex" }}>
+              {matieres.map((matiere, index) => {
                 return (
                   <div
                     style={{
                       marginBottom: "2rem",
                       marginRight: "2rem",
-                      flex: "1 0 21%",
                     }}
                     key={index}
                   >
-                    <Button onClick={() => goToClass(classe)}>
-                      {classe.value}
+                    <Button onClick={() => goToMatiere(matiere)}>
+                      {matiere.name}
                     </Button>
                   </div>
                 );
@@ -178,7 +162,7 @@ const Classes = ({ handleNavbar }) => {
             {/* </Container> */}
           </div>
         )}
-        {(!classes || classes?.length == 0) && (
+        {(!matieres || matieres?.length == 0) && (
           <div
             style={{
               minHeight: "100vh",
@@ -190,11 +174,8 @@ const Classes = ({ handleNavbar }) => {
           >
             <div style={{ display: "flex", flexWrap: "wrap" }}>
               <Alert key={"warning"} variant={"warning"}>
-                Vous n'avez pas de classes enregistrées sur votre profil <br />
-                <center>
-                  {" "}
-                  <Alert.Link href="/settings">Rajouter des classes</Alert.Link>
-                </center>
+                Vous n'avez pas de matieres enregistrées pour votre classe.
+                Veuillez vous rapprocher de vos professeurs.
               </Alert>
             </div>
           </div>
@@ -204,4 +185,4 @@ const Classes = ({ handleNavbar }) => {
   }
 };
 
-export default Classes;
+export default Matieres;

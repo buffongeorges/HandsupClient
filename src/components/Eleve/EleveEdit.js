@@ -17,13 +17,13 @@ import { colors } from "../../utils/Styles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AuthContext from "../../auth/context/AuthContext";
 
-
 const allowedExtensions = ["csv", "xls"];
 
 const EleveEdit = () => {
   // NOUVELLE FACON DE FAIRE
   const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
   let currentUser = user ? user : localStorage.getItem("userData");
+  const admin = currentUser?.admin;
 
   const [showCamera, setShowCamera] = useState(false);
   const [file, setFile] = useState("");
@@ -44,7 +44,6 @@ const EleveEdit = () => {
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
   const [emailExample, setEmailExample] = useState(null);
-  const [admin, setAdmin] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({});
@@ -68,56 +67,55 @@ const EleveEdit = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
-    sessionStorage.setItem("fromLogin", JSON.stringify(false));
+    localStorage.setItem("fromLogin", JSON.stringify(false));
     setIsFetching(true);
-      console.log("mon utilisateur");
-      console.log(currentUser);
-      setAdmin(currentUser?.admin);
-      getElevesData(eleveId)
-        .then((response) => {
-          if (response.status === 200 && response.data.status === "SUCCESS") {
-            console.log("infos eleve");
-            console.log(response);
-            const eleve = response.data.data;
-            setFirstname(eleve.firstname);
-            setLastname(eleve.lastname);
-            setPhoto(eleve.photo);
-            setCollege(eleve.college.name);
-            setEmail(eleve.email);
-            setPassword(eleve.password);
-            setClasse(eleve.classe);
-            const customFirstname = eleve.firstname
-              .toLowerCase()
-              .replace(/\s/g, "");
-            const customLastname = eleve.lastname
-              .toLowerCase()
-              .replace(/\s/g, "");
-            const emailHelper =
-              customFirstname.toLowerCase() +
-              "." +
-              customLastname.toLowerCase() +
-              "@example.com";
-            setEmailExample(emailHelper);
-            const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
-              "en-CA"
-            );
-            setBirthday(birthday);
+    console.log("mon utilisateur");
+    console.log(currentUser);
+    getElevesData(eleveId)
+      .then((response) => {
+        if (response.status === 200 && response.data.status === "SUCCESS") {
+          console.log("infos eleve");
+          console.log(response);
+          const eleve = response.data.data;
+          setFirstname(eleve.firstname);
+          setLastname(eleve.lastname);
+          setPhoto(eleve.photo);
+          setCollege(eleve.college.name);
+          setEmail(eleve.email);
+          setPassword(eleve.password);
+          setClasse(eleve.classe);
+          const customFirstname = eleve.firstname
+            .toLowerCase()
+            .replace(/\s/g, "");
+          const customLastname = eleve.lastname
+            .toLowerCase()
+            .replace(/\s/g, "");
+          const emailHelper =
+            customFirstname.toLowerCase() +
+            "." +
+            customLastname.toLowerCase() +
+            "@example.com";
+          setEmailExample(emailHelper);
+          const birthday = new Date(eleve.dateOfBirth).toLocaleDateString(
+            "en-CA"
+          );
+          setBirthday(birthday);
 
-            setForm({
-              firstname: eleve.firstname,
-              lastname: eleve.lastname,
-              birthday: birthday,
-            });
-          } else {
-            navigate("/classes");
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          setIsFetching(false);
-        });
+          setForm({
+            firstname: eleve.firstname,
+            lastname: eleve.lastname,
+            birthday: birthday,
+          });
+        } else {
+          navigate("/classes");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setIsFetching(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -153,7 +151,10 @@ const EleveEdit = () => {
     // }
 
     //methode 2 : appeler directement s3 depuis le front
-    if (selectedPicture || (pictureFile &&isValidFileUploadForPicture(pictureFile))) {
+    if (
+      selectedPicture ||
+      (pictureFile && isValidFileUploadForPicture(pictureFile))
+    ) {
       setIsFetching(true);
       getS3SecureURL()
         .then((response) => {
@@ -186,9 +187,9 @@ const EleveEdit = () => {
   }, [selectedPicture]);
 
   const isValidFileUploadForPicture = (file) => {
-    console.log("la photo par webcam")
-    console.log(selectedPicture)
-    console.log("photo uploadée ")
+    console.log("la photo par webcam");
+    console.log(selectedPicture);
+    console.log("photo uploadée ");
     console.log(pictureFile);
     const validExtensions = ["png", "jpeg", "gif", "jpg"];
     const fileExtension = file?.type.split("/")[1];
@@ -237,8 +238,10 @@ const EleveEdit = () => {
     console.log("imageName");
     console.log(imageName);
     let studentDataToDelete = {
-      eleveId, imageName
-    }
+      eleveId,
+      imageName,
+      userId: currentUser._id,
+    };
     deleteEleve(studentDataToDelete)
       .then((response) => {
         console.log(response);
@@ -319,7 +322,7 @@ const EleveEdit = () => {
       console.log(password);
       // No errors! Put any logic here for the form submission!
       setIsSubmitting(true);
-      setShowModalSave(true);
+      // setShowModalSave(true);
       saveEleve();
     }
   };
@@ -335,6 +338,7 @@ const EleveEdit = () => {
       classe: classe,
       newBirthday: new Date(birthday).toISOString(),
       newPhoto: photo,
+      userId: currentUser._id,
     };
 
     console.log("studentData");
@@ -346,17 +350,35 @@ const EleveEdit = () => {
     //   //What if both the object has same key, it simply merge the last objects value and have only one key value.
     // };
 
-    editEleve(studentData).then(async (response) => {
-      console.log("réponse de edit");
-      console.log(response);
-      console.log("url de la photo du prof");
-      console.log(photo);
-      if (response.status === 200 && response.data.status === "SUCCESS") {
-        setShowModalSave(true);
-      } else {
-        navigate("/classes");
-      }
-    });
+    editEleve(studentData)
+      .then(async (editEleveResult) => {
+        console.log("réponse de edit");
+        console.log(editEleveResult);
+        console.log("url de la photo du prof");
+        console.log(photo);
+        if (
+          editEleveResult.status === 200 &&
+          editEleveResult.data.status === "SUCCESS"
+        ) {
+          console.log("c'est OK!");
+          setShowModalSave(true);
+        } else {
+          if (
+            editEleveResult.response.status === 403 &&
+            (editEleveResult.response.data.message.includes("address") ||
+              editEleveResult.response.data.message.includes("email"))
+          ) {
+            setIsSubmitting(false);
+            setErrors({
+              ...errors,
+              email: editEleveResult.response.data.message,
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleDateChange = (date) => {
@@ -450,7 +472,7 @@ const EleveEdit = () => {
                 setPictureFile(e.target.files[0]);
               }}
               isInvalid={
-                (pictureFile) ? !isValidFileUploadForPicture(pictureFile) : false
+                pictureFile ? !isValidFileUploadForPicture(pictureFile) : false
               }
             />
             <Form.Control.Feedback type="invalid">
@@ -510,9 +532,13 @@ const EleveEdit = () => {
                 placeholder={emailExample}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  // setField("firstname", e.target.value);
+                  setField("email", e.target.value);
                 }}
+                isInvalid={!!errors.email}
               />
+              <Form.Control.Feedback type="invalid">
+                {errors.email}
+              </Form.Control.Feedback>
               <Form.Text className="text-muted">
                 {admin && (
                   <>
@@ -549,7 +575,7 @@ const EleveEdit = () => {
               <div className="input-with-icon">
                 <input
                   placeholder="Mot de passe"
-                  type={showPassword ? "text": 'password'}
+                  type={showPassword ? "text" : "password"}
                   id="formPassword"
                   class="form-control"
                   disabled={!admin}
@@ -572,7 +598,7 @@ const EleveEdit = () => {
                         // visibility: "hidden",
                       }}
                       onClick={() => {
-                        setShowPassword(!showPassword)
+                        setShowPassword(!showPassword);
                       }}
                     ></i>
                   </span>

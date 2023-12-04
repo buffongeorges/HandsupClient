@@ -77,6 +77,8 @@ const Evaluations = ({ handleNavbar }) => {
     classeName = classeName.replace(/\s/g, "");
 
     let path = `${location.pathname}/${classeId}`;
+    // Supprimer une barre oblique en double s'il y en a une
+    path = path.replace(/\/\//g, "/");
     navigate(`${path}`);
   };
 
@@ -100,6 +102,8 @@ const Evaluations = ({ handleNavbar }) => {
 
     localStorage.setItem("selectedEvaluation", JSON.stringify(evaluation));
     let path = `${location.pathname}/${evaluationId}`;
+    // Supprimer une barre oblique en double s'il y en a une
+    path = path.replace(/\/\//g, "/");
     navigate(`${path}`);
   };
 
@@ -108,6 +112,8 @@ const Evaluations = ({ handleNavbar }) => {
 
     localStorage.setItem("selectedEvaluation", JSON.stringify(evaluation));
     let path = `${location.pathname}/${evaluationId}/sessions`;
+    // Supprimer une barre oblique en double s'il y en a une
+    path = path.replace(/\/\//g, "/");
     navigate(`${path}`);
   };
 

@@ -1,4 +1,4 @@
-export const MenuItems = [
+export const ProfesseurMenuItems = [
     {
         title: 'Classes',
         url : '/classes',

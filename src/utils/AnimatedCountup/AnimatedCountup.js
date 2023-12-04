@@ -35,7 +35,6 @@ export default function AnimatedCountup({
           interval = setInterval(() => {
             animateCounter();
           }, 100); // Ajustez la durée de l'incrément selon vos besoins
-          console.log("countup is visible");
 
           // Nettoyer l'intervalle lorsque l'élément n'est plus visible
           return () => {

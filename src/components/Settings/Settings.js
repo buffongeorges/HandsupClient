@@ -366,9 +366,10 @@ const Settings = () => {
       newClasses: classes,
       newDiscipline: checkedDiscipline,
       newEndOfTrimestre: endOfTrimestre,
+      userId: currentUser?._id,
     };
 
-    let sessionStorageValues = {
+    let localStorageValues = {
       firstname: firstname,
       lastname: lastname,
       college: updatedCollegeDetails,
@@ -385,11 +386,11 @@ const Settings = () => {
 
     let newUserFields = {
       ...user,
-      ...sessionStorageValues,
+      ...localStorageValues,
       //Point cours : What if both the object has same key, it simply merge the last objects value and have only one key value.
     };
 
-    localStorage.setItem("userData", JSON.stringify(sessionStorageValues));
+    localStorage.setItem("userData", JSON.stringify(localStorageValues));
     editProfesseur(credentials, navigate).then(async (response) => {
       console.log("réponse de edit");
       console.log(response);

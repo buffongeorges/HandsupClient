@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Button } from "../Button";
-import { MenuItems } from "./MenuItems";
+import { ProfesseurMenuItems } from "./ProfesseurMenuItems";
+import { EleveMenuItems } from "./EleveMenuItems";
 import "./Navbar.css";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../auth/context/AuthContext";
@@ -8,9 +9,11 @@ import AuthContext from "../../auth/context/AuthContext";
 export const Navbar = () => {
   // look for user data by localStorage and with the context value
   const userData = localStorage.getItem("userData");
-  const { user, logout, isFetching, setIsFetching } = useContext(AuthContext);
+  const { user, logout, userType, isFetching, setIsFetching } = useContext(AuthContext);
 
   const [clicked, setClicked] = useState(false);
+  const isTeacher = userType === 'teacher';
+  const isStudent = userType === 'student';
   const authenticated = user != null || userData != null;
   console.log("connecté?");
   console.log(authenticated);
@@ -55,8 +58,18 @@ export const Navbar = () => {
         className={clicked ? "nav-menu active" : "nav-menu"}
         style={{ marginTop: "1rem" }}
       >
-        {authenticated &&
-          MenuItems.map((item, index) => {
+        {authenticated && isTeacher &&
+          ProfesseurMenuItems.map((item, index) => {
+            return (
+              <li key={index}>
+                <a className={item.cName} href={item.url}>
+                  {item.title}
+                </a>
+              </li>
+            );
+          })}
+        {authenticated && isStudent &&
+          EleveMenuItems.map((item, index) => {
             return (
               <li key={index}>
                 <a className={item.cName} href={item.url}>

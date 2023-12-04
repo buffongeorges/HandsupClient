@@ -33,6 +33,7 @@ import AuthContext, {
   AuthContextProvider,
 } from "./auth/context/AuthContext.js";
 import EvaluationSessions from "./components/Evaluation/EvaluationSessions.js";
+import Matieres from "./components/Eleve/Matieres.js";
 
 function App() {
   // look for user data by localStorage and with the context value
@@ -71,7 +72,7 @@ function App() {
           {!isFetching && (
             <Routes>
               <Route
-                path="/passwordreset/:professeurId/:resetString"
+                path="/passwordreset/:userId/:resetString"
                 element={<PasswordReset />}
               />
               <Route path="/" element={<Navigate to="/classes" />} />
@@ -85,6 +86,22 @@ function App() {
                 element={
                   <ProtectedRoute accessBy="authenticated">
                     <Classes handleNavbar={handleNavbarVisibilty} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/matieres"
+                element={
+                  <ProtectedRoute accessBy="authenticated">
+                    <Matieres handleNavbar={handleNavbarVisibilty} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/matieres/:matiereId"
+                element={
+                  <ProtectedRoute accessBy="authenticated">
+                    <Classe handleNavbar={handleNavbarVisibilty} />
                   </ProtectedRoute>
                 }
               />

@@ -26,11 +26,19 @@ import { FiMail, FiLock, FiUser, FiCalendar } from "react-icons/fi";
 //loader
 import { ThreeDots } from "react-loader-spinner";
 
-import { signupUser } from "../../auth/actions/userActions.js";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../auth/context/AuthContext.js";
 
-const Signup = ({ signupUser }) => {
+const Signup = () => {
   const history = useNavigate();
+  const { signup } = useContext(AuthContext);
+
+  const signupSubmit = async (values, navigate, setFieldError, setSubmitting) => {
+    let payload = {...values};
+    await signup(payload, navigate, setFieldError, setSubmitting);
+  };
+
   return (
     <div
       className="Login"
@@ -72,7 +80,8 @@ const Signup = ({ signupUser }) => {
           })}
           onSubmit={(values, { setSubmitting, setFieldError }) => {
             console.log(values);
-            signupUser(values, history, setFieldError, setSubmitting);
+            signupSubmit(values, history, setFieldError, setSubmitting);
+            // signupUser(values, history, setFieldError, setSubmitting);
           }}
         >
           {({ isSubmitting }) => (

@@ -48,8 +48,12 @@ import AuthContext from "../../auth/context/AuthContext.js";
 
 const Classe = () => {
   // NOUVELLE FACON DE FAIRE
-  const { user, isFetching, setIsFetching, logout } = useContext(AuthContext);
+  const { user, isFetching, setIsFetching, logout, userType } =
+    useContext(AuthContext);
   let currentUser = user ? user : localStorage.getItem("userData");
+  let selectedMatiere = JSON.parse(localStorage.getItem("selectedMatiere"));
+  const isTeacher = userType === "teacher";
+  const isStudent = userType === "student";
 
   const [participationModal, setParticipationModal] = useState(false);
   const [college, setCollege] = useState(null);
@@ -440,6 +444,7 @@ const Classe = () => {
       college: updatedStudent.college,
       discipline: discipline,
       currentDate: new Date(localeTime),
+      userId: currentUser._id,
     };
 
     addEleveToClasse(updatedStudent)
@@ -481,6 +486,8 @@ const Classe = () => {
     console.log(location);
     if (eleve.empty) return;
     let path = `../eleves/${eleve._id}/stats`;
+    // Supprimer une barre oblique en double s'il y en a une
+    path = path.replace(/\/\//g, "/");
     console.log(path);
     navigate(`${path}`);
   };
@@ -490,6 +497,8 @@ const Classe = () => {
     console.log(eleve);
     console.log(eleve._id.toString());
     let path = `../eleves/${eleve._id}`;
+    // Supprimer une barre oblique en double s'il y en a une
+    path = path.replace(/\/\//g, "/");
     navigate(`${path}`);
   };
 
@@ -548,6 +557,7 @@ const Classe = () => {
       markUpdateTime: new Date(localeTime),
       nbSeances: currentSeance,
       isNewSeance: isNewSeance,
+      userId: currentUser._id,
     };
     editEleveNote(firstStudentData)
       .then((response) => {
@@ -571,6 +581,7 @@ const Classe = () => {
           college: userCollege,
           discipline: currentUser?.discipline.name,
           currentDate: new Date(localeTime),
+          userId: currentUser._id,
         };
         getElevesInClasse(data)
           .then((response) => {
@@ -613,6 +624,7 @@ const Classe = () => {
       markUpdateTime: new Date(localeTime),
       nbSeances: currentSeance,
       isNewSeance: isNewSeance,
+      userId: currentUser._id,
     };
     editEleveNote(secondStudentData)
       .then((response) => {
@@ -639,6 +651,7 @@ const Classe = () => {
       college: college,
       nbSeances: currentSeance,
       discipline: currentUser?.discipline.name,
+      userId: currentUser._id,
     };
     increaseClassSeanceIndex(increaseSeanceData)
       .then((responseIncrease) => {
@@ -649,6 +662,7 @@ const Classe = () => {
           college: { name: college },
           discipline: currentUser?.discipline.name,
           currentDate: new Date(localeTime),
+          userId: currentUser._id,
         };
         //increase seance index
         const updatedEleveData = {
@@ -735,6 +749,7 @@ const Classe = () => {
         discipline: discipline,
         nbSeances: currentSeance,
         isNewSeance: isNewSeance,
+        userId: currentUser._id,
       };
 
       if (isNewSeance) {
@@ -775,6 +790,7 @@ const Classe = () => {
         discipline: discipline,
         nbSeances: currentSeance,
         isNewSeance: isNewSeance,
+        userId: currentUser._id,
       };
 
       if (isNewSeance) {
@@ -814,6 +830,7 @@ const Classe = () => {
         discipline: discipline,
         nbSeances: currentSeance,
         isNewSeance: isNewSeance,
+        userId: currentUser._id,
       };
       if (isNewSeance) {
         updateSeanceAndStudentsData(eleveData, eleve, "avertissement", 1);
@@ -925,6 +942,7 @@ const Classe = () => {
         discipline: discipline,
         nbSeances: currentSeance,
         isNewSeance: isNewSeance,
+        userId: currentUser._id,
       };
       if (isNewSeance) {
         updateSeanceAndStudentsData(eleveData, eleve, "participation", 0);
@@ -979,6 +997,7 @@ const Classe = () => {
         markUpdateTime: new Date(localeTime),
         discipline: discipline,
         isNewSeance: isNewSeance,
+        userId: currentUser._id,
       };
 
       if (isNewSeance) {
@@ -1034,6 +1053,7 @@ const Classe = () => {
         markUpdateTime: new Date(localeTime),
         discipline: discipline,
         nbSeances: currentSeance,
+        userId: currentUser._id,
       };
 
       if (isNewSeance) {
@@ -1151,10 +1171,9 @@ const Classe = () => {
     } else {
       console.log("my user");
       console.log(currentUser);
-      setTeacherAvertissementDelta(currentUser.avertissement);
-      setTeacherBonusDelta(currentUser.bonus);
-      setTeacherParticipationDelta(currentUser.participation);
-      setTeacherNoteDepart(currentUser.noteDepart);
+      console.log("selectedMatiere");
+      console.log(selectedMatiere);
+      console.log(selectedMatiere.name);
       // console.log(user.college.name);
       let userCollege;
       if (Array.isArray(currentUser.college)) {
@@ -1162,84 +1181,48 @@ const Classe = () => {
       } else {
         userCollege = currentUser.college;
       }
-      let data = {
-        classId,
-        college: userCollege,
-        discipline: currentUser.discipline.name,
-        currentDate: new Date(localeTime),
-      };
+      let data;
+      if (isTeacher) {
+        setTeacherAvertissementDelta(currentUser.avertissement);
+        setTeacherBonusDelta(currentUser.bonus);
+        setTeacherParticipationDelta(currentUser.participation);
+        setTeacherNoteDepart(currentUser.noteDepart);
+        data = {
+          classId,
+          college: userCollege,
+          discipline: currentUser.discipline.name,
+          currentDate: new Date(localeTime),
+          userId: currentUser._id,
+        };
+      } else if (isStudent) {
+        if (!selectedMatiere) {
+          // TO DO getMatiereId()
+        }
+        data = {
+          className: currentUser.classe,
+          college: userCollege,
+          discipline: selectedMatiere.name,
+          currentDate: new Date(localeTime),
+          userId: currentUser._id,
+        };
+      }
+
       getElevesInClasse(data)
         .then((response) => {
           const students = response.data.data.students;
           console.log("les eleves");
           console.log(response.data.data.students);
-          setClasse(response.data.data.classe.name);
+          setClasse(response.data.data.classe);
           setEleves(response.data.data.students);
           setElevesOrdreAlphabetique(
             response.data.data.studentsAlphabeticalOrder
           );
-          setCollege(response.data.data.classe.ecole.name);
+          setCollege(response.data.data.college);
           // setCurrentSeance(response.data.data.students[0].find((matiere) => matiere.matière == user.discipline.name).nbSeances)
-          setDiscipline(currentUser.discipline.name);
+          setDiscipline(currentUser.discipline ? currentUser.discipline : response.data.data.discipline);
           setCounter(students.length);
           setEleves(students);
           setExportList(students);
-          setCurrentSeance(response.data.data.nbSeances);
-          setIsNewSeance(response.data.data.isNewSeance);
-          if (response.data.data.isNewSeance == true) {
-            setShowModalNewSeance(response.data.data.isNewSeance);
-          }
-          console.log("response.data.data.isNewSeance------");
-          console.log(response.data.data.isNewSeance);
-
-          if (response.data.data.isNewSeance) {
-            //user is fetching class from another day so we have to increase the seance
-            let increaseSeanceData = {
-              classe: response.data.data.classe.name,
-              college: response.data.data.classe.ecole.name,
-              nbSeances: response.data.data.nbSeances,
-              discipline: currentUser.discipline.name,
-            };
-            increaseClassSeanceIndex(increaseSeanceData)
-              .then((responseIncrease) => {
-                console.log("responseIncrease");
-                console.log(responseIncrease);
-                let data = {
-                  classId,
-                  college: { name: response.data.data.classe.ecole.name },
-                  discipline: currentUser.discipline.name,
-                  currentDate: new Date(localeTime),
-                };
-                getElevesInClasse(data)
-                  .then((response) => {
-                    const students = response.data.data.students;
-                    console.log("les eleves");
-                    console.log(response.data.data.students);
-                    setClasse(response.data.data.classe.name);
-                    setEleves(response.data.data.students);
-                    setElevesOrdreAlphabetique(
-                      response.data.data.studentsAlphabeticalOrder
-                    );
-
-                    setCollege(response.data.data.classe.ecole.name);
-                    setCounter(students.length);
-                    setEleves(students);
-                    setExportList(students);
-                    setCurrentSeance(response.data.data.nbSeances);
-                    setIsNewSeance(response.data.data.isNewSeance);
-                    if (response.data.data.isNewSeance == true) {
-                      setShowModalNewSeance(response.data.data.isNewSeance);
-                    }
-                  })
-                  .catch((error) => {
-                    console.log("error while fetching students");
-                    console.log(error);
-                  });
-              })
-              .catch((errorIncrease) => {
-                console.log(errorIncrease);
-              });
-          }
         })
         .catch((error) => {
           console.log("error while fetching students");
@@ -1257,53 +1240,55 @@ const Classe = () => {
     const localeTime = new Date().toLocaleString("en-US", {
       timeZone: "America/New_York",
     });
-      setIsFetching(true);
-      let increaseSeanceData = {
-        classe: classe,
-        college: college,
-        nbSeances: currentSeance,
-        discipline: currentUser?.discipline.name,
-      };
-      increaseClassSeanceIndex(increaseSeanceData)
-        .then((responseIncrease) => {
-          console.log("responseIncrease");
-          console.log(responseIncrease);
-          let data = {
-            classId,
-            college: { name: college },
-            discipline: currentUser?.discipline.name,
-            currentDate: new Date(localeTime),
-          };
-          getElevesInClasse(data)
-            .then((response) => {
-              console.log("after increase....");
-              console.log(response.data.data);
-              const students = response.data.data.students;
+    setIsFetching(true);
+    let increaseSeanceData = {
+      classe: classe,
+      college: college,
+      nbSeances: currentSeance,
+      discipline: currentUser?.discipline.name,
+      userId: currentUser._id,
+    };
+    increaseClassSeanceIndex(increaseSeanceData)
+      .then((responseIncrease) => {
+        console.log("responseIncrease");
+        console.log(responseIncrease);
+        let data = {
+          classId,
+          college: { name: college },
+          discipline: currentUser?.discipline.name,
+          currentDate: new Date(localeTime),
+          userId: currentUser._id,
+        };
+        getElevesInClasse(data)
+          .then((response) => {
+            console.log("after increase....");
+            console.log(response.data.data);
+            const students = response.data.data.students;
 
-              setClasse(response.data.data.classe.name);
-              setEleves(response.data.data.students);
-              setElevesOrdreAlphabetique(
-                response.data.data.studentsAlphabeticalOrder
-              );
+            setClasse(response.data.data.classe.name);
+            setEleves(response.data.data.students);
+            setElevesOrdreAlphabetique(
+              response.data.data.studentsAlphabeticalOrder
+            );
 
-              setCollege(response.data.data.classe.ecole.name);
-              setCounter(students.length);
-              setEleves(students);
-              setExportList(students);
-              setCurrentSeance(response.data.data.nbSeances);
-            })
-            .catch((error) => {
-              console.log("error while fetching students");
-              console.log(error);
-            })
-            .finally(() => {
-              setIsFetching(false);
-              setShowModalNewSeance(true);
-            });
-        })
-        .catch((errorIncrease) => {
-          console.log(errorIncrease);
-        });
+            setCollege(response.data.data.classe.ecole.name);
+            setCounter(students.length);
+            setEleves(students);
+            setExportList(students);
+            setCurrentSeance(response.data.data.nbSeances);
+          })
+          .catch((error) => {
+            console.log("error while fetching students");
+            console.log(error);
+          })
+          .finally(() => {
+            setIsFetching(false);
+            setShowModalNewSeance(true);
+          });
+      })
+      .catch((errorIncrease) => {
+        console.log(errorIncrease);
+      });
   };
 
   const isEmptyPlace = (studentIndex) => {
@@ -1379,6 +1364,7 @@ const Classe = () => {
       college: college,
       nbSeances: currentSeance,
       discipline: discipline,
+      userId: currentUser._id,
     };
 
     //call api :
@@ -1391,49 +1377,50 @@ const Classe = () => {
         });
 
         //now let's get the student list, with new sequence starting
-          console.log("my user");
-          console.log(currentUser);
-          console.log("la discipline....");
-          console.log(currentUser?.discipline.name);
-          // console.log(user.college.name);
-          let userCollege;
-          if (Array.isArray(currentUser?.college)) {
-            userCollege = currentUser?.college[0].name;
-          } else {
-            userCollege = currentUser?.college;
-          }
-          let data = {
-            classId,
-            college: userCollege,
-            discipline: currentUser?.discipline.name,
-            currentDate: new Date(localeTime),
-          };
-          getElevesInClasse(data)
-            .then((response) => {
-              const students = response.data.data.students;
-              console.log("les eleves");
-              console.log(response.data.data.students);
-              setClasse(response.data.data.classe.name);
-              setEleves(response.data.data.students);
+        console.log("my user");
+        console.log(currentUser);
+        console.log("la discipline....");
+        console.log(currentUser?.discipline.name);
+        // console.log(user.college.name);
+        let userCollege;
+        if (Array.isArray(currentUser?.college)) {
+          userCollege = currentUser?.college[0].name;
+        } else {
+          userCollege = currentUser?.college;
+        }
+        let data = {
+          classId,
+          college: userCollege,
+          discipline: currentUser?.discipline.name,
+          currentDate: new Date(localeTime),
+          userId: currentUser._id,
+        };
+        getElevesInClasse(data)
+          .then((response) => {
+            const students = response.data.data.students;
+            console.log("les eleves");
+            console.log(response.data.data.students);
+            setClasse(response.data.data.classe.name);
+            setEleves(response.data.data.students);
 
-              setElevesOrdreAlphabetique(
-                response.data.data.studentsAlphabeticalOrder
-              );
+            setElevesOrdreAlphabetique(
+              response.data.data.studentsAlphabeticalOrder
+            );
 
-              setCollege(response.data.data.classe.ecole.name);
-              setCounter(students.length);
-              setEleves(students);
-              setExportList(students);
-              setCurrentSeance(response.data.data.nbSeances);
-              csvLink.current.click();
-            })
-            .catch((error) => {
-              console.log("error while fetching students");
-              console.log(error);
-            })
-            .finally(() => {
-              setIsFetching(false);
-            });
+            setCollege(response.data.data.classe.ecole.name);
+            setCounter(students.length);
+            setEleves(students);
+            setExportList(students);
+            setCurrentSeance(response.data.data.nbSeances);
+            csvLink.current.click();
+          })
+          .catch((error) => {
+            console.log("error while fetching students");
+            console.log(error);
+          })
+          .finally(() => {
+            setIsFetching(false);
+          });
       })
       .catch((error) => {
         console.log(error);
@@ -1932,88 +1919,470 @@ const Classe = () => {
         <Row>
           <Col xs="9" md="9" lg="9">
             <div style={{ marginTop: "0.5rem" }}>
-              <Tabs
-                id="controlled-tab-example"
-                activeKey={key}
-                onSelect={(k) => {
-                  handleKey(k);
-                }}
-                style={{
-                  display: "flex",
-                  // flexWrap: "nowrap", // a cause de ca, les items de la navbar ne vont pas à la ligne si plus de place
-                  alignItems: "stretch",
-                  margin: 0,
-                  padding: 0,
-                }}
-              >
-                <Tab
-                  eventKey="participation"
-                  title="Participation"
-                  style={{ flex: 1, textAlign: "center" }}
-                >
-                  <div id="students-cells-participation">
-                    <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves) && currentSeance
-                        ? eleves.map((eleve, index) => {
-                            return (
-                              <div
-                                key={eleve._id}
-                                style={{
-                                  marginBottom: "-0.5rem",
-                                  marginRight: "0.5rem",
-                                  flex: "1 0 10%",
-                                }}
-                              >
-                                <div>
-                                  {!isEmptyPlace(eleve._id) && (
-                                    <div
-                                      style={{
-                                        textAlign: "center",
-                                        marginLeft: "1rem",
-                                        display: "inline-block",
-                                        marginTop: "0.5rem",
-                                      }}
-                                    >
-                                      <i style={{ marginLeft: "-1rem" }}>
-                                        {!eleve.empty && (
-                                          <strong>
-                                            {
-                                              eleve?.participation?.find(
-                                                (matiere) =>
-                                                  matiere.matière == discipline
-                                              ).notes[currentSeance - 1]
+              {isTeacher && (
+                <>
+                  <Tabs
+                    id="controlled-tab-example"
+                    activeKey={key}
+                    onSelect={(k) => {
+                      handleKey(k);
+                    }}
+                    style={{
+                      display: "flex",
+                      // flexWrap: "nowrap", // a cause de ca, les items de la navbar ne vont pas à la ligne si plus de place
+                      alignItems: "stretch",
+                      margin: 0,
+                      padding: 0,
+                    }}
+                  >
+                    <Tab
+                      eventKey="participation"
+                      title="Participation"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div id="students-cells-participation">
+                        <div style={{ display: "flex", flexWrap: "wrap" }}>
+                          {Array.isArray(eleves) && currentSeance
+                            ? eleves.map((eleve, index) => {
+                                return (
+                                  <div
+                                    key={eleve._id}
+                                    style={{
+                                      marginBottom: "-0.5rem",
+                                      marginRight: "0.5rem",
+                                      flex: "1 0 10%",
+                                    }}
+                                  >
+                                    <div>
+                                      {!isEmptyPlace(eleve._id) && (
+                                        <div
+                                          style={{
+                                            textAlign: "center",
+                                            marginLeft: "1rem",
+                                            display: "inline-block",
+                                            marginTop: "0.5rem",
+                                          }}
+                                        >
+                                          <i style={{ marginLeft: "-1rem" }}>
+                                            {!eleve.empty && (
+                                              <strong>
+                                                {
+                                                  eleve?.participation?.find(
+                                                    (matiere) =>
+                                                      matiere.matière ==
+                                                      discipline
+                                                  ).notes[currentSeance - 1]
+                                                }
+                                              </strong>
+                                            )}
+                                          </i>
+                                          <i
+                                            className="fa-solid fa-circle-minus"
+                                            style={{ marginLeft: "1rem" }}
+                                            hidden={
+                                              eleve.empty && !showEmptyStudents
+                                                ? true
+                                                : false
                                             }
-                                          </strong>
-                                        )}
-                                      </i>
-                                      <i
-                                        className="fa-solid fa-circle-minus"
-                                        style={{ marginLeft: "1rem" }}
-                                        hidden={
-                                          eleve.empty && !showEmptyStudents
-                                            ? true
-                                            : false
-                                        }
-                                        onClick={() => {
-                                          decrementParticipation(eleve); //place is occupied decrease participation
-                                        }}
-                                      ></i>
+                                            onClick={() => {
+                                              decrementParticipation(eleve); //place is occupied decrease participation
+                                            }}
+                                          ></i>
+                                        </div>
+                                      )}
+                                      {isEmptyPlace(eleve._id) && (
+                                        <div
+                                          style={{
+                                            textAlign: "center",
+                                            marginLeft: "1rem",
+                                            display: "inline-block",
+                                            marginTop: "0.5rem",
+                                          }}
+                                        >
+                                          <i style={{ marginLeft: "-1rem" }}>
+                                            {!eleve.empty && (
+                                              <strong>
+                                                {
+                                                  eleve?.participation?.find(
+                                                    (matiere) =>
+                                                      matiere.matière ==
+                                                      discipline
+                                                  ).notes[currentSeance - 1]
+                                                }
+                                              </strong>
+                                            )}
+                                          </i>
+                                          <i
+                                            className="fa-solid fa-circle-minus"
+                                            style={{
+                                              marginLeft: "1rem",
+                                              display: "inline-block",
+                                              visibility: "hidden",
+                                            }}
+                                            // onClick={() => {
+                                            // decrementParticipation(eleve); //don't do anything place is empty
+                                            // }}
+                                          ></i>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                  {isEmptyPlace(eleve._id) && (
+                                    <a
+                                      style={{
+                                        color: "black",
+                                        textDecoration: "none",
+                                      }}
+                                      // href={`#${eleve._id}`}
+                                      //je viens d'enlever ce commentaire
+                                      //peut etre important, un moment que j'ai pas bossé sur le front, à voir les effets de bord...
+                                      onBlur={() => saveParticipation(eleve)}
+                                    >
+                                      <div>
+                                        <img
+                                          id={eleve._id}
+                                          src={eleve.photo}
+                                          onClick={() => {
+                                            if (!isEmptyPlace(eleve._id))
+                                              handleStudentClick(
+                                                eleve,
+                                                "participation"
+                                              );
+                                          }}
+                                          style={{
+                                            opacity:
+                                              eleve.empty == true &&
+                                              !showEmptyStudents
+                                                ? 0
+                                                : 1,
+                                            objectFit: "cover",
+                                            width: "60px",
+                                            height: "60px",
+                                            borderRadius: "50%",
+                                            flex: "1 0 10%",
+                                            marginLeft: "auto",
+                                            marginRight: "auto",
+                                            display: "inline-block",
+                                            verticalAlign: "middle",
+                                          }}
+                                          {...(selectedStudent?._id ==
+                                            eleve._id && {
+                                            border: "2px solid purple",
+                                          })}
+                                        />
+                                      </div>
+                                    </a>
+                                  </div>
+                                );
+                              })
+                            : null}
+                        </div>
+                      </div>
+                    </Tab>
+                    <Tab
+                      eventKey="bonus"
+                      title="Bonus"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div id="students-cells-bonus">
+                        <div style={{ display: "flex", flexWrap: "wrap" }}>
+                          {Array.isArray(eleves)
+                            ? eleves.map((eleve) => {
+                                return (
+                                  <div
+                                    key={eleve._id}
+                                    style={{
+                                      marginBottom: "-0.5rem",
+                                      marginRight: "0.5rem",
+                                      flex: "1 0 10%",
+                                    }}
+                                  >
+                                    <div>
+                                      {!isEmptyPlace(eleve._id) && (
+                                        <div
+                                          style={{
+                                            textAlign: "center",
+                                            marginLeft: "1rem",
+                                            display: "inline-block",
+                                            marginTop: "0.5rem",
+                                          }}
+                                        >
+                                          <i style={{ marginLeft: "-1rem" }}>
+                                            {!eleve.empty && (
+                                              <strong>
+                                                {
+                                                  eleve?.bonus?.find(
+                                                    (matiere) =>
+                                                      matiere.matière ==
+                                                      discipline
+                                                  ).notes[currentSeance - 1]
+                                                }
+                                              </strong>
+                                            )}
+                                          </i>
+                                          <i
+                                            className="fa-solid fa-circle-minus"
+                                            hidden={
+                                              eleve.empty && !showEmptyStudents
+                                                ? true
+                                                : false
+                                            }
+                                            style={{
+                                              marginLeft: "1rem",
+                                              // display: "inline-block",
+                                            }}
+                                            onClick={() => {
+                                              decrementBonus(eleve); //place is occupied decrease bonus
+                                            }}
+                                          ></i>
+                                        </div>
+                                      )}
+                                      {isEmptyPlace(eleve._id) && (
+                                        <div
+                                          style={{
+                                            textAlign: "center",
+                                            marginLeft: "1rem",
+                                            display: "inline-block",
+                                            marginTop: "0.5rem",
+                                          }}
+                                        >
+                                          <i style={{ marginLeft: "-1rem" }}>
+                                            {!eleve.empty && (
+                                              <strong>
+                                                {
+                                                  eleve?.bonus?.find(
+                                                    (matiere) =>
+                                                      matiere.matière ==
+                                                      discipline
+                                                  ).notes[currentSeance - 1]
+                                                }
+                                              </strong>
+                                            )}
+                                          </i>
+                                          <i
+                                            className="fa-solid fa-circle-minus"
+                                            style={{
+                                              marginLeft: "1rem",
+                                              visibility: "hidden",
+                                            }}
+                                            // onClick={() => {
+                                            // decrementParticipation(eleve); //don't do anything place is empty
+                                            // }}
+                                          ></i>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <a
+                                      style={{
+                                        color: "black",
+                                        textDecoration: "none",
+                                      }}
+                                      // href={`#${eleve._id}`}
+                                      //a remettre???
+                                      onBlur={() => saveBonus(eleve)}
+                                    >
+                                      <img
+                                        src={eleve.photo}
+                                        onClick={() => {
+                                          if (!isEmptyPlace(eleve._id))
+                                            handleStudentClick(eleve, "bonus");
+                                        }}
+                                        style={{
+                                          opacity:
+                                            eleve.empty == true &&
+                                            !showEmptyStudents
+                                              ? 0
+                                              : 1,
+                                          objectFit: "cover",
+                                          width: "60px",
+                                          height: "60px",
+                                          borderRadius: "50%",
+                                          flex: "1 0 10%",
+                                          marginLeft: "auto",
+                                          marginRight: "auto",
+                                          display: "inline-block",
+                                          verticalAlign: "middle",
+                                        }}
+                                        {...(selectedStudent?._id ==
+                                          eleve._id && {
+                                          border: "2px solid purple",
+                                        })}
+                                      />
+                                    </a>
+                                  </div>
+                                );
+                              })
+                            : null}
+                        </div>
+                      </div>
+                    </Tab>
+                    <Tab
+                      eventKey="avertissement"
+                      title="Avertissement"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div id="students-cells-avertissement">
+                        <div style={{ display: "flex", flexWrap: "wrap" }}>
+                          {Array.isArray(eleves)
+                            ? eleves.map((eleve) => {
+                                return (
+                                  <div
+                                    key={eleve._id}
+                                    style={{
+                                      marginBottom: "-0.5rem",
+                                      marginRight: "0.5rem",
+                                      flex: "1 0 10%",
+                                    }}
+                                  >
+                                    <div>
+                                      {!isEmptyPlace(eleve._id) && (
+                                        <div
+                                          style={{
+                                            textAlign: "center",
+                                            marginLeft: "1rem",
+                                            display: "inline-block",
+                                            marginTop: "0.5rem",
+                                          }}
+                                        >
+                                          <i style={{ marginLeft: "-1rem" }}>
+                                            {!eleve.empty && (
+                                              <strong>
+                                                {
+                                                  eleve?.avertissement?.find(
+                                                    (matiere) =>
+                                                      matiere.matière ==
+                                                      discipline
+                                                  ).notes[currentSeance - 1]
+                                                }
+                                              </strong>
+                                            )}
+                                          </i>
+                                          <i
+                                            className="fa-solid fa-circle-minus"
+                                            hidden={
+                                              eleve.empty && !showEmptyStudents
+                                                ? true
+                                                : false
+                                            }
+                                            style={{
+                                              marginLeft: "1rem",
+                                            }}
+                                            onClick={() => {
+                                              decrementAvertissement(eleve); //place is occupied decrease avertissement
+                                            }}
+                                          ></i>
+                                        </div>
+                                      )}
+                                      {isEmptyPlace(eleve._id) && (
+                                        <div
+                                          style={{
+                                            textAlign: "center",
+                                            marginLeft: "1rem",
+                                            display: "inline-block",
+                                            marginTop: "0.5rem",
+                                          }}
+                                        >
+                                          <i style={{ marginLeft: "-1rem" }}>
+                                            {!eleve.empty && (
+                                              <strong>
+                                                {
+                                                  eleve?.avertissement?.find(
+                                                    (matiere) =>
+                                                      matiere.matière ==
+                                                      discipline
+                                                  ).notes[currentSeance - 1]
+                                                }
+                                              </strong>
+                                            )}
+                                          </i>
+                                          <i
+                                            className="fa-solid fa-circle-minus"
+                                            style={{
+                                              marginLeft: "1rem",
+                                              visibility: "hidden",
+                                            }}
+                                          ></i>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <a
+                                      style={{
+                                        color: "black",
+                                        textDecoration: "none",
+                                      }}
+                                      // href={`#${eleve._id}`}
+                                      // a remettre???
+                                      onBlur={() => {
+                                        saveAvertissement(eleve);
+                                      }}
+                                    >
+                                      <img
+                                        src={eleve.photo}
+                                        onClick={() => {
+                                          if (!isEmptyPlace(eleve._id))
+                                            handleStudentClick(
+                                              eleve,
+                                              "avertissement"
+                                            );
+                                        }}
+                                        style={{
+                                          opacity:
+                                            eleve.empty == true &&
+                                            !showEmptyStudents
+                                              ? 0
+                                              : 1,
+                                          objectFit: "cover",
+                                          width: "60px",
+                                          height: "60px",
+                                          borderRadius: "50%",
+                                          flex: "1 0 10%",
+                                          marginLeft: "auto",
+                                          marginRight: "auto",
+                                          display: "block",
+                                        }}
+                                        {...(selectedStudent?._id ==
+                                          eleve._id && {
+                                          border: "2px solid purple",
+                                        })}
+                                      />
+                                    </a>
+                                  </div>
+                                );
+                              })
+                            : null}
+                        </div>
+                      </div>
+                    </Tab>
+                    <Tab
+                      eventKey="echange"
+                      title="Placer"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div id="students-cells-exchange">
+                        <div style={{ display: "flex", flexWrap: "wrap" }}>
+                          {Array.isArray(eleves)
+                            ? eleves.map((eleve) => {
+                                return (
+                                  <div
+                                    key={eleve._id}
+                                    style={{
+                                      marginBottom: "-0.5rem",
+                                      marginRight: "0.5rem",
+                                      flex: "1 0 10%",
+                                    }}
+                                  >
                                     <div
                                       style={{
                                         textAlign: "center",
                                         marginLeft: "1rem",
                                         display: "inline-block",
                                         marginTop: "0.5rem",
+                                        visibility: "hidden",
                                       }}
                                     >
                                       <i style={{ marginLeft: "-1rem" }}>
                                         {!eleve.empty && (
                                           <strong>
                                             {
-                                              eleve?.participation?.find(
+                                              eleve?.avertissement?.find(
                                                 (matiere) =>
                                                   matiere.matière == discipline
                                               ).notes[currentSeance - 1]
@@ -2024,132 +2393,90 @@ const Classe = () => {
                                       <i
                                         className="fa-solid fa-circle-minus"
                                         style={{
-                                          marginLeft: "1rem",
+                                          marginLeft: "2rem",
                                           display: "inline-block",
                                           visibility: "hidden",
                                         }}
                                         // onClick={() => {
-                                        // decrementParticipation(eleve); //don't do anything place is empty
+                                        //   decrementParticipation(eleve); //place is occupied decrease participation
                                         // }}
                                       ></i>
                                     </div>
-                                  )}
-                                </div>
-                                <a
-                                  style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                  }}
-                                  // href={`#${eleve._id}`}
-                                  //je viens d'enlever ce commentaire
-                                  //peut etre important, un moment que j'ai pas bossé sur le front, à voir les effets de bord...
-                                  onBlur={() => saveParticipation(eleve)}
-                                >
-                                  <div>
-                                    <img
-                                      id={eleve._id}
-                                      src={eleve.photo}
+                                    <a
+                                      style={{
+                                        color: "black",
+                                        textDecoration: "none",
+                                      }}
+                                      // href={`#${eleve._id}`}
+                                      // a remettre???
                                       onClick={() => {
-                                        if (!isEmptyPlace(eleve._id))
-                                          handleStudentClick(
-                                            eleve,
-                                            "participation"
-                                          );
-                                      }}
-                                      style={{
-                                        opacity:
-                                          eleve.empty == true &&
-                                          !showEmptyStudents
-                                            ? 0
-                                            : 1,
-                                        objectFit: "cover",
-                                        width: "60px",
-                                        height: "60px",
-                                        borderRadius: "50%",
-                                        flex: "1 0 10%",
-                                        marginLeft: "auto",
-                                        marginRight: "auto",
-                                        display: "inline-block",
-                                        verticalAlign: "middle",
-                                      }}
-                                      {...(selectedStudent?._id ==
-                                        eleve._id && {
-                                        border: "2px solid purple",
-                                      })}
-                                    />
-                                  </div>
-                                </a>
-                              </div>
-                            );
-                          })
-                        : null}
-                    </div>
-                  </div>
-                </Tab>
-                <Tab
-                  eventKey="bonus"
-                  title="Bonus"
-                  style={{ flex: 1, textAlign: "center" }}
-                >
-                  <div id="students-cells-bonus">
-                    <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves)
-                        ? eleves.map((eleve) => {
-                            return (
-                              <div
-                                key={eleve._id}
-                                style={{
-                                  marginBottom: "-0.5rem",
-                                  marginRight: "0.5rem",
-                                  flex: "1 0 10%",
-                                }}
-                              >
-                                <div>
-                                  {!isEmptyPlace(eleve._id) && (
-                                    <div
-                                      style={{
-                                        textAlign: "center",
-                                        marginLeft: "1rem",
-                                        display: "inline-block",
-                                        marginTop: "0.5rem",
+                                        // setIsSwitching(true);
+                                        // setSwitchStudent(eleve);
+                                        /*if (!isEmptyPlace(eleve._id))*/ handleStudentClick(
+                                          eleve
+                                        );
+                                        // setShowModal(true)
                                       }}
                                     >
-                                      <i style={{ marginLeft: "-1rem" }}>
-                                        {!eleve.empty && (
-                                          <strong>
-                                            {
-                                              eleve?.bonus?.find(
-                                                (matiere) =>
-                                                  matiere.matière == discipline
-                                              ).notes[currentSeance - 1]
-                                            }
-                                          </strong>
-                                        )}
-                                      </i>
-                                      <i
-                                        className="fa-solid fa-circle-minus"
-                                        hidden={
-                                          eleve.empty && !showEmptyStudents
-                                            ? true
-                                            : false
+                                      <img
+                                        src={
+                                          eleve.firstname !== "Crystal"
+                                            ? eleve.photo
+                                            : "/images/handsup.png"
                                         }
                                         style={{
-                                          marginLeft: "1rem",
-                                          // display: "inline-block",
+                                          opacity:
+                                            eleve.empty == true &&
+                                            !showEmptyStudents
+                                              ? 0
+                                              : 1,
+                                          objectFit: "cover",
+                                          width: "60px",
+                                          height: "60px",
+                                          borderRadius: "50%",
+                                          flex: "1 0 10%",
+                                          marginLeft: "auto",
+                                          marginRight: "auto",
+                                          display: "block",
                                         }}
-                                        onClick={() => {
-                                          decrementBonus(eleve); //place is occupied decrease bonus
-                                        }}
-                                      ></i>
-                                    </div>
-                                  )}
-                                  {isEmptyPlace(eleve._id) && (
+                                        {...(selectedStudent?._id ==
+                                          eleve._id && {
+                                          border: "2px solid purple",
+                                        })}
+                                      />
+                                    </a>
+                                  </div>
+                                );
+                              })
+                            : null}
+                        </div>
+                      </div>
+                    </Tab>
+                    <Tab
+                      eventKey="stats"
+                      title="Stats"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div id="students-cells-stats">
+                        <div style={{ display: "flex", flexWrap: "wrap" }}>
+                          {Array.isArray(eleves)
+                            ? eleves.map((eleve) => {
+                                return (
+                                  <div
+                                    key={eleve._id}
+                                    style={{
+                                      marginBottom: "-0.5rem",
+                                      marginRight: "0.5rem",
+                                      flex: "1 0 10%",
+                                    }}
+                                  >
                                     <div
                                       style={{
                                         textAlign: "center",
                                         marginLeft: "1rem",
                                         display: "inline-block",
                                         marginTop: "0.5rem",
+                                        visibility: "hidden",
                                       }}
                                     >
                                       <i style={{ marginLeft: "-1rem" }}>
@@ -2167,129 +2494,99 @@ const Classe = () => {
                                       <i
                                         className="fa-solid fa-circle-minus"
                                         style={{
-                                          marginLeft: "1rem",
+                                          marginLeft: "2rem",
+                                          display: "inline-block",
                                           visibility: "hidden",
                                         }}
                                         // onClick={() => {
-                                        // decrementParticipation(eleve); //don't do anything place is empty
+                                        //   decrementParticipation(eleve); //place is occupied decrease participation
                                         // }}
                                       ></i>
                                     </div>
-                                  )}
-                                </div>
-                                <a
-                                  style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                  }}
-                                  // href={`#${eleve._id}`}
-                                  //a remettre???
-                                  onBlur={() => saveBonus(eleve)}
-                                >
-                                  <img
-                                    src={eleve.photo}
-                                    onClick={() => {
-                                      if (!isEmptyPlace(eleve._id))
-                                        handleStudentClick(eleve, "bonus");
-                                    }}
-                                    style={{
-                                      opacity:
-                                        eleve.empty == true &&
-                                        !showEmptyStudents
-                                          ? 0
-                                          : 1,
-                                      objectFit: "cover",
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      flex: "1 0 10%",
-                                      marginLeft: "auto",
-                                      marginRight: "auto",
-                                      display: "inline-block",
-                                      verticalAlign: "middle",
-                                    }}
-                                    {...(selectedStudent?._id == eleve._id && {
-                                      border: "2px solid purple",
-                                    })}
-                                  />
-                                </a>
-                              </div>
-                            );
-                          })
-                        : null}
-                    </div>
-                  </div>
-                </Tab>
-                <Tab
-                  eventKey="avertissement"
-                  title="Avertissement"
-                  style={{ flex: 1, textAlign: "center" }}
-                >
-                  <div id="students-cells-avertissement">
-                    <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves)
-                        ? eleves.map((eleve) => {
-                            return (
+                                    <a
+                                      style={{
+                                        color: "black",
+                                        textDecoration: "none",
+                                      }}
+                                      onClick={() => {
+                                        goToStudentStats(eleve);
+                                      }}
+                                    >
+                                      <img
+                                        src={eleve.photo}
+                                        style={{
+                                          opacity:
+                                            eleve.empty == true &&
+                                            !showEmptyStudents
+                                              ? 0
+                                              : 1,
+                                          objectFit: "cover",
+                                          width: "60px",
+                                          height: "60px",
+                                          borderRadius: "50%",
+                                          flex: "1 0 10%",
+                                          marginLeft: "auto",
+                                          marginRight: "auto",
+                                          display: "block",
+                                        }}
+                                        {...(selectedStudent?._id ==
+                                          eleve._id && {
+                                          border: "2px solid purple",
+                                        })}
+                                      />
+                                      {/* {selectedStudent?._id !== eleve._id && (
+                              <p style={{ textAlign: "center" }}>
+                                <strong>{eleve.participation}</strong>
+                              </p>
+                            )}
+                            {selectedStudent?._id === eleve._id && (
                               <div
-                                key={eleve._id}
                                 style={{
-                                  marginBottom: "-0.5rem",
-                                  marginRight: "0.5rem",
-                                  flex: "1 0 10%",
+                                  display: "flex",
+                                  justifyContent: "center",
                                 }}
-                              >
-                                <div>
-                                  {!isEmptyPlace(eleve._id) && (
+                              ></div>
+                            )} */}
+                                    </a>
+                                  </div>
+                                );
+                              })
+                            : null}
+                        </div>
+                      </div>
+                    </Tab>
+                    <Tab
+                      eventKey="competences"
+                      title="Compétences"
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
+                      <div id="students-cells-competences">
+                        <div style={{ display: "flex", flexWrap: "wrap" }}>
+                          {Array.isArray(eleves)
+                            ? eleves.map((eleve) => {
+                                return (
+                                  <div
+                                    key={eleve._id}
+                                    style={{
+                                      marginBottom: "-0.5rem",
+                                      marginRight: "0.5rem",
+                                      flex: "1 0 10%",
+                                    }}
+                                  >
                                     <div
                                       style={{
                                         textAlign: "center",
                                         marginLeft: "1rem",
                                         display: "inline-block",
                                         marginTop: "0.5rem",
+                                        visibility: "hidden",
                                       }}
                                     >
                                       <i style={{ marginLeft: "-1rem" }}>
                                         {!eleve.empty && (
                                           <strong>
                                             {
-                                              eleve?.avertissement?.find(
-                                                (matiere) =>
-                                                  matiere.matière == discipline
-                                              ).notes[currentSeance - 1]
-                                            }
-                                          </strong>
-                                        )}
-                                      </i>
-                                      <i
-                                        className="fa-solid fa-circle-minus"
-                                        hidden={
-                                          eleve.empty && !showEmptyStudents
-                                            ? true
-                                            : false
-                                        }
-                                        style={{
-                                          marginLeft: "1rem",
-                                        }}
-                                        onClick={() => {
-                                          decrementAvertissement(eleve); //place is occupied decrease avertissement
-                                        }}
-                                      ></i>
-                                    </div>
-                                  )}
-                                  {isEmptyPlace(eleve._id) && (
-                                    <div
-                                      style={{
-                                        textAlign: "center",
-                                        marginLeft: "1rem",
-                                        display: "inline-block",
-                                        marginTop: "0.5rem",
-                                      }}
-                                    >
-                                      <i style={{ marginLeft: "-1rem" }}>
-                                        {!eleve.empty && (
-                                          <strong>
-                                            {
-                                              eleve?.avertissement?.find(
+                                              eleve?.bonus?.find(
                                                 (matiere) =>
                                                   matiere.matière == discipline
                                               ).notes[currentSeance - 1]
@@ -2300,242 +2597,47 @@ const Classe = () => {
                                       <i
                                         className="fa-solid fa-circle-minus"
                                         style={{
-                                          marginLeft: "1rem",
+                                          marginLeft: "2rem",
+                                          display: "inline-block",
                                           visibility: "hidden",
                                         }}
+                                        // onClick={() => {
+                                        //   decrementParticipation(eleve); //place is occupied decrease participation
+                                        // }}
                                       ></i>
                                     </div>
-                                  )}
-                                </div>
-                                <a
-                                  style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                  }}
-                                  // href={`#${eleve._id}`}
-                                  // a remettre???
-                                  onBlur={() => {
-                                    saveAvertissement(eleve);
-                                  }}
-                                >
-                                  <img
-                                    src={eleve.photo}
-                                    onClick={() => {
-                                      if (!isEmptyPlace(eleve._id))
-                                        handleStudentClick(
-                                          eleve,
-                                          "avertissement"
-                                        );
-                                    }}
-                                    style={{
-                                      opacity:
-                                        eleve.empty == true &&
-                                        !showEmptyStudents
-                                          ? 0
-                                          : 1,
-                                      objectFit: "cover",
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      flex: "1 0 10%",
-                                      marginLeft: "auto",
-                                      marginRight: "auto",
-                                      display: "block",
-                                    }}
-                                    {...(selectedStudent?._id == eleve._id && {
-                                      border: "2px solid purple",
-                                    })}
-                                  />
-                                </a>
-                              </div>
-                            );
-                          })
-                        : null}
-                    </div>
-                  </div>
-                </Tab>
-                <Tab
-                  eventKey="echange"
-                  title="Placer"
-                  style={{ flex: 1, textAlign: "center" }}
-                >
-                  <div id="students-cells-exchange">
-                    <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves)
-                        ? eleves.map((eleve) => {
-                            return (
-                              <div
-                                key={eleve._id}
-                                style={{
-                                  marginBottom: "-0.5rem",
-                                  marginRight: "0.5rem",
-                                  flex: "1 0 10%",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    textAlign: "center",
-                                    marginLeft: "1rem",
-                                    display: "inline-block",
-                                    marginTop: "0.5rem",
-                                    visibility: "hidden",
-                                  }}
-                                >
-                                  <i style={{ marginLeft: "-1rem" }}>
-                                    {!eleve.empty && (
-                                      <strong>
-                                        {
-                                          eleve?.avertissement?.find(
-                                            (matiere) =>
-                                              matiere.matière == discipline
-                                          ).notes[currentSeance - 1]
-                                        }
-                                      </strong>
-                                    )}
-                                  </i>
-                                  <i
-                                    className="fa-solid fa-circle-minus"
-                                    style={{
-                                      marginLeft: "2rem",
-                                      display: "inline-block",
-                                      visibility: "hidden",
-                                    }}
-                                    // onClick={() => {
-                                    //   decrementParticipation(eleve); //place is occupied decrease participation
-                                    // }}
-                                  ></i>
-                                </div>
-                                <a
-                                  style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                  }}
-                                  // href={`#${eleve._id}`}
-                                  // a remettre???
-                                  onClick={() => {
-                                    // setIsSwitching(true);
-                                    // setSwitchStudent(eleve);
-                                    /*if (!isEmptyPlace(eleve._id))*/ handleStudentClick(
-                                      eleve
-                                    );
-                                    // setShowModal(true)
-                                  }}
-                                >
-                                  <img
-                                    src={
-                                      eleve.firstname !== "Crystal"
-                                        ? eleve.photo
-                                        : "/images/handsup.png"
-                                    }
-                                    style={{
-                                      opacity:
-                                        eleve.empty == true &&
-                                        !showEmptyStudents
-                                          ? 0
-                                          : 1,
-                                      objectFit: "cover",
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      flex: "1 0 10%",
-                                      marginLeft: "auto",
-                                      marginRight: "auto",
-                                      display: "block",
-                                    }}
-                                    {...(selectedStudent?._id == eleve._id && {
-                                      border: "2px solid purple",
-                                    })}
-                                  />
-                                </a>
-                              </div>
-                            );
-                          })
-                        : null}
-                    </div>
-                  </div>
-                </Tab>
-                <Tab
-                  eventKey="stats"
-                  title="Stats"
-                  style={{ flex: 1, textAlign: "center" }}
-                >
-                  <div id="students-cells-stats">
-                    <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves)
-                        ? eleves.map((eleve) => {
-                            return (
-                              <div
-                                key={eleve._id}
-                                style={{
-                                  marginBottom: "-0.5rem",
-                                  marginRight: "0.5rem",
-                                  flex: "1 0 10%",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    textAlign: "center",
-                                    marginLeft: "1rem",
-                                    display: "inline-block",
-                                    marginTop: "0.5rem",
-                                    visibility: "hidden",
-                                  }}
-                                >
-                                  <i style={{ marginLeft: "-1rem" }}>
-                                    {!eleve.empty && (
-                                      <strong>
-                                        {
-                                          eleve?.bonus?.find(
-                                            (matiere) =>
-                                              matiere.matière == discipline
-                                          ).notes[currentSeance - 1]
-                                        }
-                                      </strong>
-                                    )}
-                                  </i>
-                                  <i
-                                    className="fa-solid fa-circle-minus"
-                                    style={{
-                                      marginLeft: "2rem",
-                                      display: "inline-block",
-                                      visibility: "hidden",
-                                    }}
-                                    // onClick={() => {
-                                    //   decrementParticipation(eleve); //place is occupied decrease participation
-                                    // }}
-                                  ></i>
-                                </div>
-                                <a
-                                  style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                  }}
-                                  onClick={() => {
-                                    goToStudentStats(eleve);
-                                  }}
-                                >
-                                  <img
-                                    src={eleve.photo}
-                                    style={{
-                                      opacity:
-                                        eleve.empty == true &&
-                                        !showEmptyStudents
-                                          ? 0
-                                          : 1,
-                                      objectFit: "cover",
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      flex: "1 0 10%",
-                                      marginLeft: "auto",
-                                      marginRight: "auto",
-                                      display: "block",
-                                    }}
-                                    {...(selectedStudent?._id == eleve._id && {
-                                      border: "2px solid purple",
-                                    })}
-                                  />
-                                  {/* {selectedStudent?._id !== eleve._id && (
+                                    <a
+                                      style={{
+                                        color: "black",
+                                        textDecoration: "none",
+                                      }}
+                                      // onClick={() => {
+                                      //   goToStudentStats(eleve);
+                                      // }}
+                                    >
+                                      <img
+                                        src={eleve.photo}
+                                        style={{
+                                          opacity:
+                                            eleve.empty == true &&
+                                            !showEmptyStudents
+                                              ? 0
+                                              : 1,
+                                          objectFit: "cover",
+                                          width: "60px",
+                                          height: "60px",
+                                          borderRadius: "50%",
+                                          flex: "1 0 10%",
+                                          marginLeft: "auto",
+                                          marginRight: "auto",
+                                          display: "block",
+                                        }}
+                                        {...(selectedStudent?._id ==
+                                          eleve._id && {
+                                          border: "2px solid purple",
+                                        })}
+                                      />
+                                      {/* {selectedStudent?._id !== eleve._id && (
                               <p style={{ textAlign: "center" }}>
                                 <strong>{eleve.participation}</strong>
                               </p>
@@ -2548,153 +2650,176 @@ const Classe = () => {
                                 }}
                               ></div>
                             )} */}
-                                </a>
-                              </div>
-                            );
-                          })
-                        : null}
-                    </div>
-                  </div>
-                </Tab>
-                <Tab
-                  eventKey="competences"
-                  title="Compétences"
-                  style={{ flex: 1, textAlign: "center" }}
-                >
-                  <div id="students-cells-competences">
-                    <div style={{ display: "flex", flexWrap: "wrap" }}>
-                      {Array.isArray(eleves)
-                        ? eleves.map((eleve) => {
-                            return (
-                              <div
-                                key={eleve._id}
-                                style={{
-                                  marginBottom: "-0.5rem",
-                                  marginRight: "0.5rem",
-                                  flex: "1 0 10%",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    textAlign: "center",
-                                    marginLeft: "1rem",
-                                    display: "inline-block",
-                                    marginTop: "0.5rem",
-                                    visibility: "hidden",
-                                  }}
-                                >
-                                  <i style={{ marginLeft: "-1rem" }}>
-                                    {!eleve.empty && (
-                                      <strong>
-                                        {
-                                          eleve?.bonus?.find(
-                                            (matiere) =>
-                                              matiere.matière == discipline
-                                          ).notes[currentSeance - 1]
-                                        }
-                                      </strong>
-                                    )}
-                                  </i>
-                                  <i
-                                    className="fa-solid fa-circle-minus"
-                                    style={{
-                                      marginLeft: "2rem",
-                                      display: "inline-block",
-                                      visibility: "hidden",
-                                    }}
-                                    // onClick={() => {
-                                    //   decrementParticipation(eleve); //place is occupied decrease participation
-                                    // }}
-                                  ></i>
-                                </div>
-                                <a
-                                  style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                  }}
-                                  // onClick={() => {
-                                  //   goToStudentStats(eleve);
-                                  // }}
-                                >
-                                  <img
-                                    src={eleve.photo}
-                                    style={{
-                                      opacity:
-                                        eleve.empty == true &&
-                                        !showEmptyStudents
-                                          ? 0
-                                          : 1,
-                                      objectFit: "cover",
-                                      width: "60px",
-                                      height: "60px",
-                                      borderRadius: "50%",
-                                      flex: "1 0 10%",
-                                      marginLeft: "auto",
-                                      marginRight: "auto",
-                                      display: "block",
-                                    }}
-                                    {...(selectedStudent?._id == eleve._id && {
-                                      border: "2px solid purple",
-                                    })}
-                                  />
-                                  {/* {selectedStudent?._id !== eleve._id && (
-                              <p style={{ textAlign: "center" }}>
-                                <strong>{eleve.participation}</strong>
-                              </p>
-                            )}
-                            {selectedStudent?._id === eleve._id && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                }}
-                              ></div>
-                            )} */}
-                                </a>
-                              </div>
-                            );
-                          })
-                        : null}
-                    </div>
-                  </div>
-                </Tab>
-              </Tabs>
-              <div className="mt-5 d-flex justify-content-center">
-                {!isCompetenceInProgress && key === "competences" && (
-                  <Button
-                    onClick={() => {
-                      setShowModalStartCompetenceTest(true);
-                    }}
-                  >
-                    Evaluer <br />
-                    Compétence
-                  </Button>
-                )}
-                {isCompetenceInProgress &&
-                  key === "competences" &&
-                  isCompetenceInProgress && (
-                    <div>
-                      <div
-                        className="d-flex justify-content-center"
-                        style={{ fontSize: "1.5rem" }}
+                                    </a>
+                                  </div>
+                                );
+                              })
+                            : null}
+                        </div>
+                      </div>
+                    </Tab>
+                  </Tabs>
+                  <div className="mt-5 d-flex justify-content-center">
+                    {!isCompetenceInProgress && key === "competences" && (
+                      <Button
+                        onClick={() => {
+                          setShowModalStartCompetenceTest(true);
+                        }}
                       >
-                        Vous évaluez &nbsp;<b>"{selectedCompetence.name}"</b>
-                      </div>
-                      <div className="d-flex justify-content-center">
-                        <Button
-                          className="m-3"
-                          variant="secondary"
-                          onClick={() => {
-                            setShowModalEndCompetenceTest(true);
-                          }}
-                        >
-                          Terminer <br />
-                          Evaluation
-                        </Button>
+                        Evaluer <br />
+                        Compétence
+                      </Button>
+                    )}
+                    {isCompetenceInProgress &&
+                      key === "competences" &&
+                      isCompetenceInProgress && (
+                        <div>
+                          <div
+                            className="d-flex justify-content-center"
+                            style={{ fontSize: "1.5rem" }}
+                          >
+                            Vous évaluez &nbsp;
+                            <b>"{selectedCompetence.name}"</b>
+                          </div>
+                          <div className="d-flex justify-content-center">
+                            <Button
+                              className="m-3"
+                              variant="secondary"
+                              onClick={() => {
+                                setShowModalEndCompetenceTest(true);
+                              }}
+                            >
+                              Terminer <br />
+                              Evaluation
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </>
+              )}
+              {isStudent && (
+                <>
+                <Tabs><Tab
+                    eventKey="classe"
+                    title="La classe"
+                    style={{ flex: 1, textAlign: "center" }}
+                  >
+                    <div id="students-cells-class-student-view">
+                      <div style={{ display: "flex", flexWrap: "wrap" }}>
+                        {Array.isArray(eleves)
+                          ? eleves.map((eleve, index) => {
+                              return (
+                                <div
+                                  key={eleve._id}
+                                  style={{
+                                    marginBottom: "-0.5rem",
+                                    marginRight: "0.5rem",
+                                    flex: "1 0 10%",
+                                  }}
+                                >
+                                  <div>
+                                    {!isEmptyPlace(eleve._id) && (
+                                      <div
+                                        style={{
+                                          textAlign: "center",
+                                          marginLeft: "1rem",
+                                          display: "inline-block",
+                                          marginTop: "0.5rem",
+                                        }}
+                                      >
+                                        <i style={{ marginLeft: "-1rem" }}>
+                                          {/* {!eleve.empty && (
+                                            <strong>
+                                              {
+                                                eleve?.participation?.find(
+                                                  (matiere) =>
+                                                    matiere.matière ==
+                                                    discipline
+                                                ).notes[currentSeance - 1]
+                                              }
+                                            </strong>
+                                          )} */}
+                                        </i>
+                                      </div>
+                                    )}
+                                    {isEmptyPlace(eleve._id) && (
+                                      <div
+                                        style={{
+                                          textAlign: "center",
+                                          marginLeft: "1rem",
+                                          display: "inline-block",
+                                          marginTop: "0.5rem",
+                                        }}
+                                      >
+                                        <i style={{ marginLeft: "-1rem" }}>
+                                          {!eleve.empty && (
+                                            <strong>
+                                              {
+                                                eleve?.participation?.find(
+                                                  (matiere) =>
+                                                    matiere.matière ==
+                                                    discipline
+                                                ).notes[currentSeance - 1]
+                                              }
+                                            </strong>
+                                          )}
+                                        </i>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <a
+                                    style={{
+                                      color: "black",
+                                      textDecoration: "none",
+                                    }}
+                                    // href={`#${eleve._id}`}
+                                    //je viens d'enlever ce commentaire
+                                    //peut etre important, un moment que j'ai pas bossé sur le front, à voir les effets de bord...
+                                  >
+                                    <div>
+                                      <img
+                                        id={eleve._id}
+                                        src={eleve.photo}
+                                        onClick={() => {
+                                          if (!isEmptyPlace(eleve._id))
+                                            handleStudentClick(
+                                              eleve,
+                                              "participation"
+                                            );
+                                        }}
+                                        style={{
+                                          opacity:
+                                            eleve.empty == true &&
+                                            !showEmptyStudents
+                                              ? 0
+                                              : 1,
+                                          objectFit: "cover",
+                                          width: "60px",
+                                          height: "60px",
+                                          borderRadius: "50%",
+                                          flex: "1 0 10%",
+                                          marginLeft: "auto",
+                                          marginRight: "auto",
+                                          display: "inline-block",
+                                          verticalAlign: "middle",
+                                        }}
+                                        {...(selectedStudent?._id ==
+                                          eleve._id && {
+                                          border: "2px solid purple",
+                                        })}
+                                      />
+                                    </div>
+                                  </a>
+                                </div>
+                              );
+                            })
+                          : null}
                       </div>
                     </div>
-                  )}
-              </div>
+                  </Tab></Tabs>
+                </>
+              )}
             </div>
           </Col>
           <Col xs="3" md="3" lg="3">
@@ -2722,15 +2847,16 @@ const Classe = () => {
                   </Col>
                 </Row>
 
-                <div>Discipline: {discipline}</div>
-                <div>
+                {isTeacher &&<div>Discipline: {discipline}</div>}
+                {isStudent &&<div>Discipline: {discipline}</div>}
+                {isTeacher &&<div>
                   Séance n°: {currentSeance}
                   {/* {Array.isArray(eleves)
                     ? eleves[0].participation.find(
                         (matiere) => matiere.matière == discipline
                       ).nbSeances
                     : null} */}
-                </div>
+                </div>}
                 {/* <div>
                   <Button onClick={() => simulateEndOfSeance()}>
                     Simuler fin séance
@@ -2770,11 +2896,11 @@ const Classe = () => {
                   </Col>
                 </Row>
               )}
-              <div>
+              {isTeacher && <div>
                 <Button onClick={handleDownloadSequence}>Fin séquence</Button>
-              </div>
+              </div>}
 
-              <CsvDownloader
+              {isTeacher && <CsvDownloader
                 filename={`classe_${classe}`}
                 extension=".csv"
                 separator=";"
@@ -2794,7 +2920,7 @@ const Classe = () => {
                   >
                     <i className="fa-solid fa-download"></i>
                   </a> */}
-              </CsvDownloader>
+              </CsvDownloader>}
               <ListGroup>
                 {Array.isArray(elevesOrdreAlphabetique)
                   ? elevesOrdreAlphabetique.map((eleve, index) => {
@@ -2812,7 +2938,7 @@ const Classe = () => {
                             }}
                           >
                             {eleve.firstname}
-                            {key !== "competences" && key !== "echange" && (
+                            {key !== "competences" && key !== "echange" && isTeacher && (
                               <i
                                 className="fa-solid fa-pen-to-square"
                                 style={{ marginLeft: "2rem" }}
@@ -2821,7 +2947,7 @@ const Classe = () => {
                                 }}
                               ></i>
                             )}
-                            {key === "competences" &&
+                            {key === "competences" && isTeacher &&
                               eleve._id === selectedStudent?._id && (
                                 // Utilisation de la fonction getTextBasedOnClicks pour obtenir le texte dynamique
                                 <span className="fw-bold">
